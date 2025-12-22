@@ -72,7 +72,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
               <li>
                 <a
                   href="/products"
-                  className={`block py-1 ${!params.category ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+                  className={`block py-1 ${!params.category ? 'text-jeffy-orange font-medium' : 'text-gray-600 hover:text-gray-900'}`}
                 >
                   All Products
                 </a>
@@ -81,7 +81,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 <li key={category.id}>
                   <a
                     href={`/products?category=${category.slug}`}
-                    className={`block py-1 ${params.category === category.slug ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`block py-1 ${params.category === category.slug ? 'text-jeffy-orange font-medium' : 'text-gray-600 hover:text-gray-900'}`}
                   >
                     {category.name}
                   </a>
@@ -102,7 +102,7 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 <li key={option.value}>
                   <a
                     href={`/products?${params.category ? `category=${params.category}&` : ''}sort=${option.value}`}
-                    className={`block py-1 ${(params.sort || '') === option.value ? 'text-blue-600 font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+                    className={`block py-1 ${(params.sort || '') === option.value ? 'text-jeffy-orange font-medium' : 'text-gray-600 hover:text-gray-900'}`}
                   >
                     {option.label}
                   </a>

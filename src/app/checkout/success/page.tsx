@@ -32,7 +32,7 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
         )}
 
         {isEFT ? (
-          <div className="bg-blue-50 rounded-xl p-6 mb-8 text-left">
+          <div className="bg-primary-50 rounded-xl p-6 mb-8 text-left">
             <h3 className="font-semibold mb-3">Bank Transfer Details</h3>
             <div className="space-y-2 text-sm">
               <p><span className="text-gray-600">Bank:</span> FNB</p>

@@ -23,8 +23,8 @@ export default async function CategoriesPage() {
               href={`/products?category=${category.slug}`}
               className="group"
             >
-              <div className="bg-white rounded-xl border p-8 text-center hover:shadow-lg hover:border-blue-200 transition-all">
-                <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors">
+              <div className="bg-white rounded-xl border p-8 text-center hover:shadow-lg hover:border-primary-200 transition-all">
+                <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary-200 transition-colors">
                   <span className="text-4xl">📦</span>
                 </div>
                 <h2 className="font-semibold text-lg text-gray-900">{category.name}</h2>

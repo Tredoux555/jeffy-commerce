@@ -199,7 +199,7 @@ export default function CheckoutPage() {
               <h2 className="font-semibold mb-4">Payment Method</h2>
               
               <div className="space-y-3">
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'payfast' ? 'border-blue-600 bg-blue-50' : ''}`}>
+                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'payfast' ? 'border-jeffy-orange bg-primary-50' : ''}`}>
                   <input
                     type="radio"
                     name="payment"
@@ -214,7 +214,7 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'ozow' ? 'border-blue-600 bg-blue-50' : ''}`}>
+                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'ozow' ? 'border-jeffy-orange bg-primary-50' : ''}`}>
                   <input
                     type="radio"
                     name="payment"
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'eft' ? 'border-blue-600 bg-blue-50' : ''}`}>
+                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'eft' ? 'border-jeffy-orange bg-primary-50' : ''}`}>
                   <input
                     type="radio"
                     name="payment"
@@ -279,7 +279,7 @@ export default function CheckoutPage() {
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-400 text-xs">No img</div>
                     )}
-                    <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-jeffy-orange text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       {item.quantity}
                     </span>
                   </div>

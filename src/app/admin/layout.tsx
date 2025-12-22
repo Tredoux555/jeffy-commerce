@@ -11,7 +11,7 @@ export default function AdminLayout({
       {/* Admin Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="px-6 py-4 flex items-center justify-between">
-          <Link href="/admin" className="text-xl font-bold text-blue-600">
+          <Link href="/admin" className="text-xl font-bold text-jeffy-orange">
             Jeffy Admin
           </Link>
           <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">

@@ -96,7 +96,7 @@ export default async function AdminProductsPage() {
                   <td className="py-3 px-4 text-right">
                     <Link
                       href={`/admin/products/${product.id}`}
-                      className="text-blue-600 hover:text-blue-700"
+                      className="text-jeffy-orange hover:text-jeffy-accent"
                     >
                       Edit
                     </Link>

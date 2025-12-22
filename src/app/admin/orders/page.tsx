@@ -12,7 +12,7 @@ export default async function AdminOrdersPage() {
 
   const statusColors: Record<string, string> = {
     pending_payment: 'bg-yellow-100 text-yellow-700',
-    paid: 'bg-blue-100 text-blue-700',
+    paid: 'bg-primary-100 text-jeffy-orange',
     preparing: 'bg-purple-100 text-purple-700',
     out_for_delivery: 'bg-indigo-100 text-indigo-700',
     delivered: 'bg-green-100 text-green-700',
@@ -74,7 +74,7 @@ export default async function AdminOrdersPage() {
                   <td className="py-3 px-4 text-right">
                     <Link
                       href={`/admin/orders/${order.id}`}
-                      className="text-blue-600 hover:text-blue-700"
+                      className="text-jeffy-orange hover:text-jeffy-accent"
                     >
                       View
                     </Link>
