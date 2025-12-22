@@ -11,7 +11,7 @@ export default async function HomePage() {
     .from('products')
     .select('*')
     .eq('status', 'active')
-    .order('total_sold', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(8);
 
   const { data: categories } = await supabase
