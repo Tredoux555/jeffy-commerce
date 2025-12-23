@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingCart, Users, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -8,7 +8,6 @@ export default function AdminLayout({
 }) {
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Admin Header */}
       <header className="bg-white border-b sticky top-0 z-50">
         <div className="px-6 py-4 flex items-center justify-between">
           <Link href="/admin" className="text-xl font-bold text-jeffy-orange">
@@ -21,7 +20,6 @@ export default function AdminLayout({
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
         <aside className="w-64 bg-white border-r min-h-[calc(100vh-65px)] p-4">
           <nav className="space-y-1">
             <Link
@@ -52,10 +50,23 @@ export default function AdminLayout({
               <Users className="h-5 w-5" />
               Categories
             </Link>
+            <Link
+              href="/admin/wants"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Gift className="h-5 w-5" />
+              Wants
+            </Link>
+            <Link
+              href="/admin/procurement"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Truck className="h-5 w-5" />
+              Procurement
+            </Link>
           </nav>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 p-6">{children}</main>
       </div>
     </div>
