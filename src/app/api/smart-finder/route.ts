@@ -45,7 +45,8 @@ Rules:
 
 Respond in this exact JSON format only, no other text:
 {
-  "cn": "Chinese search key"English translation of keywords", 
+  "cn": "Chinese search keywords",
+  "en": "English translation of keywords", 
   "tags": ["tag1", "tag2"],
   "reasoning": "Brief explanation of why these keywords work"
 }`
@@ -65,7 +66,7 @@ Respond in this exact JSON format only, no other text:
   } catch (e) {
     console.error('Failed to parse keyword optimization:', e);
   }
-  
+
   return { cn: query, en: query, tags: [] };
 }
 
@@ -83,11 +84,11 @@ async function analyzeAndRecommend(products: Product1688[], originalQuery: strin
       reasoning: 'Only one product provided for analysis.',
       priceAnalysis: `Price: ¥${products[0].price}`,
       qualityScore: 70,
-      valueScoe: 70,
+      valueScore: 70,
     };
   }
 
-  const productSummaries = products.map((p, i) => 
+  const productSummaries = products.map((p, i) =>
     `${i + 1}. ID: ${p.id}
    Title: ${p.title}
    Price: ¥${p.price} (Range: ¥${p.priceRange.min}-${p.priceRange.max})
@@ -114,7 +115,7 @@ Consider:
 1. Price competitiveness (lower is better, but not suspiciously low)
 2. Sales volume (higher = proven demand, quality validation)
 3. Supplier rating and years in business (reliability)
-4. MOQ (ler is better for testing)
+4. MOQ (lower is better for testing)
 5. Value for money
 
 Respond in this exact JSON format only:
@@ -239,7 +240,7 @@ export async function POST(request: NextRequest) {
         const recommendation = await analyzeAndRecommend(products, query);
         const recommendedProduct = products.find((p: Product1688) => p.id === recommendation?.productId);
         const pricing = recommendedProduct ? calculatePricing(recommendedProduct.price) : null;
-        
+
         return NextResponse.json({
           success: true,
           data: { recommendation, pricing }
