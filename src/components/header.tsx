@@ -2,13 +2,18 @@
 
 import Link from 'next/link';
 import { ShoppingCart, Search, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCartStore } from '@/lib/cart-store';
 import { Button } from '@/components/ui/button';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const itemCount = useCartStore((state) => state.getItemCount());
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 bg-jeffy-dark border-b border-white/10 shadow-sm">
@@ -38,7 +43,7 @@ export function Header() {
             <Link href="/cart">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                {itemCount > 0 && (
+                {mounted && itemCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-jeffy-orange text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {itemCount > 99 ? '99+' : itemCount}
                   </span>
