@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
   ArrowLeft, Search, Sparkles, ExternalLink, Plus, Copy, Check, 
-  Loader2, TrendingUp, Package, ChevronRight, Zap, Globe, DollarSign, Award, Trash2
+  Loader2, TrendingUp, Package, ChevronRight, Zap, Globe, DollarSign, Award, Trash2, Gift
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,15 +39,21 @@ interface Pricing {
 }
 
 export default function SmartFinderPage() {
+  const searchParams = useSearchParams();
+  const wantId = searchParams.get('want_id');
+  const wantTitle = searchParams.get('want_title');
+  const shareCode = searchParams.get('share_code');
+
   const [step, setStep] = useState<'search' | 'products' | 'results'>('search');
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(wantTitle || '');
   const [keywords, setKeywords] = useState<{ cn: string; en: string; tags: string[]; reasoning: string } | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [translation, setTranslation] = useState<{ title: string; description: string } | null>(null);
   const [pricing, setPricing] = useState<Pricing | null>(null);
   const [copied, setCopied] = useState(false);
+  const [saving, setSaving] = useState(false);
   
   const [newProduct, setNewProduct] = useState({
     url: '',
@@ -58,6 +65,13 @@ export default function SmartFinderPage() {
     supplierName: '',
     supplierRating: '',
   });
+
+  // Auto-search if coming from a want
+  useEffect(() => {
+    if (wantTitle && !keywords) {
+      handleSearch();
+    }
+  }, [wantTitle]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -167,11 +181,47 @@ export default function SmartFinderPage() {
     }
   };
 
+  const handleSaveToWant = async () => {
+    if (!wantId || !recommendation) return;
+    
+    const winner = products.find(p => p.id === recommendation.productId);
+    if (!winner) return;
+
+    setSaving(true);
+    try {
+      const response = await fetch('/api/smart-finder/save-to-want', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wantId,
+          product: winner,
+          recommendation,
+          translation,
+          pricing,
+        }),
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('Product saved to Want! The want has been marked as sourced.');
+      } else {
+        alert('Failed to save: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Save failed:', error);
+      alert('Failed to save product to want');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleCopyForAgent = () => {
     const winner = products.find(p => p.id === recommendation?.productId);
     if (!winner || !pricing) return;
 
-    const message = `🛒 SMART FINDER RECOMMENDATION
+    const wantInfo = wantId ? `\n🎁 For Want: ${wantTitle} (#${shareCode})` : '';
+
+    const message = `🛒 SMART FINDER RECOMMENDATION${wantInfo}
 
 Product: ${translation?.title || winner.title}
 1688 URL: ${winner.url}
@@ -200,7 +250,7 @@ Please confirm availability and shipping cost to SA.`;
 
   const handleReset = () => {
     setStep('search');
-    setSearchQuery('');
+    setSearchQuery(wantTitle || '');
     setKeywords(null);
     setProducts([]);
     setRecommendation(null);
@@ -211,7 +261,7 @@ Please confirm availability and shipping cost to SA.`;
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/admin/procurement">
+        <Link href={wantId ? "/admin/wants" : "/admin/procurement"}>
           <Button variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -225,6 +275,21 @@ Please confirm availability and shipping cost to SA.`;
           <p className="text-gray-600">AI-powered 1688 product research</p>
         </div>
       </div>
+
+      {/* Want Context Banner */}
+      {wantId && (
+        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+              <Gift className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <p className="font-medium text-purple-800">Sourcing for Want: {wantTitle}</p>
+              <p className="text-sm text-purple-600">Share code: #{shareCode}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex items-center gap-2 text-sm">
         <div className={`flex items-center gap-1 ${step === 'search' ? 'text-jeffy-orange font-medium' : 'text-gray-400'}`}>
@@ -530,12 +595,20 @@ Please confirm availability and shipping cost to SA.`;
               {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
               {copied ? 'Copied!' : 'Copy for WhatsApp Agent'}
             </Button>
-            <Link href="/admin/procurement" className="flex-1">
-              <Button className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Procurement Order
+            
+            {wantId ? (
+              <Button onClick={handleSaveToWant} disabled={saving} className="flex-1 bg-purple-600 hover:bg-purple-700">
+                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Gift className="h-4 w-4 mr-2" />}
+                {saving ? 'Saving...' : 'Save to Want & Mark Sourced'}
               </Button>
-            </Link>
+            ) : (
+              <Link href="/admin/procurement" className="flex-1">
+                <Button className="w-full">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Procurement Order
+                </Button>
+              </Link>
+            )}
           </div>
 
           <Button variant="outline" onClick={handleReset}>
