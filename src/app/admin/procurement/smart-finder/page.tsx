@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Sparkles, Search, ExternalLink, Copy, Check, TrendingUp, DollarSign, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Sparkles, Search, ExternalLink, Copy, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -64,12 +64,12 @@ export default function SmartFinderPage() {
       const response = await fetch('/api/smart-finder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'optimize-keywords', query: searchQuery }),
+        body: JSON.stringify({ action: 'search', query: searchQuery }),
       });
 
       const data = await response.json();
       if (data.success) {
-        setKeywords(data.data);
+        setKeywords(data.data.keywords);
         setStep(2);
       }
     } catch (error) {
@@ -80,47 +80,33 @@ export default function SmartFinderPage() {
   };
 
   const analyzeProducts = async () => {
-    const urls = productUrls.split('\n').map(url => url.trim()).filter(url => url);
-    if (urls.length === 0) return;
-
-    setLoading(true);
+    // For now, expect products to be pasted as JSON objects
+    // TODO: Add proper product input form
     try {
-      const productPromises = urls.map(async (url) => {
-        const response = await fetch('/api/smart-finder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'get-product', url }),
-        });
-        const data = await response.json();
-        return data.success ? data.data.product : null;
+      const productData = JSON.parse(productUrls);
+      const products = Array.isArray(productData) ? productData : [productData];
+      setProducts(products);
+
+      // Get AI recommendation
+      const analysisResponse = await fetch('/api/smart-finder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze',
+          query: searchQuery,
+          products: products
+        }),
       });
 
-      const fetchedProducts = (await Promise.all(productPromises)).filter(Boolean);
-      setProducts(fetchedProducts);
-
-      if (fetchedProducts.length > 0) {
-        // Get AI recommendation
-        const analysisResponse = await fetch('/api/smart-finder', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'analyze',
-            query: searchQuery,
-            products: fetchedProducts
-          }),
-        });
-
-        const analysisData = await analysisResponse.json();
-        if (analysisData.success) {
-          setRecommendation(analysisData.data.recommendation);
-          setPricing(analysisData.data.pricing);
-          setStep(3);
-        }
+      const analysisData = await analysisResponse.json();
+      if (analysisData.success) {
+        setRecommendation(analysisData.data.recommendation);
+        setPricing(analysisData.data.pricing);
+        setStep(3);
       }
     } catch (error) {
       console.error('Failed to analyze products:', error);
-    } finally {
-      setLoading(false);
+      alert('Please paste valid product data as JSON. Example format coming soon.');
     }
   };
 
@@ -207,7 +193,7 @@ Please confirm availability and shipping cost to SA.`;
             className="flex-1"
           />
           <Button onClick={optimizeKeywords} disabled={loading || !searchQuery}>
-            {loading ? 'Optimizing...' : 'Optimize Keywords'}
+            {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Optimizing...</> : 'Optimize Keywords'}
           </Button>
         </div>
 
@@ -243,19 +229,35 @@ Please confirm availability and shipping cost to SA.`;
 
           <div className="mb-4">
             <label className="block text-sm font-medium mb-1">
-              1688 Product URLs (one per line)
+              Product Data (JSON format)
             </label>
             <textarea
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[120px]"
-              placeholder="https://detail.1688.com/offer/123456789.html&#10;https://detail.1688.com/offer/987654321.html"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm min-h-[200px] font-mono text-xs"
+              placeholder={`[
+  {
+    "id": "123456789",
+    "title": "Wireless Bluetooth Earbuds",
+    "titleCn": "无线蓝牙耳机",
+    "price": 25.50,
+    "priceRange": {"min": 20, "max": 35},
+    "moq": 50,
+    "sales30d": 500,
+    "supplierName": "Shenzhen Audio Co",
+    "supplierRating": 4.8,
+    "supplierYears": 5,
+    "supplierLocation": "Guangdong"
+  }
+]`}
               value={productUrls}
               onChange={(e) => setProductUrls(e.target.value)}
             />
+            <p className="text-xs text-gray-500 mt-1">
+              Paste product details from 1688 in JSON format. Copy from browser dev tools or use the data you find on the product pages.
+            </p>
           </div>
 
           <Button onClick={analyzeProducts} disabled={loading || !productUrls.trim()}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            {loading ? 'Analyzing...' : 'Get AI Recommendation'}
+            {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Analyzing...</> : <><Sparkles className="h-4 w-4 mr-2" />Get AI Recommendation</>}
           </Button>
         </div>
       )}
