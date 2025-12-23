@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -38,7 +38,7 @@ interface Pricing {
   margin: number;
 }
 
-export default function SmartFinderPage() {
+function SmartFinderContent() {
   const searchParams = useSearchParams();
   const wantId = searchParams.get('want_id');
   const wantTitle = searchParams.get('want_title');
@@ -54,6 +54,7 @@ export default function SmartFinderPage() {
   const [pricing, setPricing] = useState<Pricing | null>(null);
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [autoSearched, setAutoSearched] = useState(false);
   
   const [newProduct, setNewProduct] = useState({
     url: '',
@@ -65,13 +66,6 @@ export default function SmartFinderPage() {
     supplierName: '',
     supplierRating: '',
   });
-
-  // Auto-search if coming from a want
-  useEffect(() => {
-    if (wantTitle && !keywords) {
-      handleSearch();
-    }
-  }, [wantTitle]);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -95,6 +89,13 @@ export default function SmartFinderPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (wantTitle && !autoSearched && !keywords) {
+      setAutoSearched(true);
+      handleSearch();
+    }
+  }, [wantTitle, autoSearched, keywords]);
 
   const handleOpen1688 = () => {
     if (keywords?.cn) {
@@ -276,7 +277,6 @@ Please confirm availability and shipping cost to SA.`;
         </div>
       </div>
 
-      {/* Want Context Banner */}
       {wantId && (
         <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
           <div className="flex items-center gap-3">
@@ -617,5 +617,17 @@ Please confirm availability and shipping cost to SA.`;
         </div>
       )}
     </div>
+  );
+}
+
+export default function SmartFinderPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-jeffy-orange" />
+      </div>
+    }>
+      <SmartFinderContent />
+    </Suspense>
   );
 }
