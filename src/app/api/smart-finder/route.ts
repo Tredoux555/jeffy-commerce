@@ -70,100 +70,6 @@ Respond in this exact JSON format only, no other text:
   return { cn: query, en: query, tags: [] };
 }
 
-async function search1688Products(keywordsCn: string, limit: number = 10): Promise<Product1688[]> {
-  if (TMAPI_KEY) {
-    try {
-      const response = await fetch(
-        `${TMAPI_BASE}/ali/search/items?keyword=${encodeURIComponent(keywordsCn)}&page=1&pageSize=${limit}&apiToken=${TMAPI_KEY}`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        return (data.data?.items || []).map((item: any) => ({
-          id: item.itemId || item.id,
-          title: item.title,
-          titleCn: item.titleCn || item.title,
-          price: parseFloat(item.price || 0),
-          priceRange: {
-            min: parseFloat(item.priceRange?.[0] || item.price || 0),
-            max: parseFloat(item.priceRange?.[1] || item.price || 0),
-          },
-          moq: parseInt(item.moq || item.minOrder || 1),
-          sales30d: parseInt(item.sales30d || item.sold || 0),
-          mainImage: item.mainImage || item.image,
-          images: item.images || [item.image],
-          supplierName: item.shopName || item.sellerName || 'Unknown',
-          supplierRating: parseFloat(item.shopScore || item.rating || 0),
-          supplierYears: parseInt(item.shopYears || 0),
-          supplierLocation: item.location || 'China',
-          url: `https://detail.1688.com/offer/${item.itemId || item.id}.html`,
-        }));
-      }
-    } catch (e) {
-      console.error('TMAPI search failed:', e);
-    }
-  }
-  return [];
-}
-
-async function getProductFromUrl(url: string): Promise<Product1688 | null> {
-  const match = url.match(/offer\/(\d+)/);
-  if (!match) return null;
-
-  const offerId = match[1];
-
-  if (TMAPI_KEY) {
-    try {
-      const response = await fetch(
-        `${TMAPI_BASE}/ali/item/detail?itemId=${offerId}&apiToken=${TMAPI_KEY}`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const item = data.data;
-        return {
-          id: offerId,
-          title: item.title,
-          titleCn: item.titleCn || item.title,
-          price: parseFloat(item.price || 0),
-          priceRange: {
-            min: parseFloat(item.priceRange?.[0] || item.price || 0),
-            max: parseFloat(item.priceRange?.[1] || item.price || 0),
-          },
-          moq: parseInt(item.moq || 1),
-          sales30d: parseInt(item.sales30d || 0),
-          mainImage: item.mainImage,
-          images: item.images || [],
-          supplierName: item.shopName || 'Unknown',
-          supplierRating: parseFloat(item.shopScore || 0),
-          supplierYears: parseInt(item.shopYears || 0),
-          supplierLocation: item.location || 'China',
-          url: url,
-        };
-      }
-    } catch (e) {
-      console.error('TMAPI detail fetch failed:', e);
-    }
-  }
-
-  return {
-    id: offerId,
-    title: 'Product from 1688',
-    titleCn: '1688产品',
-    price: 0,
-    priceRange: { min: 0, max: 0 },
-    moq: 1,
-    sales30d: 0,
-    mainImage: '',
-    images: [],
-    supplierName: 'Unknown',
-    supplierRating: 0,
-    supplierYears: 0,
-    supplierLocation: 'China',
-    url: url,
-  };
-}
-
 async function analyzeAndRecommend(products: Product1688[], originalQuery: string): Promise<{
   productId: string;
   reasoning: string;
@@ -320,27 +226,13 @@ export async function POST(request: NextRequest) {
 
       case 'search': {
         const keywords = await optimizeSearchKeywords(query);
-        const searchResults = await search1688Products(keywords.cn, 10);
         return NextResponse.json({
           success: true,
           data: {
             keywords,
-            products: searchResults,
+            products: [],
             apiEnabled: !!TMAPI_KEY,
           }
-        });
-      }
-
-      case 'get-product': {
-        const product = await getProductFromUrl(url);
-        if (!product) {
-          return NextResponse.json({ success: false, error: 'Invalid URL' }, { status: 400 });
-        }
-        const pricing = calculatePricing(product.price);
-        const translation = await translateProduct(product);
-        return NextResponse.json({
-          success: true,
-          data: { product, pricing, translation }
         });
       }
 
@@ -377,18 +269,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams;
-  const action = searchParams.get('action');
-
-  if (action === 'status') {
-    return NextResponse.json({
-      success: true,
-      data: {
-        apiEnabled: !!TMAPI_KEY,
-        anthropicEnabled: !!process.env.ANTHROPIC_API_KEY,
-      }
-    });
-  }
-
-  return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
+  return NextResponse.json({
+    success: true,
+    data: {
+      apiEnabled: !!TMAPI_KEY,
+      anthropicEnabled: !!process.env.ANTHROPIC_API_KEY,
+    }
+  });
 }
