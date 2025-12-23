@@ -7,19 +7,23 @@ import { Button } from '@/components/ui/button';
 export default async function HomePage() {
   const supabase = await createClient();
 
-  const { data: products } = await supabase
+  const { data: products, error } = await supabase
     .from('products')
     .select('*')
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(8);
 
-  const { data: categories } = await supabase
+  console.log('Products query result:', { products, error });
+
+  const { data: categories, error: categoriesError } = await supabase
     .from('categories')
     .select('*')
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
     .limit(6);
+
+  console.log('Categories query result:', { categories, error: categoriesError });
 
   return (
     <div>
