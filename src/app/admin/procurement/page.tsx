@@ -32,7 +32,21 @@ export default async function ProcurementPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-4 gap-4">
+        <Link href="/admin/procurement/smart-finder">
+          <div className="bg-white rounded-xl border p-6 hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-jeffy-orange to-jeffy-yellow rounded-lg">
+                <span className="text-white text-lg">🤖</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Smart Finder</h3>
+                <p className="text-sm text-gray-500">AI-powered product research</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
         <Link href="/admin/procurement/research">
           <div className="bg-white rounded-xl border p-6 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center gap-4">
@@ -40,7 +54,7 @@ export default async function ProcurementPage() {
                 <Search className="h-6 w-6 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-medium">Research 1688</h3>
+                <h3 className="font-medium">Manual Research</h3>
                 <p className="text-sm text-gray-500">Search or paste product URL</p>
               </div>
             </div>

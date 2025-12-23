@@ -10,6 +10,7 @@
     "insert-sample-data": "node scripts/insert-sample-data.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
     "clsx": "^2.1.1",
