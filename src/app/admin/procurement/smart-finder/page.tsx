@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { calculateImportCosts, formatZAR, detectCategory } from '@/lib/import-calculator';
 
@@ -30,7 +30,6 @@ export default function SmartFinderPage() {
   // Images state
   const [images, setImages] = useState<ProductImage[]>([]);
   const [imageUrlInput, setImageUrlInput] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // AI generation state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -79,12 +78,9 @@ export default function SmartFinderPage() {
     setImageUrlInput('');
   };
 
-  // Handle file upload
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    for (const file of Array.from(files)) {
+  // Handle files selected
+  const handleFilesSelected = async (files: File[]) => {
+    for (const file of files) {
       // Convert to base64 for preview and AI analysis
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -178,39 +174,53 @@ export default function SmartFinderPage() {
     try {
       const supabase = createClient();
       const selectedImages = images.filter(img => img.selected).map(img => img.url);
+      
+      // Generate slug from title
+      const slug = editTitle
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+        + '-' + Date.now().toString(36);
 
-      // Create the product
+      // Create the product with correct column names
       const { data: product, error } = await supabase
         .from('products')
         .insert({
           name: editTitle,
-          description: editDescription,
-          short_description: editShortDescription,
-          price: editPrice,
-          compare_at_price: Math.round(editPrice * 1.3),
+          slug: editTitle
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '')
+            + '-' + Date.now().toString(36),
+          description: editDescription || '',
+          short_description: editShortDescription || '',
+          selling_price_cents: Math.round(editPrice * 100),
+          cost_price_cents: Math.round((costs?.totalLandedCost || priceCNY * 3.2) * 100) || 100,
+          compare_at_price_cents: Math.round(editPrice * 1.3 * 100),
           category_id: selectedCategoryId || null,
-          sku: `JEF-${Date.now().toString(36).toUpperCase()}`,
-          stock_quantity: 100,
-          is_active: true,
-          tags: editTags,
-          image_url: selectedImages[0] || '/placeholder-product.png',
-          images: selectedImages,
-          metadata: {
-            source: {
-              platform: '1688',
-              url: productUrl,
-              supplierName,
-              priceCNY,
-              moq,
-            },
-            costs: costs,
+          quantity: 100,
+          status: 'active',
+          tags: editTags || [],
+          primary_image_url: images.filter(img => img.selected)[0]?.url || null,
+          images: images.filter(img => img.selected).map(img => img.url) || [],
+          source_1688_url: productUrl || null,
+          source_1688_data: {
+            supplierName: supplierName || '',
+            priceCNY: priceCNY || 0,
+            moq: moq || 1,
             importedAt: new Date().toISOString(),
+          },
+          metadata: {
+            costs: costs || {},
           },
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       // Create procurement record for agent
       await supabase.from('procurement_orders').insert({
@@ -219,7 +229,7 @@ export default function SmartFinderPage() {
         supplier_url: productUrl,
         unit_cost_cny: priceCNY,
         unit_cost_zar: costs?.productCostZAR || 0,
-        quantity: 0, // Will be updated when orders come in
+        quantity: 0,
         total_cost_zar: 0,
         status: 'active',
         notes: `MOQ: ${moq}`,
@@ -236,6 +246,11 @@ export default function SmartFinderPage() {
       setImages([]);
       setGeneratedProduct(null);
       setCosts(null);
+      setEditTitle('');
+      setEditDescription('');
+      setEditShortDescription('');
+      setEditPrice(0);
+      setEditTags([]);
       
     } catch (error) {
       console.error('Save error:', error);
@@ -361,6 +376,7 @@ export default function SmartFinderPage() {
                 />
                 <button
                   onClick={addImageFromUrl}
+                  type="button"
                   className="px-4 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 font-medium"
                 >
                   Add
@@ -374,23 +390,41 @@ export default function SmartFinderPage() {
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="image/*"
-                multiple
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-green-500 hover:text-green-600 transition-colors flex items-center justify-center gap-2"
+              {/* Drag and drop zone */}
+              <div
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const files = e.dataTransfer.files;
+                  if (files && files.length > 0) {
+                    handleFilesSelected(Array.from(files));
+                  }
+                }}
+                onClick={() => {
+                  const input = document.createElement('input');
+                  input.type = 'file';
+                  input.accept = 'image/*';
+                  input.multiple = true;
+                  input.onchange = (e) => {
+                    const files = (e.target as HTMLInputElement).files;
+                    if (files) {
+                      handleFilesSelected(Array.from(files));
+                    }
+                  };
+                  input.click();
+                }}
+                className="w-full py-8 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-green-500 hover:text-green-600 hover:bg-green-50 transition-colors flex flex-col items-center justify-center gap-2 cursor-pointer"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                Upload from computer
-              </button>
+                <span className="font-medium">Drop images here or click to upload</span>
+                <span className="text-xs text-gray-400">PNG, JPG up to 10MB</span>
+              </div>
 
               {/* Image Grid */}
               {images.length > 0 && (
@@ -423,7 +457,7 @@ export default function SmartFinderPage() {
                           e.stopPropagation();
                           removeImage(img.id);
                         }}
-                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600"
                       >
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

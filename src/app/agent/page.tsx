@@ -59,8 +59,9 @@ export default function AgentPortal() {
             products (
               id,
               name,
-              image_url,
-              metadata
+              primary_image_url,
+              source_1688_url,
+              source_1688_data
             )
           )
         `)
@@ -77,8 +78,7 @@ export default function AgentPortal() {
           const product = item.products;
           if (!product) return;
 
-          const metadata = product.metadata || {};
-          const source = metadata.source || {};
+          const source1688Data = product.source_1688_data || {};
 
           const existing = productMap.get(product.id);
           if (existing) {
@@ -90,10 +90,10 @@ export default function AgentPortal() {
             productMap.set(product.id, {
               productId: product.id,
               productName: product.name,
-              productImage: product.image_url || '/placeholder-product.png',
-              supplierUrl: source.url || '',
-              supplierName: source.supplierName || 'Unknown',
-              unitCostCNY: source.priceCNY || 0,
+              productImage: product.primary_image_url || '/placeholder-product.png',
+              supplierUrl: product.source_1688_url || '',
+              supplierName: source1688Data.supplierName || 'Unknown',
+              unitCostCNY: source1688Data.priceCNY || 0,
               quantity: item.quantity,
               orderNumbers: [order.order_number],
             });

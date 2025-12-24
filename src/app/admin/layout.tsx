@@ -70,13 +70,6 @@ export default function AdminLayout({
               Procurement
             </Link>
             <Link
-              href="/admin/procurement/smart-finder"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg ml-6"
-            >
-              <span className="text-jeffy-orange">🤖</span>
-              Smart Finder
-            </Link>
-            <Link
               href="/admin/partners"
               className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
                 pathname === '/admin/partners' 
