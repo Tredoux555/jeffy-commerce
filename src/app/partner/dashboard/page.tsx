@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Truck, MapPin, Package, DollarSign, Clock, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Truck, MapPin, Package, DollarSign, Clock, CheckCircle, Loader2, AlertCircle, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 
@@ -161,9 +161,17 @@ export default function PartnerDashboardPage() {
             <h1 className="text-2xl font-bold text-gray-900">Partner Dashboard</h1>
             <p className="text-gray-600">Welcome back, {partner.full_legal_name}</p>
           </div>
-          <Link href="/">
-            <Button variant="outline">Back to Store</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/partner/scan">
+              <Button className="bg-gradient-to-r from-orange-500 to-yellow-500">
+                <QrCode className="h-4 w-4 mr-2" />
+                Scan QR
+              </Button>
+            </Link>
+            <Link href="/">
+              <Button variant="outline">Back to Store</Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats */}
@@ -251,7 +259,7 @@ export default function PartnerDashboardPage() {
           ) : (
             <div className="divide-y">
               {deliveries.map((delivery) => (
-                <div key={delivery.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                <Link key={delivery.id} href={`/partner/delivery/${delivery.id}`} className="p-4 flex items-center justify-between hover:bg-gray-50 block">
                   <div>
                     <p className="font-medium">Order #{delivery.order_id.slice(0, 8)}</p>
                     <p className="text-sm text-gray-500">
@@ -267,7 +275,7 @@ export default function PartnerDashboardPage() {
                   }`}>
                     {delivery.status}
                   </span>
-                </div>
+                </Link>
               ))}
             </div>
           )}
