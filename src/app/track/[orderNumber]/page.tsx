@@ -243,7 +243,7 @@ export default function TrackOrderPage() {
           <h2 className="font-semibold mb-2">Need Help?</h2>
           <p className="text-sm opacity-90 mb-4">Contact our support team for any questions about your order.</p>
           <a href="tel:+27123456789">
-            <Button variant="secondary" className="w-full">
+            <Button variant="outline" className="w-full bg-white">
               <Phone className="h-4 w-4 mr-2" />
               Call Support
             </Button>
