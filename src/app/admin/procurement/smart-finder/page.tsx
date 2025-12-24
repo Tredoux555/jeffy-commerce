@@ -1,701 +1,656 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { 
-  ArrowLeft, Search, Sparkles, ExternalLink, Plus, Copy, Check, 
-  Loader2, TrendingUp, Package, ChevronRight, Zap, Globe, DollarSign, Award, Trash2, Gift
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import AddToStoreModal from '@/components/admin/AddToStoreModal';
+import { useState, useRef, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
+import { calculateImportCosts, formatZAR, detectCategory } from '@/lib/import-calculator';
 
-interface Product {
+interface ProductImage {
   id: string;
-  title: string;
-  titleCn: string;
-  price: number;
-  moq: number;
-  sales30d: number;
-  mainImage: string;
-  supplierName: string;
-  supplierRating: number;
   url: string;
+  selected: boolean;
 }
 
-interface Recommendation {
-  productId: string;
-  reasoning: string;
-  priceAnalysis: string;
-  qualityScore: number;
-  valueScore: number;
+interface GeneratedProduct {
+  title: string;
+  description: string;
+  shortDescription: string;
+  tags: string[];
+  category: string;
+  extractedText?: string;
 }
 
-interface Pricing {
-  costZar: number;
-  shippingZar: number;
-  suggestedPrice: number;
-  margin: number;
-}
-
-function SmartFinderContent() {
-  const searchParams = useSearchParams();
-  const wantId = searchParams?.get('want_id');
-  const wantTitle = searchParams?.get('want_title');
-  const shareCode = searchParams?.get('share_code');
-
-  const [step, setStep] = useState<'search' | 'products' | 'results'>('search');
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(wantTitle || '');
-  const [keywords, setKeywords] = useState<{ cn: string; en: string; tags: string[]; reasoning: string } | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
-  const [translation, setTranslation] = useState<{ title: string; description: string } | null>(null);
-  const [pricing, setPricing] = useState<Pricing | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [autoSearched, setAutoSearched] = useState(false);
-  const [showAddToStoreModal, setShowAddToStoreModal] = useState(false);
-  const [selectedProductForStore, setSelectedProductForStore] = useState<any>(null);
+export default function SmartFinderPage() {
+  // Form state
+  const [productUrl, setProductUrl] = useState('');
+  const [productName, setProductName] = useState('');
+  const [priceCNY, setPriceCNY] = useState<number>(0);
+  const [supplierName, setSupplierName] = useState('');
+  const [moq, setMoq] = useState<number>(1);
   
-  const [newProduct, setNewProduct] = useState({
-    url: '',
-    title: '',
-    titleCn: '',
-    price: '',
-    moq: '',
-    sales30d: '',
-    supplierName: '',
-    supplierRating: '',
-  });
+  // Images state
+  const [images, setImages] = useState<ProductImage[]>([]);
+  const [imageUrlInput, setImageUrlInput] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // AI generation state
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedProduct, setGeneratedProduct] = useState<GeneratedProduct | null>(null);
+  
+  // Editable fields after generation
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editShortDescription, setEditShortDescription] = useState('');
+  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  
+  // Categories
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Costs
+  const [costs, setCosts] = useState<any>(null);
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
-    
-    setLoading(true);
-    try {
-      const response = await fetch('/api/smart-finder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'optimize-keywords', query: searchQuery }),
-      });
-      
-      const data = await response.json();
-      if (data.success) {
-        setKeywords(data.data);
-        setStep('products');
-      }
-    } catch (error) {
-      console.error('Search failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load categories on mount
   useEffect(() => {
-    if (wantTitle && !autoSearched && !keywords) {
-      setAutoSearched(true);
-      handleSearch();
-    }
-  }, [wantTitle, autoSearched, keywords]);
-
-  const handleOpen1688 = () => {
-    if (keywords?.cn) {
-      window.open(`https://s.1688.com/selloffer/offer_search.htm?keywords=${encodeURIComponent(keywords.cn)}`, '_blank');
-    }
-  };
-
-  const handleAddProduct = () => {
-    if (!newProduct.url || !newProduct.title || !newProduct.price) {
-      alert('Please fill in URL, Title, and Price');
-      return;
-    }
-
-    const match = newProduct.url.match(/offer\/(\d+)/);
-    const id = match ? match[1] : Date.now().toString();
-
-    const product: Product = {
-      id,
-      title: newProduct.title,
-      titleCn: newProduct.titleCn || newProduct.title,
-      price: parseFloat(newProduct.price),
-      moq: parseInt(newProduct.moq) || 1,
-      sales30d: parseInt(newProduct.sales30d) || 0,
-      mainImage: '',
-      supplierName: newProduct.supplierName || 'Unknown',
-      supplierRating: parseFloat(newProduct.supplierRating) || 0,
-      url: newProduct.url,
+    const fetchCategories = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('categories')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+      setCategories(data || []);
     };
+    fetchCategories();
+  }, []);
 
-    setProducts([...products, product]);
-    setNewProduct({ url: '', title: '', titleCn: '', price: '', moq: '', sales30d: '', supplierName: '', supplierRating: '' });
+  // Add image from URL
+  const addImageFromUrl = () => {
+    if (!imageUrlInput.trim()) return;
+    
+    const newImage: ProductImage = {
+      id: Date.now().toString(),
+      url: imageUrlInput.trim(),
+      selected: true,
+    };
+    
+    setImages([...images, newImage]);
+    setImageUrlInput('');
   };
 
-  const handleRemoveProduct = (id: string) => {
-    setProducts(products.filter(p => p.id !== id));
+  // Handle file upload
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      // Convert to base64 for preview and AI analysis
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        const newImage: ProductImage = {
+          id: Date.now().toString() + Math.random(),
+          url: base64,
+          selected: true,
+        };
+        setImages(prev => [...prev, newImage]);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleAnalyze = async () => {
-    if (products.length === 0) {
-      alert('Add at least one product to analyze');
+  // Toggle image selection
+  const toggleImageSelection = (id: string) => {
+    setImages(images.map(img => 
+      img.id === id ? { ...img, selected: !img.selected } : img
+    ));
+  };
+
+  // Remove image
+  const removeImage = (id: string) => {
+    setImages(images.filter(img => img.id !== id));
+  };
+
+  // Generate product with AI
+  const generateProduct = async () => {
+    if (!productName && images.length === 0) {
+      alert('Please add a product name or at least one image');
       return;
     }
 
-    setLoading(true);
-    try {
-      const response = await fetch('/api/smart-finder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'analyze', query: searchQuery, products }),
-      });
-      
-      const data = await response.json();
-      if (data.success && data.data.recommendation) {
-        setRecommendation(data.data.recommendation);
-        
-        const winner = products.find(p => p.id === data.data.recommendation.productId);
-        if (winner) {
-          const [transRes, priceRes] = await Promise.all([
-            fetch('/api/smart-finder', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'translate', titleCn: winner.titleCn }),
-            }),
-            fetch('/api/smart-finder', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ action: 'calculate-pricing', priceCny: winner.price }),
-            }),
-          ]);
-          
-          const transData = await transRes.json();
-          const priceData = await priceRes.json();
-          
-          if (transData.success) setTranslation(transData.data.translation);
-          if (priceData.success) setPricing(priceData.data.pricing);
-        }
-        
-        setStep('results');
-      }
-    } catch (error) {
-      console.error('Analysis failed:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSaveToWant = async () => {
-    if (!wantId || !recommendation) return;
+    setIsGenerating(true);
     
-    const winner = products.find(p => p.id === recommendation.productId);
-    if (!winner) return;
-
-    setSaving(true);
     try {
-      const response = await fetch('/api/smart-finder/save-to-want', {
+      const selectedImages = images.filter(img => img.selected);
+      
+      const response = await fetch('/api/smart-finder/generate-product', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          wantId,
-          product: winner,
-          recommendation,
-          translation,
-          pricing,
+          productName,
+          priceCNY,
+          supplierName,
+          images: selectedImages.map(img => img.url),
+          url: productUrl,
         }),
       });
-      
-      const data = await response.json();
-      if (data.success) {
-        alert('Product saved to Want! The want has been marked as sourced.');
-      } else {
-        alert('Failed to save: ' + (data.error || 'Unknown error'));
+
+      if (!response.ok) {
+        throw new Error('Failed to generate product');
       }
+
+      const data = await response.json();
+      setGeneratedProduct(data);
+      
+      // Calculate costs
+      const category = detectCategory(data.title || productName);
+      const calculatedCosts = calculateImportCosts({
+        productPriceCNY: priceCNY,
+        category,
+      });
+      setCosts(calculatedCosts);
+      
+      // Set editable fields
+      setEditTitle(data.title || productName);
+      setEditDescription(data.description || '');
+      setEditShortDescription(data.shortDescription || '');
+      setEditPrice(calculatedCosts.suggestedRetailPrice);
+      setEditTags(data.tags || []);
+      
     } catch (error) {
-      console.error('Save failed:', error);
-      alert('Failed to save product to want');
+      console.error('Generation error:', error);
+      alert('Failed to generate product. Please try again.');
     } finally {
-      setSaving(false);
+      setIsGenerating(false);
     }
   };
 
-  const handleCopyForAgent = () => {
-    const winner = products.find(p => p.id === recommendation?.productId);
-    if (!winner || !pricing) return;
+  // Save to store
+  const saveToStore = async () => {
+    if (!editTitle || editPrice <= 0) {
+      alert('Please enter a title and price');
+      return;
+    }
 
-    const wantInfo = wantId ? `\n🎁 For Want: ${wantTitle} (#${shareCode})` : '';
+    setIsSaving(true);
 
-    const message = `🛒 SMART FINDER RECOMMENDATION${wantInfo}
+    try {
+      const supabase = createClient();
+      const selectedImages = images.filter(img => img.selected).map(img => img.url);
 
-Product: ${translation?.title || winner.title}
-1688 URL: ${winner.url}
+      // Create the product
+      const { data: product, error } = await supabase
+        .from('products')
+        .insert({
+          name: editTitle,
+          description: editDescription,
+          short_description: editShortDescription,
+          price: editPrice,
+          compare_at_price: Math.round(editPrice * 1.3),
+          category_id: selectedCategoryId || null,
+          sku: `JEF-${Date.now().toString(36).toUpperCase()}`,
+          stock_quantity: 100,
+          is_active: true,
+          tags: editTags,
+          image_url: selectedImages[0] || '/placeholder-product.png',
+          images: selectedImages,
+          metadata: {
+            source: {
+              platform: '1688',
+              url: productUrl,
+              supplierName,
+              priceCNY,
+              moq,
+            },
+            costs: costs,
+            importedAt: new Date().toISOString(),
+          },
+        })
+        .select()
+        .single();
 
-📊 Analysis:
-- Quality Score: ${recommendation?.qualityScore}/100
-- Value Score: ${recommendation?.valueScore}/100
-- 30-day Sales: ${winner.sales30d}
-- Supplier: ${winner.supplierName} (Rating: ${winner.supplierRating})
+      if (error) throw error;
 
-💰 Pricing:
-- Cost: ¥${winner.price} (~R${pricing.costZar})
-- Est. Shipping: R${pricing.shippingZar}
-- Suggested Price: R${pricing.suggestedPrice}
-- Margin: ${pricing.margin}%
+      // Create procurement record for agent
+      await supabase.from('procurement_orders').insert({
+        product_id: product.id,
+        supplier_name: supplierName,
+        supplier_url: productUrl,
+        unit_cost_cny: priceCNY,
+        unit_cost_zar: costs?.productCostZAR || 0,
+        quantity: 0, // Will be updated when orders come in
+        total_cost_zar: 0,
+        status: 'active',
+        notes: `MOQ: ${moq}`,
+      });
 
-📝 Why this product:
-${recommendation?.reasoning}
-
-Please confirm availability and shipping cost to SA.`;
-
-    navigator.clipboard.writeText(message);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleReset = () => {
-    setStep('search');
-    setSearchQuery(wantTitle || '');
-    setKeywords(null);
-    setProducts([]);
-    setRecommendation(null);
-    setTranslation(null);
-    setPricing(null);
+      alert('🎉 Product added to store! The 1688 link is saved for your agent.');
+      
+      // Reset form
+      setProductUrl('');
+      setProductName('');
+      setPriceCNY(0);
+      setSupplierName('');
+      setMoq(1);
+      setImages([]);
+      setGeneratedProduct(null);
+      setCosts(null);
+      
+    } catch (error) {
+      console.error('Save error:', error);
+      alert('Failed to save product. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href={wantId ? "/admin/wants" : "/admin/procurement"}>
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-jeffy-orange" />
-            Smart Product Finder
+    <main className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+            <span className="text-4xl">📦</span>
+            Smart Product Importer
           </h1>
-          <p className="text-gray-600">AI-powered 1688 product research</p>
+          <p className="text-gray-500 mt-2">
+            Paste a 1688 link, add images, and AI creates your product listing
+          </p>
         </div>
-      </div>
 
-      {wantId && (
-        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-              <Gift className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <p className="font-medium text-purple-800">Sourcing for Want: {wantTitle}</p>
-              <p className="text-sm text-purple-600">Share code: #{shareCode}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center gap-2 text-sm">
-        <div className={`flex items-center gap-1 ${step === 'search' ? 'text-jeffy-orange font-medium' : 'text-gray-400'}`}>
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 'search' ? 'bg-jeffy-orange text-white' : 'bg-gray-200'}`}>1</div>
-          Search
-        </div>
-        <ChevronRight className="h-4 w-4 text-gray-300" />
-        <div className={`flex items-center gap-1 ${step === 'products' ? 'text-jeffy-orange font-medium' : 'text-gray-400'}`}>
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 'products' ? 'bg-jeffy-orange text-white' : 'bg-gray-200'}`}>2</div>
-          Add Products
-        </div>
-        <ChevronRight className="h-4 w-4 text-gray-300" />
-        <div className={`flex items-center gap-1 ${step === 'results' ? 'text-jeffy-orange font-medium' : 'text-gray-400'}`}>
-          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${step === 'results' ? 'bg-jeffy-orange text-white' : 'bg-gray-200'}`}>3</div>
-          AI Recommendation
-        </div>
-      </div>
-
-      {step === 'search' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border p-6">
-            <h2 className="font-semibold mb-4 flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              What product are you looking for?
-            </h2>
-            
-            <div className="flex gap-2">
-              <Input
-                placeholder="e.g., wireless earbuds, phone case, LED lights..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                className="flex-1"
-              />
-              <Button onClick={handleSearch} disabled={loading || !searchQuery.trim()}>
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                <span className="ml-2">Smart Search</span>
-              </Button>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl border border-orange-200 p-6">
-            <h3 className="font-semibold mb-4">How Smart Finder Works</h3>
-            <div className="grid md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                  <Globe className="h-6 w-6 text-jeffy-orange" />
-                </div>
-                <p className="text-sm font-medium">1. Enter English</p>
-                <p className="text-xs text-gray-600">Describe what you want</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                  <Zap className="h-6 w-6 text-jeffy-orange" />
-                </div>
-                <p className="text-sm font-medium">2. AI Translates</p>
-                <p className="text-xs text-gray-600">Optimized Chinese keywords</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                  <TrendingUp className="h-6 w-6 text-jeffy-orange" />
-                </div>
-                <p className="text-sm font-medium">3. Compare Products</p>
-                <p className="text-xs text-gray-600">Add products from 1688</p>
-              </div>
-              <div className="text-center">
-                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-2 shadow-sm">
-                  <Award className="h-6 w-6 text-jeffy-orange" />
-                </div>
-                <p className="text-sm font-medium">4. AI Recommends</p>
-                <p className="text-xs text-gray-600">Best product for SA market</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {step === 'products' && (
-        <div className="space-y-6">
-          {keywords && (
-            <div className="bg-green-50 rounded-xl border border-green-200 p-4">
-              <div className="flex items-center justify-between">
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Left Column - Input */}
+          <div className="space-y-6">
+            {/* Product Link */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-sm font-bold">1</span>
+                Product Details
+              </h2>
+              
+              <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-green-800">AI-Optimized Chinese Keywords:</p>
-                  <p className="font-mono text-lg mt-1">{keywords.cn}</p>
-                  <p className="text-sm text-gray-600">{keywords.en}</p>
-                  {keywords.tags.length > 0 && (
-                    <div className="flex gap-2 mt-2">
-                      {keywords.tags.map((tag, i) => (
-                        <span key={i} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded">{tag}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <Button onClick={handleOpen1688} variant="outline">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open on 1688
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div className="grid lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border p-6">
-              <h2 className="font-semibold mb-4">Add Product from 1688</h2>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">1688 URL *</label>
-                  <Input
-                    placeholder="https://detail.1688.com/offer/..."
-                    value={newProduct.url}
-                    onChange={(e) => setNewProduct({ ...newProduct, url: e.target.value })}
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    1688 Product URL *
+                  </label>
+                  <input
+                    type="text"
+                    value={productUrl}
+                    onChange={(e) => setProductUrl(e.target.value)}
+                    placeholder="https://detail.1688.com/offer/123456789.html"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Product Name (English) *
+                  </label>
+                  <input
+                    type="text"
+                    value={productName}
+                    onChange={(e) => setProductName(e.target.value)}
+                    placeholder="e.g., Professional Compound Bow"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Title (English) *</label>
-                    <Input
-                      placeholder="Product title"
-                      value={newProduct.title}
-                      onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (¥ CNY) *
+                    </label>
+                    <input
+                      type="number"
+                      value={priceCNY || ''}
+                      onChange={(e) => setPriceCNY(Number(e.target.value))}
+                      placeholder="693"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Title (Chinese)</label>
-                    <Input
-                      placeholder="中文标题"
-                      value={newProduct.titleCn}
-                      onChange={(e) => setNewProduct({ ...newProduct, titleCn: e.target.value })}
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      MOQ
+                    </label>
+                    <input
+                      type="number"
+                      value={moq || ''}
+                      onChange={(e) => setMoq(Number(e.target.value))}
+                      placeholder="1"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Price (¥) *</label>
-                    <Input
-                      type="number"
-                      placeholder="45"
-                      value={newProduct.price}
-                      onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">MOQ</label>
-                    <Input
-                      type="number"
-                      placeholder="2"
-                      value={newProduct.moq}
-                      onChange={(e) => setNewProduct({ ...newProduct, moq: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">30d Sales</label>
-                    <Input
-                      type="number"
-                      placeholder="500"
-                      value={newProduct.sales30d}
-                      onChange={(e) => setNewProduct({ ...newProduct, sales30d: e.target.value })}
-                    />
-                  </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Supplier Name
+                  </label>
+                  <input
+                    type="text"
+                    value={supplierName}
+                    onChange={(e) => setSupplierName(e.target.value)}
+                    placeholder="e.g., Junxing Archery Co."
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                  />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Supplier Name</label>
-                    <Input
-                      placeholder="Shop name"
-                      value={newProduct.supplierName}
-                      onChange={(e) => setNewProduct({ ...newProduct, supplierName: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Rating (0-5)</label>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      placeholder="4.8"
-                      value={newProduct.supplierRating}
-                      onChange={(e) => setNewProduct({ ...newProduct, supplierRating: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <Button onClick={handleAddProduct} className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border p-6">
-              <h2 className="font-semibold mb-4">Products to Compare ({products.length})</h2>
-              {products.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>No products added yet</p>
-                  <p className="text-sm">Add 2-5 products for best comparison</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {products.map((product, index) => (
-                    <div key={product.id} className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
-                      <div className="w-8 h-8 bg-jeffy-orange text-white rounded-full flex items-center justify-center font-bold text-sm">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{product.title}</p>
-                        <p className="text-xs text-gray-500">¥{product.price} · MOQ: {product.moq} · Sales: {product.sales30d}</p>
-                      </div>
-                      <button onClick={() => handleRemoveProduct(product.id)} className="text-red-500 hover:text-red-700">
-                        <Trash2 className="h-4 w-4" />
+            {/* Images */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-sm font-bold">2</span>
+                Product Images
+              </h2>
+              
+              <p className="text-sm text-gray-500 mb-4">
+                Right-click images on 1688 → "Copy image address" → Paste here. AI will read any Chinese text in images.
+              </p>
+
+              {/* Add image from URL */}
+              <div className="flex gap-2 mb-4">
+                <input
+                  type="text"
+                  value={imageUrlInput}
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && addImageFromUrl()}
+                  placeholder="Paste image URL here..."
+                  className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+                <button
+                  onClick={addImageFromUrl}
+                  className="px-4 py-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 font-medium"
+                >
+                  Add
+                </button>
+              </div>
+
+              {/* Or upload */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="flex-1 h-px bg-gray-200"></div>
+                <span className="text-sm text-gray-400">or</span>
+                <div className="flex-1 h-px bg-gray-200"></div>
+              </div>
+
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                accept="image/*"
+                multiple
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-3 border-2 border-dashed border-gray-200 rounded-xl text-gray-500 hover:border-green-500 hover:text-green-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Upload from computer
+              </button>
+
+              {/* Image Grid */}
+              {images.length > 0 && (
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {images.map((img) => (
+                    <div
+                      key={img.id}
+                      className={`relative aspect-square rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                        img.selected ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'
+                      }`}
+                      onClick={() => toggleImageSelection(img.id)}
+                    >
+                      <img
+                        src={img.url}
+                        alt="Product"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/placeholder-product.png';
+                        }}
+                      />
+                      {img.selected && (
+                        <div className="absolute top-2 left-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeImage(img.id);
+                        }}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                      >
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       </button>
                     </div>
                   ))}
                 </div>
               )}
 
-              <Button onClick={handleAnalyze} disabled={loading || products.length === 0} className="w-full mt-4" size="lg">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Sparkles className="h-4 w-4 mr-2" />}
-                Analyze & Get Recommendation
-              </Button>
-            </div>
-          </div>
-
-          <Button variant="outline" onClick={handleReset}>
-            ← Start Over
-          </Button>
-        </div>
-      )}
-
-      {step === 'results' && recommendation && (
-        <div className="space-y-6">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-500 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Award className="h-6 w-6 text-green-600" />
-              <h2 className="text-xl font-bold text-green-800">🏆 AI Recommendation</h2>
+              {images.length > 0 && (
+                <p className="text-xs text-gray-400 mt-2">
+                  Click images to select/deselect. Selected images will be used for the product.
+                </p>
+              )}
             </div>
 
-            {(() => {
-              const winner = products.find(p => p.id === recommendation.productId);
-              if (!winner) return null;
-
-              return (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="font-bold text-lg">{translation?.title || winner.title}</h3>
-                    {translation?.description && (
-                      <p className="text-sm text-gray-600 mt-1">{translation.description}</p>
-                    )}
-                    <a href={winner.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm flex items-center gap-1 mt-2">
-                      <ExternalLink className="h-4 w-4" />
-                      View on 1688
-                    </a>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white rounded-lg p-3">
-                      <p className="text-xs text-gray-500">Quality Score</p>
-                      <p className="text-2xl font-bold text-green-600">{recommendation.qualityScore}</p>
-                    </div>
-                    <div className="bg-white rounded-lg p-3">
-                      <p className="text-xs text-gray-500">Value Score</p>
-                      <p className="text-2xl font-bold text-blue-600">{recommendation.valueScore}</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-white rounded-lg p-4">
-                    <p className="text-sm font-medium mb-2">Why this product?</p>
-                    <p className="text-sm text-gray-600">{recommendation.reasoning}</p>
-                  </div>
-                </div>
-              );
-            })()}
+            {/* Generate Button */}
+            <button
+              onClick={generateProduct}
+              disabled={isGenerating || (!productName && images.length === 0)}
+              className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-2xl hover:from-orange-600 hover:to-amber-600 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg flex items-center justify-center gap-3 shadow-lg"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  AI is working its magic...
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl">✨</span>
+                  Generate Product Listing
+                </>
+              )}
+            </button>
           </div>
 
-          {pricing && (
-            <div className="bg-white rounded-xl border p-6">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <DollarSign className="h-5 w-5" />
-                Pricing Breakdown
-              </h3>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-500">Cost (ZAR)</p>
-                  <p className="text-2xl font-bold">R{pricing.costZar}</p>
+          {/* Right Column - Preview & Edit */}
+          <div className="space-y-6">
+            {!generatedProduct && !isGenerating && (
+              <div className="bg-white rounded-2xl shadow-sm border p-8 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-500">Shipping</p>
-                  <p className="text-2xl font-bold">R{pricing.shippingZar}</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-500">Suggested Price</p>
-                  <p className="text-2xl font-bold text-green-600">R{pricing.suggestedPrice}</p>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4 text-center">
-                  <p className="text-sm text-gray-500">Margin</p>
-                  <p className="text-2xl font-bold text-blue-600">{pricing.margin}%</p>
-                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">Product Preview</h3>
+                <p className="text-gray-500 text-sm">
+                  Fill in the product details on the left and click "Generate" to see your AI-created listing here.
+                </p>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <button
-              onClick={() => {
-                // Find the recommended product from the products list
-                const recommendedProduct = products.find(p => p.id === recommendation?.productId) || products[0];
-                setSelectedProductForStore({
-                  url: recommendedProduct?.url || '',
-                  titleChinese: recommendedProduct?.titleCn || '',
-                  titleEnglish: translation?.title || recommendedProduct?.title || '',
-                  priceCNY: recommendedProduct?.price || 0,
-                  moq: recommendedProduct?.moq || 1,
-                  sales30d: recommendedProduct?.sales30d || 0,
-                  supplierName: recommendedProduct?.supplierName || '',
-                  rating: recommendedProduct?.supplierRating || 4.5,
-                  images: recommendedProduct?.mainImage ? [recommendedProduct.mainImage] : [],
-                });
-                setShowAddToStoreModal(true);
-              }}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all font-semibold flex items-center justify-center gap-2 shadow-lg"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add to Store
-            </button>
-            
-            <button
-              onClick={() => {
-                const winner = products.find(p => p.id === recommendation?.productId);
-                const text = `Hi! I'd like to order:\n\n` +
-                  `Product: ${translation?.title || winner?.title || ''}\n` +
-                  `1688 Link: ${winner?.url || 'N/A'}\n` +
-                  `Unit Price: ¥${winner?.price || pricing?.costZar || 'N/A'}\n` +
-                  `Suggested Order: 10-20 units for testing\n\n` +
-                  `Please provide shipping quote to South Africa.`;
-                navigator.clipboard.writeText(text);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-              className="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all font-medium flex items-center justify-center gap-2"
-            >
-              {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-              {copied ? 'Copied!' : 'Copy for WhatsApp Agent'}
-            </button>
-            
-            {wantId ? (
-              <button
-                onClick={handleSaveToWant}
-                disabled={saving}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gift className="h-5 w-5" />}
-                {saving ? 'Saving...' : 'Save to Want'}
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  // Create procurement order logic
-                  alert('Procurement order created!');
-                }}
-                className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all font-semibold flex items-center justify-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                Create Procurement Order
-              </button>
+            {isGenerating && (
+              <div className="bg-white rounded-2xl shadow-sm border p-8 text-center">
+                <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                  <span className="text-3xl">🤖</span>
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2">AI is creating your listing...</h3>
+                <p className="text-gray-500 text-sm">
+                  Analyzing images, writing description, optimizing for SEO...
+                </p>
+              </div>
+            )}
+
+            {generatedProduct && !isGenerating && (
+              <>
+                {/* Cost Breakdown */}
+                {costs && (
+                  <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl border border-orange-100 p-5">
+                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                      <span>💰</span> Import Cost Breakdown
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-gray-500 text-xs">Product Cost</p>
+                        <p className="font-semibold">{formatZAR(costs.productCostZAR)}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-gray-500 text-xs">Shipping</p>
+                        <p className="font-semibold">{formatZAR(costs.shippingZAR)}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-gray-500 text-xs">Duty ({(costs.customsDutyRate * 100).toFixed(0)}%)</p>
+                        <p className="font-semibold">{formatZAR(costs.customsDutyZAR)}</p>
+                      </div>
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-gray-500 text-xs">VAT (15%)</p>
+                        <p className="font-semibold">{formatZAR(costs.vatZAR)}</p>
+                      </div>
+                      <div className="bg-orange-100 rounded-lg p-3">
+                        <p className="text-orange-700 text-xs font-medium">Total Landed Cost</p>
+                        <p className="font-bold text-orange-700">{formatZAR(costs.totalLandedCost)}</p>
+                      </div>
+                      <div className="bg-green-100 rounded-lg p-3">
+                        <p className="text-green-700 text-xs font-medium">Suggested Price</p>
+                        <p className="font-bold text-green-700">{formatZAR(costs.suggestedRetailPrice)}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Editable Product Details */}
+                <div className="bg-white rounded-2xl shadow-sm border p-6">
+                  <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>✏️</span> Edit Product Listing
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Short Description
+                      </label>
+                      <input
+                        type="text"
+                        value={editShortDescription}
+                        onChange={(e) => setEditShortDescription(e.target.value)}
+                        maxLength={150}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Full Description
+                      </label>
+                      <textarea
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        rows={6}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Selling Price (ZAR)
+                        </label>
+                        <input
+                          type="number"
+                          value={editPrice || ''}
+                          onChange={(e) => setEditPrice(Number(e.target.value))}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500"
+                        />
+                        {costs && editPrice < costs.totalLandedCost && (
+                          <p className="text-red-500 text-xs mt-1">⚠️ Below landed cost!</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Category
+                        </label>
+                        <select
+                          value={selectedCategoryId}
+                          onChange={(e) => setSelectedCategoryId(e.target.value)}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500"
+                        >
+                          <option value="">Select...</option>
+                          {categories.map((cat) => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tags (comma separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={editTags.join(', ')}
+                        onChange={(e) => setEditTags(e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+
+                    {/* Extracted Text (if any) */}
+                    {generatedProduct.extractedText && (
+                      <div className="p-4 bg-blue-50 rounded-xl">
+                        <p className="text-xs font-medium text-blue-700 mb-1">📝 Text extracted from images:</p>
+                        <p className="text-sm text-blue-800">{generatedProduct.extractedText}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Save Button */}
+                <button
+                  onClick={saveToStore}
+                  disabled={isSaving || !editTitle || editPrice <= 0}
+                  className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg flex items-center justify-center gap-3 shadow-lg"
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-2xl">🚀</span>
+                      Add to Store
+                    </>
+                  )}
+                </button>
+
+                <p className="text-center text-sm text-gray-500">
+                  Product will go live on your store. The 1688 link will be saved for your agent.
+                </p>
+              </>
             )}
           </div>
-
-          <Button variant="outline" onClick={handleReset}>
-            ← Start New Search
-          </Button>
         </div>
-      )}
-
-      {/* Add to Store Modal */}
-      {showAddToStoreModal && selectedProductForStore && (
-        <AddToStoreModal
-          isOpen={showAddToStoreModal}
-          onClose={() => {
-            setShowAddToStoreModal(false);
-            setSelectedProductForStore(null);
-          }}
-          productInput={selectedProductForStore}
-          onSuccess={() => {
-            alert('Product added to store successfully!');
-          }}
-        />
-      )}
-    </div>
-  );
-}
-
-export default function SmartFinderPage() {
-  return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-jeffy-orange" />
       </div>
-    }>
-      <SmartFinderContent />
-    </Suspense>
+    </main>
   );
 }
