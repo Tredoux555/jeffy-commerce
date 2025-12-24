@@ -32,6 +32,9 @@ export function Header() {
             <Link href="/categories" className="text-gray-300 hover:text-white">
               Categories
             </Link>
+            <Link href="/track" className="text-gray-300 hover:text-white">
+              Track Order
+            </Link>
           </nav>
 
           {/* Actions */}
@@ -79,6 +82,13 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Categories
+              </Link>
+              <Link
+                href="/track"
+                className="text-gray-300 hover:text-white"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Track Order
               </Link>
             </nav>
           </div>
