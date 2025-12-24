@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import AddToStoreModal from '@/components/admin/AddToStoreModal';
 
 interface Product {
   id: string;
@@ -55,6 +56,8 @@ function SmartFinderContent() {
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoSearched, setAutoSearched] = useState(false);
+  const [showAddToStoreModal, setShowAddToStoreModal] = useState(false);
+  const [selectedProductForStore, setSelectedProductForStore] = useState<any>(null);
   
   const [newProduct, setNewProduct] = useState({
     url: '',
@@ -590,24 +593,74 @@ Please confirm availability and shipping cost to SA.`;
             </div>
           )}
 
-          <div className="flex gap-3">
-            <Button onClick={handleCopyForAgent} variant="outline" className="flex-1">
-              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <button
+              onClick={() => {
+                // Find the recommended product from the products list
+                const recommendedProduct = products.find(p => p.id === recommendation?.productId) || products[0];
+                setSelectedProductForStore({
+                  url: recommendedProduct?.url || '',
+                  titleChinese: recommendedProduct?.titleCn || '',
+                  titleEnglish: translation?.title || recommendedProduct?.title || '',
+                  priceCNY: recommendedProduct?.price || 0,
+                  moq: recommendedProduct?.moq || 1,
+                  sales30d: recommendedProduct?.sales30d || 0,
+                  supplierName: recommendedProduct?.supplierName || '',
+                  rating: recommendedProduct?.supplierRating || 4.5,
+                  images: recommendedProduct?.mainImage ? [recommendedProduct.mainImage] : [],
+                });
+                setShowAddToStoreModal(true);
+              }}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all font-semibold flex items-center justify-center gap-2 shadow-lg"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add to Store
+            </button>
+            
+            <button
+              onClick={() => {
+                const winner = products.find(p => p.id === recommendation?.productId);
+                const text = `Hi! I'd like to order:\n\n` +
+                  `Product: ${translation?.title || winner?.title || ''}\n` +
+                  `1688 Link: ${winner?.url || 'N/A'}\n` +
+                  `Unit Price: ¥${winner?.price || pricing?.costZar || 'N/A'}\n` +
+                  `Suggested Order: 10-20 units for testing\n\n` +
+                  `Please provide shipping quote to South Africa.`;
+                navigator.clipboard.writeText(text);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex-1 px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all font-medium flex items-center justify-center gap-2"
+            >
+              {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
               {copied ? 'Copied!' : 'Copy for WhatsApp Agent'}
-            </Button>
+            </button>
             
             {wantId ? (
-              <Button onClick={handleSaveToWant} disabled={saving} className="flex-1 bg-purple-600 hover:bg-purple-700">
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Gift className="h-4 w-4 mr-2" />}
-                {saving ? 'Saving...' : 'Save to Want & Mark Sourced'}
-              </Button>
+              <button
+                onClick={handleSaveToWant}
+                disabled={saving}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Gift className="h-5 w-5" />}
+                {saving ? 'Saving...' : 'Save to Want'}
+              </button>
             ) : (
-              <Link href="/admin/procurement" className="flex-1">
-                <Button className="w-full">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Procurement Order
-                </Button>
-              </Link>
+              <button
+                onClick={() => {
+                  // Create procurement order logic
+                  alert('Procurement order created!');
+                }}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl hover:from-orange-600 hover:to-amber-600 transition-all font-semibold flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Create Procurement Order
+              </button>
             )}
           </div>
 
@@ -615,6 +668,21 @@ Please confirm availability and shipping cost to SA.`;
             ← Start New Search
           </Button>
         </div>
+      )}
+
+      {/* Add to Store Modal */}
+      {showAddToStoreModal && selectedProductForStore && (
+        <AddToStoreModal
+          isOpen={showAddToStoreModal}
+          onClose={() => {
+            setShowAddToStoreModal(false);
+            setSelectedProductForStore(null);
+          }}
+          productInput={selectedProductForStore}
+          onSuccess={() => {
+            alert('Product added to store successfully!');
+          }}
+        />
       )}
     </div>
   );
