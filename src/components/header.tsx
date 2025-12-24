@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ShoppingCart, Search, Menu, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/lib/cart-store';
-import { Button } from '@/components/ui/button';
+import { AuthButtons } from '@/components/auth-buttons';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -35,36 +35,36 @@ export function Header() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="hidden md:flex">
+          <div className="flex items-center space-x-2">
+            <button className="hidden md:flex p-2 rounded-lg text-white hover:!bg-white hover:!text-gray-900 transition-all">
               <Search className="h-5 w-5" />
-            </Button>
+            </button>
 
+            <AuthButtons />
+            
             <Link href="/cart">
-              <Button variant="ghost" size="icon" className="relative">
+              <button className="relative p-2 rounded-lg text-white hover:!bg-white hover:!text-gray-900 transition-all">
                 <ShoppingCart className="h-5 w-5" />
                 {mounted && itemCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-jeffy-orange text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {itemCount > 99 ? '99+' : itemCount}
                   </span>
                 )}
-              </Button>
+              </button>
             </Link>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              className="md:hidden"
+            <button
+              className="md:hidden p-2 rounded-lg text-white hover:!bg-white hover:!text-gray-900 transition-all"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
+            </button>
           </div>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t">
+          <div className="md:hidden py-4 border-t border-white/10">
             <nav className="flex flex-col space-y-4">
               <Link
                 href="/products"

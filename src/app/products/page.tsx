@@ -1,65 +1,78 @@
-import { createClient } from '@/lib/supabase/server';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { ProductCard } from '@/components/product-card';
+import { Loader2 } from 'lucide-react';
 
-interface ProductsPageProps {
-  searchParams: Promise<{
-    category?: string;
-    search?: string;
-    sort?: string;
-  }>;
-}
+export default function ProductsPage() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [sort, setSort] = useState<string>('');
 
-export default async function ProductsPage({ searchParams }: ProductsPageProps) {
-  const params = await searchParams;
-  const supabase = await createClient();
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, [selectedCategory, sort]);
 
-  // Build query
-  let query = supabase
-    .from('products')
-    .select('*, categories(name, slug)')
-    .eq('status', 'active');
+  const fetchProducts = async () => {
+    const supabase = createClient();
+    
+    let query = supabase
+      .from('products')
+      .select('*, categories(name, slug)')
+      .eq('status', 'active');
 
-  // Filter by category
-  if (params.category) {
-    const { data: category } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('slug', params.category)
-      .single();
+    if (selectedCategory) {
+      const { data: category } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('slug', selectedCategory)
+        .single();
 
-    if (category) {
-      query = query.eq('category_id', category.id);
+      if (category) {
+        query = query.eq('category_id', category.id);
+      }
     }
-  }
 
-  // Search
-  if (params.search) {
-    query = query.ilike('name', `%${params.search}%`);
-  }
+    switch (sort) {
+      case 'price_asc':
+        query = query.order('selling_price_cents', { ascending: true });
+        break;
+      case 'price_desc':
+        query = query.order('selling_price_cents', { ascending: false });
+        break;
+      case 'newest':
+        query = query.order('created_at', { ascending: false });
+        break;
+      default:
+        query = query.order('total_sold', { ascending: false });
+    }
 
-  // Sort
-  switch (params.sort) {
-    case 'price_asc':
-      query = query.order('selling_price_cents', { ascending: true });
-      break;
-    case 'price_desc':
-      query = query.order('selling_price_cents', { ascending: false });
-      break;
-    case 'newest':
-      query = query.order('created_at', { ascending: false });
-      break;
-    default:
-      query = query.order('total_sold', { ascending: false });
-  }
+    const { data, error } = await query.limit(24);
+    
+    console.log('Products query result:', { data, error });
+    
+    if (data) {
+      setProducts(data);
+    }
+    setLoading(false);
+  };
 
-  const { data: products } = await query.limit(24);
+  const fetchCategories = async () => {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order', { ascending: true });
 
-  // Fetch categories for filter
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true });
+    if (data) {
+      setCategories(data);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -70,21 +83,21 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
             <h3 className="font-semibold mb-4">Categories</h3>
             <ul className="space-y-2">
               <li>
-                <a
-                  href="/products"
-                  className={`block py-1 ${!params.category ? 'text-jeffy-orange font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+                <button
+                  onClick={() => setSelectedCategory('')}
+                  className={`block py-1 text-left w-full ${!selectedCategory ? 'text-orange-500 font-medium' : 'text-gray-600 hover:text-gray-900'}`}
                 >
                   All Products
-                </a>
+                </button>
               </li>
               {categories?.map((category) => (
                 <li key={category.id}>
-                  <a
-                    href={`/products?category=${category.slug}`}
-                    className={`block py-1 ${params.category === category.slug ? 'text-jeffy-orange font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+                  <button
+                    onClick={() => setSelectedCategory(category.slug)}
+                    className={`block py-1 text-left w-full ${selectedCategory === category.slug ? 'text-orange-500 font-medium' : 'text-gray-600 hover:text-gray-900'}`}
                   >
                     {category.name}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -100,12 +113,12 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
                 { value: 'price_desc', label: 'Price: High to Low' },
               ].map((option) => (
                 <li key={option.value}>
-                  <a
-                    href={`/products?${params.category ? `category=${params.category}&` : ''}sort=${option.value}`}
-                    className={`block py-1 ${(params.sort || '') === option.value ? 'text-jeffy-orange font-medium' : 'text-gray-600 hover:text-gray-900'}`}
+                  <button
+                    onClick={() => setSort(option.value)}
+                    className={`block py-1 text-left w-full ${sort === option.value ? 'text-orange-500 font-medium' : 'text-gray-600 hover:text-gray-900'}`}
                   >
                     {option.label}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -115,13 +128,15 @@ export default async function ProductsPage({ searchParams }: ProductsPageProps) 
         {/* Products Grid */}
         <div className="flex-1">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">
-              {params.category ? `${params.category.charAt(0).toUpperCase() + params.category.slice(1)}` : 'All Products'}
-            </h1>
+            <h1 className="text-2xl font-bold">All Products</h1>
             <p className="text-gray-500">{products?.length || 0} products</p>
           </div>
 
-          {products && products.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            </div>
+          ) : products && products.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
               {products.map((product) => (
                 <ProductCard key={product.id} product={product} />

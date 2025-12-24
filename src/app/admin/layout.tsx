@@ -1,11 +1,16 @@
+'use client';
+
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin } from 'lucide-react';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white border-b sticky top-0 z-50">
@@ -70,6 +75,28 @@ export default function AdminLayout({
             >
               <span className="text-jeffy-orange">🤖</span>
               Smart Finder
+            </Link>
+            <Link
+              href="/admin/partners"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/partners' 
+                  ? 'bg-jeffy-orange text-white' 
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              <Users className="h-5 w-5" />
+              Zone Partners
+            </Link>
+            <Link
+              href="/admin/zones"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/zones' 
+                  ? 'bg-jeffy-orange text-white' 
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              <MapPin className="h-5 w-5" />
+              Zones
             </Link>
           </nav>
         </aside>

@@ -40,9 +40,9 @@ interface Pricing {
 
 function SmartFinderContent() {
   const searchParams = useSearchParams();
-  const wantId = searchParams.get('want_id');
-  const wantTitle = searchParams.get('want_title');
-  const shareCode = searchParams.get('share_code');
+  const wantId = searchParams?.get('want_id');
+  const wantTitle = searchParams?.get('want_title');
+  const shareCode = searchParams?.get('share_code');
 
   const [step, setStep] = useState<'search' | 'products' | 'results'>('search');
   const [loading, setLoading] = useState(false);

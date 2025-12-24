@@ -4,11 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CreditCard, Building2, Loader2, MapPin } from 'lucide-react';
+import { ArrowLeft, CreditCard, Building2, Loader2, MapPin, AlertCircle } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { LocationPicker } from '@/components/location-picker';
+import { createClient } from '@/lib/supabase/client';
+import { findZoneForLocation, findPartnerForZone } from '@/lib/geo-utils';
 
 type PaymentMethod = 'payfast' | 'ozow' | 'eft';
 
@@ -18,22 +21,67 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('payfast');
+  const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [zoneInfo, setZoneInfo] = useState<{ zoneId: string; zoneName: string; partnerId: string; partnerName: string } | null>(null);
+  const [zoneError, setZoneError] = useState<string | null>(null);
   
   const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    province: '',
-    postalCode: '',
+    firstName: 'Test',
+    lastName: 'User',
+    email: 'test@jeffy.co.za',
+    phone: '0821234567',
+    address: '123 Test Street',
+    city: 'Johannesburg',
+    province: 'GP',
+    postalCode: '2000',
   });
 
   const subtotal = getSubtotal();
 
+  const handleLocationSelect = async (location: { lat: number; lng: number }) => {
+    setDeliveryLocation(location);
+    setZoneError(null);
+    setZoneInfo(null);
+
+    const supabase = createClient();
+    
+    // Find which zone this location is in
+    const zone = await findZoneForLocation(supabase, location.lat, location.lng);
+    
+    if (!zone) {
+      setZoneError('Sorry, we don\'t deliver to this area yet. Please select a different location.');
+      return;
+    }
+
+    // Find the partner for this zone
+    const partner = await findPartnerForZone(supabase, zone.zoneId);
+    
+    if (!partner) {
+      setZoneError('No delivery partner available in this area. Please try again later.');
+      return;
+    }
+
+    setZoneInfo({
+      zoneId: zone.zoneId,
+      zoneName: zone.zoneName,
+      partnerId: partner.partnerId,
+      partnerName: partner.partnerName,
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!deliveryLocation) {
+      setError('Please select a delivery location on the map');
+      return;
+    }
+
+    if (!zoneInfo) {
+      setError('Please select a valid delivery location within our service area');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -49,6 +97,12 @@ export default function CheckoutPage() {
           })),
           customer: form,
           paymentMethod,
+          delivery: {
+            latitude: deliveryLocation.lat,
+            longitude: deliveryLocation.lng,
+            zoneId: zoneInfo.zoneId,
+            partnerId: zoneInfo.partnerId,
+          },
         }),
       });
 
@@ -59,12 +113,10 @@ export default function CheckoutPage() {
       }
 
       clearCart();
-
-      // Redirect to payment provider
+      
       if (data.redirectUrl) {
         window.location.href = data.redirectUrl;
       } else {
-        // EFT - show banking details
         router.push(`/checkout/success?order=${data.orderNumber}&method=eft`);
       }
     } catch (err) {
@@ -95,14 +147,42 @@ export default function CheckoutPage() {
         {/* Checkout Form */}
         <div>
           <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-
+          
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Contact Info */}
+            {/* Delivery Location Map */}
             <div className="bg-white rounded-xl border p-6">
               <h2 className="font-semibold mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Delivery Information
+                <MapPin className="h-5 w-5 text-orange-500" />
+                Delivery Location
               </h2>
+              
+              <LocationPicker
+                onLocationSelect={handleLocationSelect}
+                initialLocation={deliveryLocation || undefined}
+              />
+
+              {zoneInfo && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-sm text-green-800">
+                    <strong>Delivery Zone:</strong> {zoneInfo.zoneName}
+                  </p>
+                  <p className="text-sm text-green-600">
+                    Your order will be delivered by a local Jeffy Partner
+                  </p>
+                </div>
+              )}
+
+              {zoneError && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{zoneError}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Contact Info */}
+            <div className="bg-white rounded-xl border p-6">
+              <h2 className="font-semibold mb-4">Contact Information</h2>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -145,10 +225,10 @@ export default function CheckoutPage() {
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-medium mb-1">Address *</label>
+                <label className="block text-sm font-medium mb-1">Street Address *</label>
                 <Input
                   required
-                  placeholder="Street address"
+                  placeholder="House number and street name"
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                 />
@@ -199,7 +279,7 @@ export default function CheckoutPage() {
               <h2 className="font-semibold mb-4">Payment Method</h2>
               
               <div className="space-y-3">
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'payfast' ? 'border-jeffy-orange bg-primary-50' : ''}`}>
+                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'payfast' ? 'border-orange-500 bg-orange-50' : ''}`}>
                   <input
                     type="radio"
                     name="payment"
@@ -214,7 +294,7 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'ozow' ? 'border-jeffy-orange bg-primary-50' : ''}`}>
+                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'ozow' ? 'border-orange-500 bg-orange-50' : ''}`}>
                   <input
                     type="radio"
                     name="payment"
@@ -229,7 +309,7 @@ export default function CheckoutPage() {
                   </div>
                 </label>
 
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'eft' ? 'border-jeffy-orange bg-primary-50' : ''}`}>
+                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'eft' ? 'border-orange-500 bg-orange-50' : ''}`}>
                   <input
                     type="radio"
                     name="payment"
@@ -252,7 +332,12 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+            <Button 
+              type="submit" 
+              size="lg" 
+              className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600" 
+              disabled={loading || !zoneInfo}
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-5 w-5 mr-2 animate-spin" />
@@ -262,6 +347,12 @@ export default function CheckoutPage() {
                 `Pay ${formatCurrency(subtotal)}`
               )}
             </Button>
+
+            {!zoneInfo && deliveryLocation && !zoneError && (
+              <p className="text-sm text-gray-500 text-center">
+                Checking delivery availability...
+              </p>
+            )}
           </form>
         </div>
 
@@ -269,7 +360,7 @@ export default function CheckoutPage() {
         <div>
           <div className="bg-white rounded-xl border p-6 sticky top-20">
             <h2 className="font-semibold mb-4">Order Summary</h2>
-
+            
             <div className="space-y-4 mb-6">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-3">
@@ -279,7 +370,7 @@ export default function CheckoutPage() {
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-400 text-xs">No img</div>
                     )}
-                    <span className="absolute -top-1 -right-1 bg-jeffy-orange text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                       {item.quantity}
                     </span>
                   </div>
@@ -298,7 +389,7 @@ export default function CheckoutPage() {
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Shipping</span>
+                <span className="text-gray-600">Delivery</span>
                 <span className="text-green-600">Free</span>
               </div>
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
@@ -306,6 +397,14 @@ export default function CheckoutPage() {
                 <span>{formatCurrency(subtotal)}</span>
               </div>
             </div>
+
+            {zoneInfo && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-sm text-gray-600">
+                  <strong>Delivering to:</strong> {zoneInfo.zoneName}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
