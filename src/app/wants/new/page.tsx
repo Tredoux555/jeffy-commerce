@@ -44,8 +44,8 @@ export default function CreateWantPage() {
       return;
     }
 
-    if (!formData.creatorName.trim() || !formData.creatorPhone.trim()) {
-      alert('Please enter your name and phone number');
+    if (!formData.creatorName.trim()) {
+      alert('Please enter your name');
       return;
     }
 
@@ -54,7 +54,7 @@ export default function CreateWantPage() {
     try {
       const shareCode = generateShareCode();
 
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('wants')
         .insert({
           title: formData.title.trim(),
@@ -67,10 +67,8 @@ export default function CreateWantPage() {
           current_agrees: 0,
           status: 'active',
           creator_name: formData.creatorName.trim(),
-          creator_phone: formData.creatorPhone.trim(),
-        })
-        .select()
-        .single();
+          creator_phone: formData.creatorPhone.trim() || null,
+        });
 
       if (error) throw error;
 
