@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
         platform_share_cents: platformShareCents,
         payment_method: paymentMethod,
         payment_status: 'pending',
-        status: 'pending_payment',
+        status: 'paid',
         tracking_number: qrCodeData,
       })
       .select()

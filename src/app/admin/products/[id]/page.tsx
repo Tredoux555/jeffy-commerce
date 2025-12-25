@@ -1,0 +1,410 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { slugify } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import type { Category, Product } from '@/types/database';
+
+export default function EditProductPage() {
+  const router = useRouter();
+  const params = useParams();
+  const productId = params.id as string;
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  
+  const [form, setForm] = useState({
+    name: '',
+    slug: '',
+    shortDescription: '',
+    description: '',
+    categoryId: '',
+    costPrice: '',
+    sellingPrice: '',
+    compareAtPrice: '',
+    quantity: '0',
+    imageUrl: '',
+    status: 'draft' as 'draft' | 'active' | 'out_of_stock' | 'discontinued',
+    source1688Url: '',
+    source1688ItemId: '',
+    source1688SupplierName: '',
+    source1688PriceCNY: '',
+  });
+
+  useEffect(() => {
+    const loadData = async () => {
+      const supabase = createClient();
+
+      try {
+        const { data: cats } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('name');
+        if (cats) setCategories(cats);
+
+        const { data: product, error } = await supabase
+          .from('products')
+          .select('*')
+          .eq('id', productId)
+          .single();
+
+        if (error || !product) {
+          setNotFound(true);
+          return;
+        }
+
+        const source1688Data = product.source_1688_data || {};
+
+        setForm({
+          name: product.name || '',
+          slug: product.slug || '',
+          shortDescription: product.short_description || '',
+          description: product.description || '',
+          categoryId: product.category_id || '',
+          costPrice: product.cost_price_cents ? (product.cost_price_cents / 100).toString() : '0',
+          sellingPrice: product.selling_price_cents ? (product.selling_price_cents / 100).toString() : '0',
+          compareAtPrice: product.compare_at_price_cents ? (product.compare_at_price_cents / 100).toString() : '',
+          quantity: product.quantity?.toString() || '0',
+          imageUrl: product.primary_image_url || '',
+          status: product.status || 'draft',
+          source1688Url: product.source_1688_url || '',
+          source1688ItemId: product.source_1688_item_id || '',
+          source1688SupplierName: source1688Data?.supplierName || '',
+          source1688PriceCNY: source1688Data?.priceCNY || '',
+        });
+      } catch (error) {
+        console.error('Error loading product:', error);
+        setNotFound(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [productId]);
+
+  const handleNameChange = (name: string) => {
+    setForm({
+      ...form,
+      name,
+      slug: slugify(name),
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+
+    try {
+      const supabase = createClient();
+
+      const source1688Data = form.source1688SupplierName || form.source1688PriceCNY 
+        ? {
+            supplierName: form.source1688SupplierName || null,
+            priceCNY: form.source1688PriceCNY ? parseFloat(form.source1688PriceCNY) : null,
+            lastUpdated: new Date().toISOString(),
+          }
+        : null;
+
+      const { error } = await supabase
+        .from('products')
+        .update({
+          name: form.name,
+          slug: form.slug,
+          short_description: form.shortDescription || null,
+          description: form.description || null,
+          category_id: form.categoryId || null,
+          cost_price_cents: Math.round(parseFloat(form.costPrice || '0') * 100),
+          selling_price_cents: Math.round(parseFloat(form.sellingPrice || '0') * 100),
+          compare_at_price_cents: form.compareAtPrice
+            ? Math.round(parseFloat(form.compareAtPrice) * 100)
+            : null,
+          quantity: parseInt(form.quantity || '0', 10),
+          primary_image_url: form.imageUrl || null,
+          status: form.status,
+          source_1688_url: form.source1688Url || null,
+          source_1688_item_id: form.source1688ItemId || null,
+          source_1688_data: source1688Data,
+        })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      router.push('/admin/products');
+    } catch (error) {
+      console.error('Error updating product:', error);
+      alert('Failed to update product');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-jeffy-orange mx-auto mb-4" />
+          <p className="text-gray-600">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="text-center py-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Product Not Found</h2>
+        <p className="text-gray-600 mb-6">The product you're looking for doesn't exist.</p>
+        <Link href="/admin/products">
+          <Button>Back to Products</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Link
+        href="/admin/products"
+        className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back to Products
+      </Link>
+
+      <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
+
+      <form onSubmit={handleSubmit} className="max-w-2xl space-y-6">
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold">Basic Information</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Product Name *</label>
+            <Input
+              required
+              value={form.name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              placeholder="e.g., Wireless Bluetooth Earbuds"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">URL Slug</label>
+            <Input
+              value={form.slug}
+              onChange={(e) => setForm({ ...form, slug: e.target.value })}
+              placeholder="wireless-bluetooth-earbuds"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Short Description</label>
+            <Input
+              value={form.shortDescription}
+              onChange={(e) => setForm({ ...form, shortDescription: e.target.value })}
+              placeholder="Brief product summary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Full Description</label>
+            <textarea
+              className="w-full border rounded-lg px-3 py-2 min-h-[100px]"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Detailed product description..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <select
+              className="w-full h-10 border rounded-lg px-3"
+              value={form.categoryId}
+              onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+            >
+              <option value="">Select category</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold">Pricing</h2>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Cost Price (R) *</label>
+              <Input
+                type="number"
+                step="0.01"
+                required
+                value={form.costPrice}
+                onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Selling Price (R) *</label>
+              <Input
+                type="number"
+                step="0.01"
+                required
+                value={form.sellingPrice}
+                onChange={(e) => setForm({ ...form, sellingPrice: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Compare At Price (R)</label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.compareAtPrice}
+                onChange={(e) => setForm({ ...form, compareAtPrice: e.target.value })}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold">Inventory</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Stock Quantity</label>
+            <Input
+              type="number"
+              value={form.quantity}
+              onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+              placeholder="0"
+            />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold">Media</h2>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Image URL</label>
+            <Input
+              type="url"
+              value={form.imageUrl}
+              onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
+              placeholder="https://example.com/image.jpg"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Enter a direct URL to the product image
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6 space-y-4">
+          <h2 className="font-semibold">Status</h2>
+
+          <div>
+            <select
+              className="w-full h-10 border rounded-lg px-3"
+              value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value as any })}
+            >
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="out_of_stock">Out of Stock</option>
+              <option value="discontinued">Discontinued</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="bg-orange-50 rounded-xl border border-orange-200 p-6 space-y-4">
+          <h2 className="font-semibold text-orange-900">1688 Supplier Information</h2>
+          <p className="text-sm text-orange-700">
+            This information helps the agent find and restock the product
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">1688 Product URL</label>
+            <Input
+              type="url"
+              value={form.source1688Url}
+              onChange={(e) => setForm({ ...form, source1688Url: e.target.value })}
+              placeholder="https://1688.com/offer/xxxxx.html"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Direct link to the product on 1688.com
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">1688 Item ID</label>
+            <Input
+              value={form.source1688ItemId}
+              onChange={(e) => setForm({ ...form, source1688ItemId: e.target.value })}
+              placeholder="e.g., 123456789"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              The product ID from the 1688 URL
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Supplier Name</label>
+            <Input
+              value={form.source1688SupplierName}
+              onChange={(e) => setForm({ ...form, source1688SupplierName: e.target.value })}
+              placeholder="e.g., Shanghai Tech Manufacturing"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              The name of the supplier on 1688
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Unit Price (CNY)</label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.source1688PriceCNY}
+              onChange={(e) => setForm({ ...form, source1688PriceCNY: e.target.value })}
+              placeholder="45.50"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Price per unit in Chinese Yuan (used for cost analysis)
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <Button type="submit" disabled={submitting}>
+            {submitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
+          <Link href="/admin/products">
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </Link>
+        </div>
+      </form>
+    </div>
+  );
+}
+

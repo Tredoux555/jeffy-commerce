@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -90,6 +90,21 @@ export default function AdminLayout({
             >
               <MapPin className="h-5 w-5" />
               Zones
+            </Link>
+            {/* Divider */}
+            <div className="my-2 border-t border-gray-200"></div>
+            
+            {/* Agent Portal */}
+            <Link
+              href="/agent"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/agent' 
+                  ? 'bg-jeffy-orange text-white' 
+                  : 'hover:bg-gray-100'
+              }`}
+            >
+              <Activity className="h-5 w-5" />
+              Agent Portal
             </Link>
           </nav>
         </aside>
