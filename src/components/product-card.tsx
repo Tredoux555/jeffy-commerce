@@ -39,7 +39,7 @@ export function ProductCard({ product }: ProductCardProps) {
       selling_price_cents: product.selling_price_cents,
       compare_at_price_cents: product.compare_at_price_cents,
       primary_image_url: product.primary_image_url,
-      images: product.images,
+      images: product.images || undefined,
       short_description: product.short_description,
       quantity: product.quantity,
     });
