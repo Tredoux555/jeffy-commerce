@@ -1,189 +1,180 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Crown, Sparkles, AlertTriangle, Heart, TrendingUp, Moon, Plus, X, Search } from 'lucide-react';
+import { Users, Tag, Plus, X, Search, Crown, Star, AlertTriangle, Heart, Sparkles, Building } from 'lucide-react';
 
-const SEGMENT_ICONS: Record<string, any> = {
-  users: Users,
-  crown: Crown,
-  sparkles: Sparkles,
-  'alert-triangle': AlertTriangle,
-  heart: Heart,
-  'trending-up': TrendingUp,
-  moon: Moon,
-};
-
+// Segment type
 interface Segment {
   id: string;
   name: string;
+  slug: string;
   description?: string;
   color: string;
-  icon: string;
-  customer_count: number;
-  is_automatic: boolean;
+  is_auto: boolean;
+  member_count?: number;
 }
 
-// Mock segments
+// Default segments with icons
+const segmentIcons: Record<string, any> = {
+  'vip': Crown,
+  'new': Sparkles,
+  'at-risk': AlertTriangle,
+  'loyal': Heart,
+  'big-spender': Star,
+  'wholesale': Building,
+};
+
+// Mock segments for demo
 const mockSegments: Segment[] = [
-  { id: '1', name: 'VIP', description: '5+ orders or R5000+ spend', color: '#f59e0b', icon: 'crown', customer_count: 45, is_automatic: true },
-  { id: '2', name: 'New', description: 'Joined in last 30 days', color: '#22c55e', icon: 'sparkles', customer_count: 128, is_automatic: true },
-  { id: '3', name: 'At Risk', description: 'No orders in 60+ days', color: '#ef4444', icon: 'alert-triangle', customer_count: 67, is_automatic: true },
-  { id: '4', name: 'Loyal', description: '3+ orders', color: '#3b82f6', icon: 'heart', customer_count: 234, is_automatic: true },
-  { id: '5', name: 'Big Spenders', description: 'R2000+ single order', color: '#8b5cf6', icon: 'trending-up', customer_count: 23, is_automatic: true },
-  { id: '6', name: 'Inactive', description: 'No orders in 90+ days', color: '#6b7280', icon: 'moon', customer_count: 156, is_automatic: true },
+  { id: '1', name: 'VIP', slug: 'vip', description: 'High-value customers', color: '#eab308', is_auto: true, member_count: 45 },
+  { id: '2', name: 'New', slug: 'new', description: 'Recent signups', color: '#22c55e', is_auto: true, member_count: 128 },
+  { id: '3', name: 'At Risk', slug: 'at-risk', description: 'Inactive 60+ days', color: '#ef4444', is_auto: true, member_count: 23 },
+  { id: '4', name: 'Loyal', slug: 'loyal', description: '3+ orders', color: '#3b82f6', is_auto: true, member_count: 89 },
+  { id: '5', name: 'Big Spender', slug: 'big-spender', description: 'Avg order R1000+', color: '#8b5cf6', is_auto: true, member_count: 31 },
+  { id: '6', name: 'Wholesale', slug: 'wholesale', description: 'Business buyers', color: '#f97316', is_auto: false, member_count: 12 },
 ];
 
-export function CustomerSegmentsAdmin() {
+// Segment badge component
+export function SegmentBadge({ segment }: { segment: Segment }) {
+  const Icon = segmentIcons[segment.slug] || Tag;
+  
+  return (
+    <span
+      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
+      style={{ backgroundColor: `${segment.color}20`, color: segment.color }}
+    >
+      <Icon className="h-3 w-3" />
+      {segment.name}
+    </span>
+  );
+}
+
+// Multiple segment badges
+export function CustomerSegments({ segments }: { segments: Segment[] }) {
+  if (segments.length === 0) return null;
+  
+  return (
+    <div className="flex flex-wrap gap-1">
+      {segments.map(segment => (
+        <SegmentBadge key={segment.id} segment={segment} />
+      ))}
+    </div>
+  );
+}
+
+// Admin segments management page
+export function SegmentsManager() {
   const [segments, setSegments] = useState(mockSegments);
-  const [selectedSegment, setSelectedSegment] = useState<Segment | null>(null);
+  const [search, setSearch] = useState('');
+
+  const filtered = segments.filter(s => 
+    s.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Customer Segments</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Users className="h-6 w-6 text-gray-400" />
+          Customer Segments
+        </h1>
         <button className="flex items-center gap-2 bg-[#ff6b35] text-white px-4 py-2 rounded-lg hover:bg-orange-600">
           <Plus className="h-5 w-5" /> New Segment
         </button>
       </div>
 
-      {/* Segment Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
-        {segments.map((segment) => {
-          const Icon = SEGMENT_ICONS[segment.icon] || Users;
+      {/* Search */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search segments..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-10 pr-4 py-2 border rounded-lg"
+        />
+      </div>
+
+      {/* Segments Grid */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map(segment => {
+          const Icon = segmentIcons[segment.slug] || Tag;
+          return (
+            <div key={segment.id} className="bg-white rounded-xl border p-4 hover:shadow-md transition">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: `${segment.color}20` }}
+                  >
+                    <Icon className="h-5 w-5" style={{ color: segment.color }} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold">{segment.name}</h3>
+                    <p className="text-sm text-gray-500">{segment.description}</p>
+                  </div>
+                </div>
+                {segment.is_auto && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Auto</span>
+                )}
+              </div>
+              
+              <div className="flex items-center justify-between pt-3 border-t">
+                <span className="text-2xl font-bold">{segment.member_count}</span>
+                <span className="text-sm text-gray-500">customers</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Customer segment selector for admin
+export function SegmentSelector({ 
+  selectedIds, 
+  onChange,
+  segments = mockSegments,
+}: { 
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+  segments?: Segment[];
+}) {
+  const toggle = (id: string) => {
+    if (selectedIds.includes(id)) {
+      onChange(selectedIds.filter(i => i !== id));
+    } else {
+      onChange([...selectedIds, id]);
+    }
+  };
+
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-2">Customer Segments</label>
+      <div className="flex flex-wrap gap-2">
+        {segments.filter(s => !s.is_auto).map(segment => {
+          const isSelected = selectedIds.includes(segment.id);
+          const Icon = segmentIcons[segment.slug] || Tag;
+          
           return (
             <button
               key={segment.id}
-              onClick={() => setSelectedSegment(segment)}
-              className={`bg-white rounded-xl border p-4 text-left hover:shadow-md transition ${
-                selectedSegment?.id === segment.id ? 'ring-2 ring-[#ff6b35]' : ''
+              onClick={() => toggle(segment.id)}
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm border transition ${
+                isSelected 
+                  ? 'border-transparent text-white' 
+                  : 'bg-white hover:bg-gray-50'
               }`}
+              style={isSelected ? { backgroundColor: segment.color } : {}}
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 rounded-lg" style={{ backgroundColor: `${segment.color}20` }}>
-                  <Icon className="h-5 w-5" style={{ color: segment.color }} />
-                </div>
-                <div>
-                  <h3 className="font-bold">{segment.name}</h3>
-                  {segment.is_automatic && (
-                    <span className="text-xs text-gray-400">Auto</span>
-                  )}
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mb-3">{segment.description}</p>
-              <p className="text-2xl font-bold" style={{ color: segment.color }}>
-                {segment.customer_count.toLocaleString()}
-              </p>
-              <p className="text-xs text-gray-400">customers</p>
+              <Icon className="h-4 w-4" />
+              {segment.name}
+              {isSelected && <X className="h-3 w-3 ml-1" />}
             </button>
           );
         })}
       </div>
-
-      {/* Segment Detail Panel */}
-      {selectedSegment && (
-        <SegmentDetailPanel 
-          segment={selectedSegment} 
-          onClose={() => setSelectedSegment(null)} 
-        />
-      )}
     </div>
-  );
-}
-
-function SegmentDetailPanel({ segment, onClose }: { segment: Segment; onClose: () => void }) {
-  const [search, setSearch] = useState('');
-  const Icon = SEGMENT_ICONS[segment.icon] || Users;
-
-  // Mock customers
-  const customers = [
-    { email: 'john@example.com', name: 'John Smith', orders: 7, spend: 8500 },
-    { email: 'jane@example.com', name: 'Jane Doe', orders: 5, spend: 6200 },
-    { email: 'bob@example.com', name: 'Bob Wilson', orders: 12, spend: 15000 },
-  ];
-
-  return (
-    <div className="bg-white rounded-xl border overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b" style={{ backgroundColor: `${segment.color}10` }}>
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: `${segment.color}20` }}>
-            <Icon className="h-6 w-6" style={{ color: segment.color }} />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold">{segment.name}</h2>
-            <p className="text-sm text-gray-600">{segment.customer_count} customers</p>
-          </div>
-        </div>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-          <X className="h-6 w-6" />
-        </button>
-      </div>
-
-      {/* Actions */}
-      <div className="p-4 border-b flex flex-wrap gap-2">
-        <button className="px-4 py-2 bg-[#ff6b35] text-white rounded-lg text-sm font-medium hover:bg-orange-600">
-          Send Email Campaign
-        </button>
-        <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-gray-200">
-          Export List
-        </button>
-        <button className="px-4 py-2 bg-gray-100 rounded-lg text-sm font-medium hover:bg-gray-200">
-          Create Discount
-        </button>
-      </div>
-
-      {/* Search */}
-      <div className="p-4 border-b">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search customers..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
-          />
-        </div>
-      </div>
-
-      {/* Customer List */}
-      <div className="max-h-80 overflow-y-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50 sticky top-0">
-            <tr>
-              <th className="text-left px-4 py-3 text-sm font-medium text-gray-500">Customer</th>
-              <th className="text-center px-4 py-3 text-sm font-medium text-gray-500">Orders</th>
-              <th className="text-right px-4 py-3 text-sm font-medium text-gray-500">Total Spend</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {customers.map((customer) => (
-              <tr key={customer.email} className="hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <p className="font-medium">{customer.name}</p>
-                  <p className="text-sm text-gray-500">{customer.email}</p>
-                </td>
-                <td className="px-4 py-3 text-center">{customer.orders}</td>
-                <td className="px-4 py-3 text-right font-medium">R{(customer.spend / 100).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// Segment badge for customer profile
-export function SegmentBadge({ name, color, icon }: { name: string; color: string; icon: string }) {
-  const Icon = SEGMENT_ICONS[icon] || Users;
-  return (
-    <span 
-      className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium"
-      style={{ backgroundColor: `${color}20`, color }}
-    >
-      <Icon className="h-3 w-3" />
-      {name}
-    </span>
   );
 }

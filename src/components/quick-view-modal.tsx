@@ -1,193 +1,216 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Eye, ShoppingCart, Heart, Share2, ChevronLeft, ChevronRight, Star, Minus, Plus } from 'lucide-react';
+import { X, ShoppingCart, Heart, ChevronLeft, ChevronRight, Eye, Check, Minus, Plus } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 interface Product {
   id: string;
   name: string;
   slug: string;
-  description?: string;
   selling_price_cents: number;
   compare_at_price_cents?: number;
-  primary_image_url?: string;
-  images?: string[];
-  rating?: number;
-  review_count?: number;
-  stock_quantity?: number;
-  variants?: Array<{ name: string; options: string[] }>;
+  description?: string;
+  images: string[];
+  stock: number;
+  category?: string;
 }
 
-interface QuickViewProps {
+interface QuickViewModalProps {
   product: Product;
-  isOpen: boolean;
   onClose: () => void;
-  onAddToCart?: (product: Product, quantity: number, variant?: string) => void;
+  onAddToCart: (productId: string, quantity: number) => void;
+  onAddToWishlist?: (productId: string) => void;
 }
 
-export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickViewProps) {
+export function QuickViewModal({ product, onClose, onAddToCart, onAddToWishlist }: QuickViewModalProps) {
   const [currentImage, setCurrentImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<string | undefined>();
+  const [addedToCart, setAddedToCart] = useState(false);
+  const [addedToWishlist, setAddedToWishlist] = useState(false);
 
-  const images = product.images?.length ? product.images : [product.primary_image_url || ''];
+  const images = product.images.length > 0 ? product.images : ['/placeholder.jpg'];
   const discount = product.compare_at_price_cents 
-    ? Math.round((1 - product.selling_price_cents / product.compare_at_price_cents) * 100) 
+    ? Math.round((1 - product.selling_price_cents / product.compare_at_price_cents) * 100)
     : 0;
 
-  const nextImage = () => setCurrentImage((prev) => (prev + 1) % images.length);
-  const prevImage = () => setCurrentImage((prev) => (prev - 1 + images.length) % images.length);
-
   const handleAddToCart = () => {
-    onAddToCart?.(product, quantity, selectedVariant);
-    onClose();
+    onAddToCart(product.id, quantity);
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
   };
 
-  if (!isOpen) return null;
+  const handleAddToWishlist = () => {
+    onAddToWishlist?.(product.id);
+    setAddedToWishlist(true);
+  };
+
+  const nextImage = () => setCurrentImage((i) => (i + 1) % images.length);
+  const prevImage = () => setCurrentImage((i) => (i - 1 + images.length) % images.length);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-in zoom-in-95 fade-in duration-200">
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
         {/* Close button */}
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 p-2 bg-white/80 rounded-full hover:bg-white transition">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 p-2 bg-white/90 rounded-full hover:bg-white shadow transition"
+        >
           <X className="h-5 w-5" />
         </button>
 
         <div className="grid md:grid-cols-2">
           {/* Image Gallery */}
-          <div className="relative bg-gray-100 aspect-square md:aspect-auto">
-            {images[currentImage] ? (
-              <img
-                src={images[currentImage]}
-                alt={product.name}
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-6xl">📦</div>
-            )}
-
-            {/* Image navigation */}
-            {images.length > 1 && (
-              <>
-                <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full hover:bg-white">
-                  <ChevronLeft className="h-5 w-5" />
-                </button>
-                <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/80 rounded-full hover:bg-white">
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {images.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentImage(idx)}
-                      className={`w-2 h-2 rounded-full transition ${idx === currentImage ? 'bg-[#ff6b35]' : 'bg-gray-400'}`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+          <div className="relative bg-gray-100 aspect-square md:aspect-auto md:h-[500px]">
+            <img
+              src={images[currentImage]}
+              alt={product.name}
+              className="w-full h-full object-contain"
+            />
 
             {/* Discount badge */}
             {discount > 0 && (
-              <span className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+              <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
                 -{discount}%
-              </span>
+              </div>
+            )}
+
+            {/* Navigation arrows */}
+            {images.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full hover:bg-white shadow"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-white/90 rounded-full hover:bg-white shadow"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
+
+            {/* Thumbnails */}
+            {images.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                {images.map((img, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentImage(i)}
+                    className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition ${
+                      i === currentImage ? 'border-[#ff6b35]' : 'border-white'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
           {/* Product Info */}
-          <div className="p-6 flex flex-col max-h-[70vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-2">{product.name}</h2>
-
-            {/* Rating */}
-            {product.rating && (
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`h-4 w-4 ${i < Math.round(product.rating!) ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`} />
-                  ))}
-                </div>
-                <span className="text-sm text-gray-500">({product.review_count} reviews)</span>
-              </div>
+          <div className="p-6 flex flex-col">
+            {/* Category */}
+            {product.category && (
+              <span className="text-sm text-[#ff6b35] font-medium mb-2">{product.category}</span>
             )}
+
+            {/* Name */}
+            <h2 className="text-2xl font-bold mb-3">{product.name}</h2>
 
             {/* Price */}
             <div className="flex items-baseline gap-3 mb-4">
-              <span className="text-3xl font-bold text-[#ff6b35]">{formatCurrency(product.selling_price_cents)}</span>
+              <span className="text-3xl font-bold text-[#ff6b35]">
+                {formatCurrency(product.selling_price_cents)}
+              </span>
               {product.compare_at_price_cents && (
-                <span className="text-lg text-gray-400 line-through">{formatCurrency(product.compare_at_price_cents)}</span>
+                <span className="text-lg text-gray-400 line-through">
+                  {formatCurrency(product.compare_at_price_cents)}
+                </span>
+              )}
+            </div>
+
+            {/* Stock status */}
+            <div className="mb-4">
+              {product.stock > 0 ? (
+                product.stock <= 5 ? (
+                  <span className="text-amber-600 font-medium">Only {product.stock} left!</span>
+                ) : (
+                  <span className="text-green-600 font-medium">In Stock</span>
+                )
+              ) : (
+                <span className="text-red-500 font-medium">Out of Stock</span>
               )}
             </div>
 
             {/* Description */}
             {product.description && (
-              <p className="text-gray-600 mb-6 line-clamp-3">{product.description}</p>
+              <p className="text-gray-600 mb-6 line-clamp-4">{product.description}</p>
             )}
 
-            {/* Variants */}
-            {product.variants?.map((variant) => (
-              <div key={variant.name} className="mb-4">
-                <label className="block text-sm font-medium mb-2">{variant.name}</label>
-                <div className="flex flex-wrap gap-2">
-                  {variant.options.map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => setSelectedVariant(option)}
-                      className={`px-4 py-2 border rounded-lg text-sm transition ${
-                        selectedVariant === option ? 'border-[#ff6b35] bg-[#ff6b35]/10 text-[#ff6b35]' : 'hover:border-gray-400'
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-
-            {/* Quantity */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Quantity</label>
-              <div className="flex items-center border rounded-lg w-fit">
-                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2 hover:bg-gray-100">
+            {/* Quantity selector */}
+            <div className="flex items-center gap-4 mb-6">
+              <span className="font-medium">Quantity:</span>
+              <div className="flex items-center border rounded-lg">
+                <button
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="p-2 hover:bg-gray-100"
+                  disabled={quantity <= 1}
+                >
                   <Minus className="h-4 w-4" />
                 </button>
-                <span className="px-4 py-2 font-medium min-w-[60px] text-center">{quantity}</span>
-                <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-2 hover:bg-gray-100">
+                <span className="w-12 text-center font-medium">{quantity}</span>
+                <button
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  className="p-2 hover:bg-gray-100"
+                  disabled={quantity >= product.stock}
+                >
                   <Plus className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
-            {/* Stock status */}
-            {product.stock_quantity !== undefined && (
-              <p className={`text-sm mb-4 ${product.stock_quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : 'Out of stock'}
-              </p>
-            )}
-
             {/* Actions */}
-            <div className="flex gap-3 mt-auto pt-4">
+            <div className="flex gap-3 mt-auto">
               <button
                 onClick={handleAddToCart}
-                disabled={product.stock_quantity === 0}
-                className="flex-1 bg-[#ff6b35] text-white py-3 rounded-xl font-bold hover:bg-orange-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                disabled={product.stock <= 0 || addedToCart}
+                className={`flex-1 py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${
+                  addedToCart 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-[#ff6b35] text-white hover:bg-orange-600'
+                } disabled:opacity-50`}
               >
-                <ShoppingCart className="h-5 w-5" /> Add to Cart
+                {addedToCart ? (
+                  <><Check className="h-5 w-5" /> Added!</>
+                ) : (
+                  <><ShoppingCart className="h-5 w-5" /> Add to Cart</>
+                )}
               </button>
-              <button className="p-3 border rounded-xl hover:bg-gray-50">
-                <Heart className="h-5 w-5" />
-              </button>
-              <button className="p-3 border rounded-xl hover:bg-gray-50">
-                <Share2 className="h-5 w-5" />
+              
+              <button
+                onClick={handleAddToWishlist}
+                className={`p-3 border rounded-xl transition ${
+                  addedToWishlist ? 'bg-red-50 border-red-200 text-red-500' : 'hover:bg-gray-50'
+                }`}
+              >
+                <Heart className={`h-5 w-5 ${addedToWishlist ? 'fill-current' : ''}`} />
               </button>
             </div>
 
             {/* View full details link */}
-            <a href={`/products/${product.slug}`} className="mt-4 text-center text-sm text-[#ff6b35] hover:underline">
-              View Full Details →
+            <a
+              href={`/products/${product.slug}`}
+              className="mt-4 text-center text-[#ff6b35] hover:underline flex items-center justify-center gap-1"
+            >
+              <Eye className="h-4 w-4" /> View Full Details
             </a>
           </div>
         </div>
@@ -196,12 +219,21 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
   );
 }
 
-// Quick view button for product cards
-export function QuickViewButton({ product, onOpen }: { product: Product; onOpen: (product: Product) => void }) {
+// Quick view button to trigger the modal
+interface QuickViewButtonProps {
+  onClick: () => void;
+  className?: string;
+}
+
+export function QuickViewButton({ onClick, className = '' }: QuickViewButtonProps) {
   return (
     <button
-      onClick={(e) => { e.preventDefault(); onOpen(product); }}
-      className="absolute top-2 right-2 p-2 bg-white/90 rounded-full opacity-0 group-hover:opacity-100 hover:bg-white transition shadow-sm"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onClick();
+      }}
+      className={`p-2 bg-white/90 rounded-full shadow hover:bg-white transition ${className}`}
       title="Quick View"
     >
       <Eye className="h-4 w-4" />

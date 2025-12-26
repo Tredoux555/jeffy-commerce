@@ -4,168 +4,118 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface UseInfiniteScrollOptions<T> {
+  fetchFn: (page: number, pageSize: number) => Promise<{ data: T[]; hasMore: boolean }>;
+  pageSize?: number;
   initialData?: T[];
-  fetchMore: (page: number) => Promise<{ data: T[]; hasMore: boolean }>;
-  threshold?: number; // pixels from bottom to trigger load
 }
 
-export function useInfiniteScroll<T>({ initialData = [], fetchMore, threshold = 200 }: UseInfiniteScrollOptions<T>) {
-  const [data, setData] = useState<T[]>(initialData);
+export function useInfiniteScroll<T>({ fetchFn, pageSize = 12, initialData = [] }: UseInfiniteScrollOptions<T>) {
+  const [items, setItems] = useState<T[]>(initialData);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const loadMore = useCallback(async () => {
     if (loading || !hasMore) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const result = await fetchMore(page + 1);
-      setData(prev => [...prev, ...result.data]);
+      const result = await fetchFn(page, pageSize);
+      setItems(prev => [...prev, ...result.data]);
       setHasMore(result.hasMore);
       setPage(prev => prev + 1);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load more');
+    } catch (err) {
+      setError('Failed to load more items');
+      console.error('Infinite scroll error:', err);
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore, fetchMore]);
-
-  useEffect(() => {
-    const element = loadMoreRef.current;
-    if (!element) return;
-
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          loadMore();
-        }
-      },
-      { rootMargin: `${threshold}px` }
-    );
-
-    observerRef.current.observe(element);
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [loadMore, hasMore, loading, threshold]);
+  }, [fetchFn, page, pageSize, loading, hasMore]);
 
   const reset = useCallback(() => {
-    setData(initialData);
+    setItems(initialData);
     setPage(1);
     setHasMore(true);
     setError(null);
   }, [initialData]);
 
-  return { data, loading, hasMore, error, loadMoreRef, reset };
+  return { items, loading, hasMore, error, loadMore, reset };
 }
 
-// Infinite scroll container component
-interface InfiniteScrollProps<T> {
-  items: T[];
-  renderItem: (item: T, index: number) => React.ReactNode;
-  fetchMore: (page: number) => Promise<{ data: T[]; hasMore: boolean }>;
-  loading?: boolean;
-  hasMore?: boolean;
-  className?: string;
-  loadingComponent?: React.ReactNode;
-  endMessage?: React.ReactNode;
-  emptyMessage?: React.ReactNode;
+// Intersection Observer hook for triggering load
+export function useIntersectionObserver(
+  callback: () => void,
+  options?: IntersectionObserverInit
+) {
+  const targetRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const target = targetRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        callback();
+      }
+    }, { threshold: 0.1, ...options });
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [callback, options]);
+
+  return targetRef;
 }
 
-export function InfiniteScroll<T>({
-  items: initialItems,
-  renderItem,
-  fetchMore,
-  className = '',
-  loadingComponent,
-  endMessage,
-  emptyMessage,
-}: InfiniteScrollProps<T>) {
-  const { data, loading, hasMore, error, loadMoreRef } = useInfiniteScroll({
-    initialData: initialItems,
-    fetchMore,
+// Load more trigger component
+interface InfiniteScrollTriggerProps {
+  onLoadMore: () => void;
+  loading: boolean;
+  hasMore: boolean;
+  error?: string | null;
+}
+
+export function InfiniteScrollTrigger({ onLoadMore, loading, hasMore, error }: InfiniteScrollTriggerProps) {
+  const triggerRef = useIntersectionObserver(() => {
+    if (!loading && hasMore) {
+      onLoadMore();
+    }
   });
 
-  if (data.length === 0 && !loading) {
+  if (!hasMore && !loading) {
     return (
-      <div className="text-center py-12 text-gray-500">
-        {emptyMessage || 'No items found'}
+      <div className="text-center py-8 text-gray-500">
+        You've reached the end! 🎉
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-500 mb-2">{error}</p>
+        <button onClick={onLoadMore} className="text-[#ff6b35] hover:underline">
+          Try again
+        </button>
       </div>
     );
   }
 
   return (
-    <div className={className}>
-      {data.map((item, index) => renderItem(item, index))}
-      
-      {/* Load more trigger */}
-      <div ref={loadMoreRef} className="py-4">
-        {loading && (
-          loadingComponent || (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-[#ff6b35]" />
-            </div>
-          )
-        )}
-        
-        {error && (
-          <div className="text-center py-4 text-red-500">
-            {error}
-          </div>
-        )}
-        
-        {!hasMore && data.length > 0 && (
-          endMessage || (
-            <p className="text-center py-4 text-gray-400 text-sm">
-              You've reached the end
-            </p>
-          )
-        )}
-      </div>
+    <div ref={triggerRef} className="flex justify-center py-8">
+      {loading && (
+        <div className="flex items-center gap-2 text-gray-500">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span>Loading more...</span>
+        </div>
+      )}
     </div>
   );
 }
 
-// Simple load more button alternative
-interface LoadMoreButtonProps {
-  onClick: () => void;
-  loading: boolean;
-  hasMore: boolean;
-}
-
-export function LoadMoreButton({ onClick, loading, hasMore }: LoadMoreButtonProps) {
-  if (!hasMore) return null;
-  
-  return (
-    <div className="flex justify-center py-8">
-      <button
-        onClick={onClick}
-        disabled={loading}
-        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-8 py-3 rounded-xl font-medium transition disabled:opacity-50 flex items-center gap-2"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Loading...
-          </>
-        ) : (
-          'Load More'
-        )}
-      </button>
-    </div>
-  );
-}
-
-// Products grid with infinite scroll
+// Product grid with infinite scroll
 interface Product {
   id: string;
   name: string;
@@ -174,64 +124,84 @@ interface Product {
   primary_image_url?: string;
 }
 
-export function InfiniteProductGrid({ 
-  initialProducts,
-  categoryId,
-}: { 
+interface InfiniteProductGridProps {
   initialProducts: Product[];
   categoryId?: string;
-}) {
-  const fetchProducts = async (page: number) => {
+  searchQuery?: string;
+}
+
+export function InfiniteProductGrid({ initialProducts, categoryId, searchQuery }: InfiniteProductGridProps) {
+  const fetchProducts = useCallback(async (page: number, pageSize: number) => {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: '12',
-      ...(categoryId && { category: categoryId }),
+      page: String(page),
+      limit: String(pageSize),
     });
-    
+    if (categoryId) params.set('category', categoryId);
+    if (searchQuery) params.set('q', searchQuery);
+
     const res = await fetch(`/api/products/search?${params}`);
     const data = await res.json();
-    
+
     return {
       data: data.products || [],
-      hasMore: data.hasMore ?? false,
+      hasMore: data.hasMore ?? (data.products?.length === pageSize),
     };
-  };
+  }, [categoryId, searchQuery]);
+
+  const { items, loading, hasMore, error, loadMore, reset } = useInfiniteScroll({
+    fetchFn: fetchProducts,
+    initialData: initialProducts,
+    pageSize: 12,
+  });
+
+  // Reset when filters change
+  useEffect(() => {
+    reset();
+  }, [categoryId, searchQuery, reset]);
 
   return (
-    <InfiniteScroll
-      items={initialProducts}
-      fetchMore={fetchProducts}
-      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-      renderItem={(product) => (
-        <a
-          key={product.id}
-          href={`/products/${product.slug}`}
-          className="bg-white rounded-xl border overflow-hidden hover:shadow-lg transition group"
-        >
-          <div className="aspect-square bg-gray-100 relative overflow-hidden">
-            {product.primary_image_url ? (
-              <img
-                src={product.primary_image_url}
-                alt={product.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
-            )}
-          </div>
-          <div className="p-3">
-            <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
-            <p className="text-[#ff6b35] font-bold mt-1">
-              R{(product.selling_price_cents / 100).toFixed(2)}
-            </p>
-          </div>
-        </a>
-      )}
-      emptyMessage={
-        <div className="text-center py-12">
-          <p className="text-gray-500">No products found</p>
-        </div>
-      }
-    />
+    <div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {items.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+      
+      <InfiniteScrollTrigger
+        onLoadMore={loadMore}
+        loading={loading}
+        hasMore={hasMore}
+        error={error}
+      />
+    </div>
+  );
+}
+
+// Simple product card for the grid
+function ProductCard({ product }: { product: Product }) {
+  return (
+    <a
+      href={`/products/${product.slug}`}
+      className="bg-white rounded-xl border overflow-hidden hover:shadow-lg transition group"
+    >
+      <div className="aspect-square bg-gray-100 relative overflow-hidden">
+        {product.primary_image_url ? (
+          <img
+            src={product.primary_image_url}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
+        )}
+      </div>
+      <div className="p-3">
+        <h3 className="font-medium text-sm line-clamp-2">{product.name}</h3>
+        <p className="text-[#ff6b35] font-bold mt-1">
+          R{(product.selling_price_cents / 100).toFixed(2)}
+        </p>
+      </div>
+    </a>
   );
 }
