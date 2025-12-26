@@ -2,11 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Eye } from 'lucide-react';
 import type { Product } from '@/types/database';
 import { formatCurrency } from '@/lib/utils';
 import { useCartStore } from '@/lib/cart-store';
 import { Button } from '@/components/ui/button';
+import { ProductBadges, isProductNew, isProductHot } from '@/components/product-badges';
+import { useQuickView } from '@/components/quick-view-modal';
 
 interface ProductCardProps {
   product: Product;
@@ -14,6 +16,8 @@ interface ProductCardProps {
 
 export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
+  const openQuickView = useQuickView((state) => state.openQuickView);
+  
   const hasDiscount = product.compare_at_price_cents && product.compare_at_price_cents > product.selling_price_cents;
   const discountPercent = hasDiscount
     ? Math.round((1 - product.selling_price_cents / product.compare_at_price_cents!) * 100)
@@ -21,7 +25,24 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     addItem(product, 1);
+  };
+
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    openQuickView({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      selling_price_cents: product.selling_price_cents,
+      compare_at_price_cents: product.compare_at_price_cents,
+      primary_image_url: product.primary_image_url,
+      images: product.images,
+      short_description: product.short_description,
+      quantity: product.quantity,
+    });
   };
 
   return (
@@ -42,12 +63,21 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
           
-          {/* Discount Badge */}
-          {hasDiscount && (
-            <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-              -{discountPercent}%
-            </span>
-          )}
+          {/* Badges */}
+          <ProductBadges
+            discountPercent={discountPercent}
+            isNew={isProductNew(product.created_at)}
+            isHot={isProductHot(product.total_sold || 0)}
+            quantity={product.quantity}
+          />
+
+          {/* Quick View Button - Shows on hover */}
+          <button
+            onClick={handleQuickView}
+            className="absolute bottom-2 right-2 bg-white/90 p-2 rounded-full shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white"
+          >
+            <Eye className="h-4 w-4 text-gray-700" />
+          </button>
 
           {/* Out of Stock Overlay */}
           {product.quantity <= 0 && (

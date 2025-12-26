@@ -4,6 +4,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Providers } from "@/components/providers";
 import { WhatsAppSupport } from "@/components/whatsapp-share";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
+import { CartReminderBanner } from "@/components/cart-reminder-banner";
 
 export const metadata: Metadata = {
   title: {
@@ -71,8 +73,10 @@ export default function RootLayout({
       <body>
         <Providers>
           <Header />
-          <main>{children}</main>
+          <main className="pb-20 lg:pb-0">{children}</main>
           <Footer />
+          <MobileBottomNav />
+          <CartReminderBanner />
           <WhatsAppSupport />
         </Providers>
       </body>

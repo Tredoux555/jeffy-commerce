@@ -1,6 +1,8 @@
 'use client';
 
-import { useTrackProductView, RecentlyViewed } from '@/components/recently-viewed';
+import { useEffect } from 'react';
+import { useRecentlyViewed } from '@/lib/recently-viewed-store';
+import { RecentlyViewed } from '@/components/recently-viewed';
 
 interface ProductDetailClientProps {
   product: {
@@ -13,14 +15,18 @@ interface ProductDetailClientProps {
 }
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
-  // Track product view
-  useTrackProductView({
-    id: product.id,
-    name: product.name,
-    slug: product.slug,
-    price_cents: product.price,
-    image_url: product.image || undefined,
-  });
+  const addProduct = useRecentlyViewed((state) => state.addProduct);
 
-  return <RecentlyViewed excludeProductId={product.id} />;
+  // Track product view on mount
+  useEffect(() => {
+    addProduct({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      image: product.image,
+    });
+  }, [product.id]);
+
+  return null; // Recently viewed shown elsewhere
 }
