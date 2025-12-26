@@ -1,79 +1,72 @@
 'use client';
 
-import { Package, CreditCard, Truck, MapPin, CheckCircle, Clock, AlertCircle, Phone } from 'lucide-react';
+import { Package, Truck, CheckCircle, Clock, MapPin, CreditCard, Box, AlertCircle } from 'lucide-react';
 
 interface TimelineEvent {
   id: string;
-  type: 'created' | 'paid' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'refunded';
+  status: string;
   title: string;
   description?: string;
   timestamp: string;
   location?: string;
+  isCompleted: boolean;
+  isCurrent: boolean;
 }
 
-interface OrderTimelineProps {
-  events: TimelineEvent[];
-  currentStatus: string;
-}
-
-const eventConfig: Record<string, { icon: any; color: string; bgColor: string }> = {
-  created: { icon: Clock, color: 'text-blue-500', bgColor: 'bg-blue-100' },
-  paid: { icon: CreditCard, color: 'text-green-500', bgColor: 'bg-green-100' },
-  processing: { icon: Package, color: 'text-amber-500', bgColor: 'bg-amber-100' },
-  shipped: { icon: Truck, color: 'text-purple-500', bgColor: 'bg-purple-100' },
-  out_for_delivery: { icon: MapPin, color: 'text-orange-500', bgColor: 'bg-orange-100' },
+const STATUS_CONFIG: Record<string, { icon: typeof Package; color: string; bgColor: string }> = {
+  pending: { icon: Clock, color: 'text-amber-600', bgColor: 'bg-amber-100' },
+  confirmed: { icon: CheckCircle, color: 'text-blue-600', bgColor: 'bg-blue-100' },
+  paid: { icon: CreditCard, color: 'text-green-600', bgColor: 'bg-green-100' },
+  processing: { icon: Box, color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  shipped: { icon: Truck, color: 'text-indigo-600', bgColor: 'bg-indigo-100' },
+  out_for_delivery: { icon: MapPin, color: 'text-orange-600', bgColor: 'bg-orange-100' },
   delivered: { icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-100' },
-  cancelled: { icon: AlertCircle, color: 'text-red-500', bgColor: 'bg-red-100' },
-  refunded: { icon: CreditCard, color: 'text-gray-500', bgColor: 'bg-gray-100' },
+  cancelled: { icon: AlertCircle, color: 'text-red-600', bgColor: 'bg-red-100' },
 };
 
-export function OrderTimeline({ events, currentStatus }: OrderTimelineProps) {
-  const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return {
-      date: date.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' }),
-      time: date.toLocaleTimeString('en-ZA', { hour: '2-digit', minute: '2-digit' }),
-    };
-  };
-
+// Vertical timeline for order detail page
+export function OrderTimeline({ events }: { events: TimelineEvent[] }) {
   return (
     <div className="relative">
       {events.map((event, index) => {
-        const config = eventConfig[event.type] || eventConfig.created;
+        const config = STATUS_CONFIG[event.status] || STATUS_CONFIG.pending;
         const Icon = config.icon;
-        const { date, time } = formatDate(event.timestamp);
         const isLast = index === events.length - 1;
 
         return (
-          <div key={event.id} className="flex gap-4 pb-6 last:pb-0">
-            {/* Timeline line */}
-            <div className="flex flex-col items-center">
-              <div className={`w-10 h-10 rounded-full ${config.bgColor} flex items-center justify-center`}>
-                <Icon className={`h-5 w-5 ${config.color}`} />
-              </div>
-              {!isLast && (
-                <div className="w-0.5 flex-1 bg-gray-200 my-2" />
-              )}
+          <div key={event.id} className="relative pl-10 pb-8">
+            {/* Vertical line */}
+            {!isLast && (
+              <div className={`absolute left-4 top-8 w-0.5 h-full ${event.isCompleted ? 'bg-green-300' : 'bg-gray-200'}`} />
+            )}
+            
+            {/* Icon */}
+            <div className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              event.isCurrent ? config.bgColor : event.isCompleted ? 'bg-green-100' : 'bg-gray-100'
+            }`}>
+              <Icon className={`h-4 w-4 ${event.isCurrent ? config.color : event.isCompleted ? 'text-green-600' : 'text-gray-400'}`} />
             </div>
 
-            {/* Event content */}
-            <div className="flex-1 pb-2">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-medium">{event.title}</p>
-                  {event.description && (
-                    <p className="text-sm text-gray-500 mt-0.5">{event.description}</p>
-                  )}
-                  {event.location && (
-                    <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
-                      <MapPin className="h-3 w-3" /> {event.location}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right text-sm text-gray-500">
-                  <p>{date}</p>
-                  <p>{time}</p>
-                </div>
+            {/* Content */}
+            <div className={`${event.isCurrent ? 'bg-white border rounded-xl p-4 shadow-sm' : ''}`}>
+              <div className="flex items-center gap-2">
+                <h4 className={`font-medium ${event.isCurrent ? 'text-gray-900' : event.isCompleted ? 'text-gray-700' : 'text-gray-400'}`}>
+                  {event.title}
+                </h4>
+                {event.isCurrent && (
+                  <span className="px-2 py-0.5 bg-[#ff6b35] text-white text-xs rounded-full">Current</span>
+                )}
+              </div>
+              {event.description && (
+                <p className="text-sm text-gray-500 mt-1">{event.description}</p>
+              )}
+              <div className="flex items-center gap-4 mt-2 text-xs text-gray-400">
+                <span>{new Date(event.timestamp).toLocaleString()}</span>
+                {event.location && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> {event.location}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -83,117 +76,121 @@ export function OrderTimeline({ events, currentStatus }: OrderTimelineProps) {
   );
 }
 
-// Compact order progress bar
-interface OrderProgressProps {
-  status: 'pending' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered';
-  estimatedDelivery?: string;
-}
-
-export function OrderProgressBar({ status, estimatedDelivery }: OrderProgressProps) {
+// Horizontal progress tracker
+export function OrderProgressTracker({ currentStatus }: { currentStatus: string }) {
   const steps = [
-    { key: 'pending', label: 'Order Placed', icon: CreditCard },
-    { key: 'processing', label: 'Processing', icon: Package },
+    { key: 'confirmed', label: 'Confirmed', icon: CheckCircle },
+    { key: 'processing', label: 'Processing', icon: Box },
     { key: 'shipped', label: 'Shipped', icon: Truck },
-    { key: 'out_for_delivery', label: 'Out for Delivery', icon: MapPin },
-    { key: 'delivered', label: 'Delivered', icon: CheckCircle },
+    { key: 'delivered', label: 'Delivered', icon: Package },
   ];
 
-  const currentIdx = steps.findIndex(s => s.key === status);
+  const currentIndex = steps.findIndex(s => s.key === currentStatus);
 
   return (
     <div className="bg-white rounded-xl border p-6">
-      {/* Progress steps */}
-      <div className="flex items-center justify-between mb-4">
-        {steps.map((step, i) => {
+      <div className="flex items-center justify-between">
+        {steps.map((step, index) => {
+          const isCompleted = index < currentIndex;
+          const isCurrent = index === currentIndex;
           const Icon = step.icon;
-          const isComplete = i <= currentIdx;
-          const isCurrent = i === currentIdx;
 
           return (
-            <div key={step.key} className="flex items-center flex-1">
-              <div className="flex flex-col items-center flex-shrink-0">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
-                  isComplete 
-                    ? isCurrent 
-                      ? 'bg-[#ff6b35] text-white ring-4 ring-orange-100' 
-                      : 'bg-green-500 text-white' 
-                    : 'bg-gray-200 text-gray-400'
-                }`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-                <span className={`text-xs mt-2 text-center ${isCurrent ? 'font-medium text-[#ff6b35]' : 'text-gray-500'}`}>
-                  {step.label}
-                </span>
-              </div>
-              {i < steps.length - 1 && (
-                <div className={`flex-1 h-1 mx-2 rounded ${i < currentIdx ? 'bg-green-500' : 'bg-gray-200'}`} />
+            <div key={step.key} className="flex flex-col items-center relative flex-1">
+              {/* Connector line */}
+              {index > 0 && (
+                <div className={`absolute top-4 right-1/2 w-full h-0.5 -z-10 ${
+                  isCompleted || isCurrent ? 'bg-green-500' : 'bg-gray-200'
+                }`} />
               )}
+              
+              {/* Icon */}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                isCompleted ? 'bg-green-500' : isCurrent ? 'bg-[#ff6b35]' : 'bg-gray-200'
+              }`}>
+                <Icon className={`h-4 w-4 ${isCompleted || isCurrent ? 'text-white' : 'text-gray-400'}`} />
+              </div>
+              
+              {/* Label */}
+              <span className={`mt-2 text-xs font-medium ${
+                isCompleted || isCurrent ? 'text-gray-900' : 'text-gray-400'
+              }`}>
+                {step.label}
+              </span>
             </div>
           );
         })}
       </div>
-
-      {/* Estimated delivery */}
-      {estimatedDelivery && status !== 'delivered' && (
-        <div className="mt-4 pt-4 border-t text-center">
-          <p className="text-sm text-gray-500">Estimated Delivery</p>
-          <p className="font-bold text-lg">{estimatedDelivery}</p>
-        </div>
-      )}
-
-      {status === 'delivered' && (
-        <div className="mt-4 pt-4 border-t text-center">
-          <div className="inline-flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-full">
-            <CheckCircle className="h-5 w-5" />
-            <span className="font-medium">Delivered Successfully</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-// Live tracking card
-interface LiveTrackingProps {
-  trackingNumber: string;
-  carrier: string;
-  status: string;
-  lastUpdate: string;
-  driverName?: string;
-  driverPhone?: string;
+// Mini timeline for order list
+export function OrderStatusBadge({ status }: { status: string }) {
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.pending;
+  const Icon = config.icon;
+  
+  const labels: Record<string, string> = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    paid: 'Paid',
+    processing: 'Processing',
+    shipped: 'Shipped',
+    out_for_delivery: 'Out for Delivery',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+  };
+
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium ${config.bgColor} ${config.color}`}>
+      <Icon className="h-4 w-4" />
+      {labels[status] || status}
+    </span>
+  );
 }
 
-export function LiveTrackingCard({ trackingNumber, carrier, status, lastUpdate, driverName, driverPhone }: LiveTrackingProps) {
+// Full order history card
+export function OrderHistoryCard({ 
+  orderNumber,
+  date,
+  status,
+  total,
+  itemCount,
+  events 
+}: { 
+  orderNumber: string;
+  date: string;
+  status: string;
+  total: number;
+  itemCount: number;
+  events: TimelineEvent[];
+}) {
   return (
-    <div className="bg-gradient-to-br from-[#ff6b35] to-orange-600 rounded-xl p-6 text-white">
-      <div className="flex items-start justify-between mb-4">
+    <div className="bg-white rounded-xl border overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b flex items-center justify-between">
         <div>
-          <p className="text-white/80 text-sm">Tracking Number</p>
-          <p className="font-mono font-bold">{trackingNumber}</p>
+          <p className="font-bold">Order #{orderNumber}</p>
+          <p className="text-sm text-gray-500">{new Date(date).toLocaleDateString()} • {itemCount} item(s)</p>
         </div>
-        <span className="bg-white/20 px-3 py-1 rounded-full text-sm">{carrier}</span>
+        <div className="text-right">
+          <OrderStatusBadge status={status} />
+          <p className="font-bold mt-1">R{(total / 100).toLocaleString()}</p>
+        </div>
       </div>
-
-      <div className="bg-white/10 rounded-lg p-4 mb-4">
-        <p className="text-white/80 text-sm mb-1">Current Status</p>
-        <p className="font-bold text-lg">{status}</p>
-        <p className="text-white/60 text-sm mt-1">Last updated: {lastUpdate}</p>
+      
+      {/* Progress */}
+      <div className="p-4 bg-gray-50">
+        <OrderProgressTracker currentStatus={status} />
       </div>
-
-      {driverName && (
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white/80 text-sm">Your Driver</p>
-            <p className="font-medium">{driverName}</p>
-          </div>
-          {driverPhone && (
-            <a
-              href={`tel:${driverPhone}`}
-              className="bg-white text-[#ff6b35] p-3 rounded-full hover:bg-orange-50 transition"
-            >
-              <Phone className="h-5 w-5" />
-            </a>
-          )}
+      
+      {/* Latest update */}
+      {events.length > 0 && (
+        <div className="p-4 border-t">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">Latest: </span>
+            {events[0].title} - {new Date(events[0].timestamp).toLocaleString()}
+          </p>
         </div>
       )}
     </div>
