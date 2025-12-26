@@ -1,6 +1,6 @@
 'use client';
 
-import { Truck } from 'lucide-react';
+import { Truck, Gift } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatCurrency } from '@/lib/utils';
 
@@ -16,30 +16,35 @@ export function FreeShippingProgress() {
   const qualified = remaining <= 0;
 
   return (
-    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+    <div className={`p-4 rounded-xl ${qualified ? 'bg-green-50 border border-green-200' : 'bg-orange-50 border border-orange-200'}`}>
       <div className="flex items-center gap-3 mb-2">
-        <Truck className={`h-5 w-5 ${qualified ? 'text-green-600' : 'text-orange-500'}`} />
-        <span className="font-medium text-sm">
-          {qualified ? (
-            <span className="text-green-600">🎉 You qualify for FREE shipping!</span>
-          ) : (
-            <span className="text-gray-700">
-              Add {formatCurrency(remaining)} more for <span className="text-green-600 font-bold">FREE shipping</span>
+        {qualified ? (
+          <>
+            <Gift className="h-5 w-5 text-green-600" />
+            <span className="font-medium text-green-800">🎉 You qualify for FREE shipping!</span>
+          </>
+        ) : (
+          <>
+            <Truck className="h-5 w-5 text-[#ff6b35]" />
+            <span className="font-medium text-gray-800">
+              Add {formatCurrency(remaining)} more for FREE shipping
             </span>
-          )}
-        </span>
+          </>
+        )}
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2">
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
         <div 
-          className={`h-2 rounded-full transition-all duration-500 ${qualified ? 'bg-green-500' : 'bg-orange-500'}`}
+          className={`h-full transition-all duration-500 ${qualified ? 'bg-green-500' : 'bg-[#ff6b35]'}`}
           style={{ width: `${progress}%` }}
         />
       </div>
       
-      <p className="text-xs text-gray-500 mt-2">
-        Free shipping on orders over {formatCurrency(FREE_SHIPPING_THRESHOLD)}
-      </p>
+      {!qualified && (
+        <p className="text-xs text-gray-500 mt-2">
+          Free shipping on orders over {formatCurrency(FREE_SHIPPING_THRESHOLD)}
+        </p>
+      )}
     </div>
   );
 }
