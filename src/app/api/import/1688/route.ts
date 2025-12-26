@@ -11,6 +11,18 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || '',
 });
 
+// CORS headers for Chrome extension
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// OPTIONS - Handle preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders });
+}
+
 // GET - Check API status
 export async function GET() {
   return NextResponse.json({ 
@@ -18,7 +30,7 @@ export async function GET() {
     message: 'Jeffy 1688 Import API is ready',
     features: ['translation', 'image-ocr', 'text-removal', 'auto-pricing'],
     hasReplicate: !!process.env.REPLICATE_API_TOKEN
-  });
+  }, { headers: corsHeaders });
 }
 
 // POST - Import product from 1688
@@ -30,7 +42,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         success: false, 
         error: 'Product title is required' 
-      }, { status: 400 });
+      }, { status: 400, headers: corsHeaders });
     }
 
     console.log('📦 Importing 1688 product:', data.titleCn || data.title);
@@ -88,7 +100,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         success: false, 
         error: 'Failed to create product: ' + productError.message 
-      }, { status: 500 });
+      }, { status: 500, headers: corsHeaders });
     }
 
     console.log('✅ Product created:', product.id);
@@ -97,7 +109,7 @@ export async function POST(request: NextRequest) {
       success: true,
       productId: product.id,
       slug: product.slug,
-      editUrl: `https://www.jeffy.co.za/admin/products/${product.id}`,
+      editUrl: `https://jeffy-commerce.vercel.app/admin/products/${product.id}`,
       translation: translation,
       pricing: pricing,
       imagesProcessed: processedImages.length,
@@ -107,14 +119,14 @@ export async function POST(request: NextRequest) {
         textFound: img.chineseTextFound,
         textTranslated: img.translatedText
       }))
-    });
+    }, { headers: corsHeaders });
 
   } catch (error: any) {
     console.error('1688 Import Error:', error);
     return NextResponse.json({ 
       success: false, 
       error: error.message || 'Import failed' 
-    }, { status: 500 });
+    }, { status: 500, headers: corsHeaders });
   }
 }
 
