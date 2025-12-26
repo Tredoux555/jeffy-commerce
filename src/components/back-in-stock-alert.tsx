@@ -106,7 +106,7 @@ export function BackInStockAlert({ productId, productName, variant, onSuccess }:
           </div>
 
           {/* Email input */}
-          {notifyVia !== 'sms' && (
+          {(notifyVia === 'email' || notifyVia === 'both') && (
             <div className="mb-3">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -116,14 +116,14 @@ export function BackInStockAlert({ productId, productName, variant, onSuccess }:
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Your email"
                   className="w-full pl-10 pr-4 py-2.5 border rounded-lg"
-                  required={notifyVia !== 'sms'}
+                  required
                 />
               </div>
             </div>
           )}
 
           {/* Phone input */}
-          {notifyVia !== 'email' && (
+          {(notifyVia === 'sms' || notifyVia === 'both') && (
             <div className="mb-3">
               <input
                 type="tel"
@@ -131,7 +131,7 @@ export function BackInStockAlert({ productId, productName, variant, onSuccess }:
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Phone number (e.g., 0821234567)"
                 className="w-full px-4 py-2.5 border rounded-lg"
-                required={notifyVia !== 'email'}
+                required
               />
             </div>
           )}
