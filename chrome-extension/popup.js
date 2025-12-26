@@ -23,7 +23,7 @@ async function checkConnection() {
   const statusText = document.getElementById('statusText');
   
   try {
-    const response = await fetch('https://www.jeffy.co.za/api/import/1688/status');
+    const response = await fetch('https://jeffy-commerce.vercel.app/api/import/1688');
     const data = await response.json();
     
     if (data.success) {

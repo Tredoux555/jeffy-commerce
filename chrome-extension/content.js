@@ -4,7 +4,7 @@
 (function() {
   'use strict';
 
-  const JEFFY_API_URL = 'https://www.jeffy.co.za/api/import/1688';
+  const JEFFY_API_URL = 'https://jeffy-commerce.vercel.app/api/import/1688';
   
   // Check if we're on a product detail page
   function isProductPage() {
