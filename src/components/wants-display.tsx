@@ -33,7 +33,7 @@ export default function WantsDisplay() {
 
   const loadWants = async () => {
     const res = await getTrendingWants(12);
-    if (res.success) {
+    if (res.success && res.wants) {
       setWants(res.wants);
     }
     setLoading(false);

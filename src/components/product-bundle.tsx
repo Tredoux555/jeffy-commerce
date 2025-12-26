@@ -34,15 +34,14 @@ export function ProductBundleCard({
 
   const handleAddBundle = () => {
     // Add bundle as a special cart item
-    addItem({
-      productId: id,
+    const bundleProduct = {
+      id,
       name: `📦 ${name}`,
-      price: bundlePrice,
-      quantity,
-      image: imageUrl || products[0]?.image_url,
-      variantId: 'bundle',
-      variantName: `Bundle of ${products.length} items`,
-    });
+      slug: `bundle-${id}`,
+      primary_image_url: imageUrl || products[0]?.image_url,
+      selling_price_cents: bundlePrice,
+    } as any;
+    addItem(bundleProduct, quantity, 'bundle', `Bundle of ${products.length} items`);
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };

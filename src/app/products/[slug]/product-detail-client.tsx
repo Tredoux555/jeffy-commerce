@@ -15,8 +15,14 @@ interface ProductDetailClientProps {
 
 export function ProductDetailClient({ product }: ProductDetailClientProps) {
   useEffect(() => {
-    addToRecentlyViewed(product);
+    addToRecentlyViewed({
+      productId: product.id,
+      name: product.name,
+      slug: product.slug,
+      price: product.price,
+      image: product.image,
+    });
   }, [product]);
 
-  return <RecentlyViewed excludeId={product.id} />;
+  return <RecentlyViewed excludeProductId={product.id} />;
 }

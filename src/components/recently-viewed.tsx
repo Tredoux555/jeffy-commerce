@@ -6,6 +6,17 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Clock } from 'lucide-react';
 
+// Export helper function for adding products
+export function addToRecentlyViewed(product: {
+  productId: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string | null;
+}) {
+  useRecentlyViewedStore.getState().addProduct(product);
+}
+
 interface RecentlyViewedProps {
   excludeProductId?: string;
   maxItems?: number;

@@ -18,7 +18,7 @@ export default function HeroWants() {
   useEffect(() => {
     const loadWants = async () => {
       const res = await getWants(6);
-      if (res.success) setWants(res.wants);
+      if (res.success && res.wants) setWants(res.wants);
     };
     loadWants();
   }, []);

@@ -17,13 +17,15 @@ export default function WishlistPage() {
   }, []);
 
   const handleAddToCart = (item: typeof items[0]) => {
-    addToCart({
-      productId: item.productId,
+    // Create a product-like object for the cart
+    const product = {
+      id: item.productId,
       name: item.name,
-      price: item.price,
-      quantity: 1,
-      image: item.image,
-    });
+      slug: item.slug,
+      primary_image_url: item.image,
+      selling_price_cents: item.price,
+    } as any;
+    addToCart(product);
     removeItem(item.productId);
   };
 

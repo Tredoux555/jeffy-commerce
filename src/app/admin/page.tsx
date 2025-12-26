@@ -2,7 +2,6 @@ import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/utils';
 import { Package, ShoppingCart, DollarSign, TrendingUp } from 'lucide-react';
 import { LowStockAlert } from '@/components/low-stock-alert';
-import { LowStockAlert } from '@/components/low-stock-alert';
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
