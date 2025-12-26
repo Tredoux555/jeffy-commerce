@@ -82,7 +82,7 @@ export function ShareButtons({ url, title, image }: ShareButtonsProps) {
         <Twitter className="h-4 w-4 text-[#1DA1F2]" />
       </button>
 
-      {typeof navigator !== 'undefined' && navigator.share && (
+      {typeof navigator !== 'undefined' && 'share' in navigator && (
         <button
           onClick={nativeShare}
           className="p-2 rounded-full hover:bg-gray-100 transition"

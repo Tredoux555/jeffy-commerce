@@ -40,7 +40,7 @@ export function Footer() {
             </div>
           </div>
           <div>
-            <NewsletterSignup variant="footer" source="footer" />
+                        <NewsletterSignup />
           </div>
         </div>
         <div className="border-t border-gray-800 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">

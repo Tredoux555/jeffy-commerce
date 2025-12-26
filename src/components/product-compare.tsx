@@ -10,7 +10,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/lib/cart-store';
 
-interface CompareProduct {
+export interface CompareProduct {
   id: string;
   name: string;
   slug: string;
