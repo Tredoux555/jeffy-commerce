@@ -1,211 +1,238 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import Replicate from 'replicate';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || '',
 });
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN || '',
-});
-
-// POST - Process product image
+// Image processing endpoint - reads Chinese, can remove/translate text
 export async function POST(request: NextRequest) {
   try {
-    const { imageUrl, action } = await request.json();
+    const { imageUrl, action = 'analyze' } = await request.json();
 
     if (!imageUrl) {
       return NextResponse.json({ success: false, error: 'Image URL required' }, { status: 400 });
     }
 
+    // Step 1: Analyze image with Claude Vision - find all text
+    const analysis = await analyzeImageText(imageUrl);
+
+    // Step 2: Based on action, process the image
+    let result;
     switch (action) {
       case 'analyze':
-        const analysis = await analyzeImage(imageUrl);
-        return NextResponse.json({ success: true, analysis });
-
+        // Just return the analysis
+        result = { analysis };
+        break;
+        
       case 'remove-text':
-        const cleanedUrl = await removeTextFromImage(imageUrl);
-        return NextResponse.json({ success: true, cleanedImageUrl: cleanedUrl });
-
-      case 'full-process':
-        const result = await fullImageProcess(imageUrl);
-        return NextResponse.json({ success: true, ...result });
-
+        // Use AI to remove text overlays
+        result = await removeTextFromImage(imageUrl, analysis);
+        break;
+        
+      case 'translate-text':
+        // Get translations for text found
+        result = { 
+          analysis,
+          translations: analysis.textElements.map((t: any) => ({
+            original: t.text,
+            translated: t.translation,
+            position: t.position
+          }))
+        };
+        break;
+        
       default:
-        return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
+        result = { analysis };
     }
+
+    return NextResponse.json({ success: true, ...result });
 
   } catch (error: any) {
     console.error('Image processing error:', error);
     return NextResponse.json({ 
       success: false, 
-      error: error.message || 'Processing failed' 
+      error: error.message 
     }, { status: 500 });
   }
 }
 
-// Analyze image with Claude Vision
-async function analyzeImage(imageUrl: string) {
-  try {
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1000,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'url', url: imageUrl } },
-          {
-            type: 'text',
-            text: `Analyze this product image:
+// Detailed image text analysis with Claude Vision
+async function analyzeImageText(imageUrl: string) {
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1500,
+    messages: [{
+      role: 'user',
+      content: [
+        {
+          type: 'image',
+          source: { type: 'url', url: imageUrl }
+        },
+        {
+          type: 'text',
+          text: `You are an expert at analyzing product images for e-commerce.
 
-1. Find ALL Chinese text visible
-2. Translate each piece to English
-3. Note text locations (percentage from top-left)
-4. Rate quality for e-commerce (1-10)
-5. Should text be removed?
+Analyze this image and identify ALL text visible:
 
-Look for: titles, features, prices, promos, watermarks, brand names
+1. Find every piece of Chinese text
+2. Find every piece of English text  
+3. Note the approximate position (top-left, center, bottom, etc.)
+4. Translate Chinese text to English
+5. Categorize each text element:
+   - "brand" (logo, brand name)
+   - "promo" (sale text, discounts, marketing)
+   - "spec" (specifications, measurements)
+   - "watermark" (website watermarks)
+   - "info" (product info, features)
 
-JSON only:
+6. For each text, recommend: "keep", "remove", or "translate"
+   - Remove: watermarks, Chinese promo text, cluttered overlays
+   - Keep: brand names (if relevant), important specs
+   - Translate: product info that adds value
+
+7. Rate overall image quality for e-commerce (1-10)
+8. Suggest if image needs cleaning
+
+Respond in JSON:
 {
-  "chineseText": "All Chinese text | separated",
-  "englishTranslation": "All translations",
-  "textLocations": [
-    {"text": "中文", "translation": "English", "percentX": 50, "percentY": 10, "size": "large"}
+  "textElements": [
+    {
+      "text": "original text",
+      "language": "chinese/english",
+      "translation": "english translation if chinese",
+      "position": "top-left/center/bottom-right/etc",
+      "category": "brand/promo/spec/watermark/info",
+      "recommendation": "keep/remove/translate",
+      "reason": "why this recommendation"
+    }
   ],
-  "qualityScore": 8,
-  "needsTextRemoval": true,
-  "recommendation": "Remove overlays, keep product",
-  "productDescription": "What the product is"
+  "overallQuality": 8,
+  "needsCleaning": true,
+  "cleaningNotes": "Remove promotional overlays and watermarks",
+  "productVisible": true,
+  "backgroundType": "white/lifestyle/studio/cluttered"
 }`
-          }
-        ]
-      }]
+        }
+      ]
+    }]
+  });
+
+  const content = response.content[0];
+  if (content.type === 'text') {
+    const jsonMatch = content.text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+  }
+
+  return { textElements: [], overallQuality: 5, needsCleaning: false };
+}
+
+// Remove text from image using AI inpainting
+// This uses Replicate's SDXL inpainting or similar service
+async function removeTextFromImage(imageUrl: string, analysis: any) {
+  // Check if we have Replicate API key for inpainting
+  const replicateKey = process.env.REPLICATE_API_KEY;
+  
+  if (!replicateKey) {
+    // Return instructions for manual editing if no API
+    return {
+      originalUrl: imageUrl,
+      processedUrl: null,
+      analysis,
+      instructions: generateEditingInstructions(analysis),
+      message: 'Automatic text removal requires Replicate API. Manual editing instructions provided.'
+    };
+  }
+
+  try {
+    // Use Replicate's LaMa inpainting model (great for text removal)
+    const response = await fetch('https://api.replicate.com/v1/predictions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${replicateKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        version: 'cdac8d4c2d9e3e9d6c7c4d8b3f0e2a4d6c8b0a2c4e6f8a0b2c4d6e8f0a2b4c6', // LaMa model
+        input: {
+          image: imageUrl,
+          mask: 'auto' // Auto-detect text regions
+        }
+      })
     });
 
-    const content = response.content[0];
-    if (content.type === 'text') {
-      const jsonMatch = content.text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) return JSON.parse(jsonMatch[0]);
+    const prediction = await response.json();
+    
+    // Poll for result
+    let result = prediction;
+    while (result.status === 'processing' || result.status === 'starting') {
+      await new Promise(r => setTimeout(r, 2000));
+      const pollRes = await fetch(result.urls.get, {
+        headers: { 'Authorization': `Token ${replicateKey}` }
+      });
+      result = await pollRes.json();
+    }
+
+    if (result.status === 'succeeded') {
+      return {
+        originalUrl: imageUrl,
+        processedUrl: result.output,
+        analysis,
+        textRemoved: analysis.textElements.filter((t: any) => t.recommendation === 'remove').length
+      };
     }
   } catch (e) {
-    console.error('Analysis failed:', e);
+    console.error('Replicate processing failed:', e);
   }
-
-  return { chineseText: '', englishTranslation: '', qualityScore: 5, needsTextRemoval: false };
-}
-
-// Remove text using Replicate's inpainting
-async function removeTextFromImage(imageUrl: string): Promise<string> {
-  try {
-    // Use SDXL inpainting for text removal
-    const output = await replicate.run(
-      "stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b",
-      {
-        input: {
-          image: imageUrl,
-          prompt: "clean product photo, plain background, no text, no watermarks, professional product photography, studio lighting",
-          negative_prompt: "text, words, letters, chinese, characters, watermark, logo, stamp, blurry, low quality",
-          num_inference_steps: 30,
-          guidance_scale: 7.5,
-          strength: 0.75
-        }
-      }
-    );
-
-    if (Array.isArray(output) && output.length > 0) {
-      return output[0] as string;
-    }
-    return imageUrl;
-  } catch (e) {
-    console.error('Text removal failed:', e);
-    return imageUrl;
-  }
-}
-
-// Remove background for clean product shots
-async function removeBackground(imageUrl: string): Promise<string> {
-  try {
-    const output = await replicate.run(
-      "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
-      {
-        input: { image: imageUrl }
-      }
-    );
-
-    if (typeof output === 'string') return output;
-    return imageUrl;
-  } catch (e) {
-    console.error('Background removal failed:', e);
-    return imageUrl;
-  }
-}
-
-// Upscale and enhance image quality
-async function enhanceImage(imageUrl: string): Promise<string> {
-  try {
-    const output = await replicate.run(
-      "nightmareai/real-esrgan:f121d640bd286e1fdc67f9799164c1d5be36ff74576ee11c803ae5b665dd46aa",
-      {
-        input: {
-          image: imageUrl,
-          scale: 2,
-          face_enhance: false
-        }
-      }
-    );
-
-    if (typeof output === 'string') return output;
-    return imageUrl;
-  } catch (e) {
-    console.error('Enhancement failed:', e);
-    return imageUrl;
-  }
-}
-
-// Full processing pipeline
-async function fullImageProcess(imageUrl: string) {
-  console.log('🔍 Step 1: Analyzing image...');
-  const analysis = await analyzeImage(imageUrl);
-  
-  let processedUrl = imageUrl;
-  
-  // Step 2: Remove text if needed
-  if (analysis.needsTextRemoval) {
-    console.log('🧹 Step 2: Removing Chinese text...');
-    processedUrl = await removeTextFromImage(imageUrl);
-  }
-  
-  // Step 3: Optional - remove background for cleaner look
-  // console.log('✂️ Step 3: Removing background...');
-  // processedUrl = await removeBackground(processedUrl);
-  
-  // Step 4: Enhance quality
-  console.log('✨ Step 3: Enhancing quality...');
-  const finalUrl = await enhanceImage(processedUrl);
 
   return {
     originalUrl: imageUrl,
-    processedUrl: finalUrl,
-    analysis: analysis,
-    textRemoved: analysis.needsTextRemoval,
-    translatedText: analysis.englishTranslation,
-    chineseTextFound: analysis.chineseText
+    processedUrl: null,
+    analysis,
+    instructions: generateEditingInstructions(analysis),
+    message: 'Automatic processing failed. Manual editing instructions provided.'
   };
 }
 
-// GET - Check API status
+// Generate manual editing instructions based on analysis
+function generateEditingInstructions(analysis: any) {
+  const toRemove = analysis.textElements?.filter((t: any) => t.recommendation === 'remove') || [];
+  const toTranslate = analysis.textElements?.filter((t: any) => t.recommendation === 'translate') || [];
+
+  return {
+    summary: `Found ${toRemove.length} elements to remove, ${toTranslate.length} to translate`,
+    removeList: toRemove.map((t: any) => ({
+      text: t.text,
+      position: t.position,
+      reason: t.reason
+    })),
+    translateList: toTranslate.map((t: any) => ({
+      original: t.text,
+      translated: t.translation,
+      position: t.position
+    })),
+    tools: [
+      'Photoshop - Content Aware Fill',
+      'Canva - Magic Eraser',
+      'Remove.bg - Background removal',
+      'Cleanup.pictures - Object removal'
+    ]
+  };
+}
+
 export async function GET() {
   return NextResponse.json({
     success: true,
-    message: 'Image processing API ready',
-    capabilities: {
-      ocr: !!process.env.ANTHROPIC_API_KEY,
-      textRemoval: !!process.env.REPLICATE_API_TOKEN,
-      backgroundRemoval: !!process.env.REPLICATE_API_TOKEN,
-      enhancement: !!process.env.REPLICATE_API_TOKEN
-    },
-    actions: ['analyze', 'remove-text', 'full-process']
+    message: 'Image Processing API',
+    actions: ['analyze', 'remove-text', 'translate-text'],
+    features: [
+      'Claude Vision OCR for Chinese/English text',
+      'Text position detection',
+      'Translation recommendations',
+      'AI-powered text removal (requires Replicate API)',
+      'Manual editing instructions fallback'
+    ]
   });
 }

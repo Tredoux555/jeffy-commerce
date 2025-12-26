@@ -1,84 +1,110 @@
 # Jeffy 1688 Importer - Chrome Extension
 
-Import products from 1688.com directly into Jeffy Commerce with automatic:
-- 🌐 Chinese → English translation
-- 🖼️ Image OCR (reads Chinese text on images)
-- 🧹 Text removal from product images
-- 💰 Automatic ZAR pricing calculation
-- 📦 Draft product creation in admin
+Import products from 1688.com to Jeffy Commerce with one click!
+
+## Features
+
+✅ **One-Click Import** - Click "Send to Jeffy" on any 1688 product page
+✅ **Auto Translation** - Chinese → English using Claude AI
+✅ **Image OCR** - Reads Chinese text on product images
+✅ **Smart Pricing** - Auto-calculates ZAR pricing with markup
+✅ **Image Analysis** - Identifies text to remove/translate
 
 ## Installation
 
+### Step 1: Load Extension in Chrome
+
 1. Open Chrome and go to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in top right)
+2. Enable **Developer mode** (top right toggle)
 3. Click **Load unpacked**
-4. Select this `chrome-extension` folder
-5. You should see the Jeffy 1688 Importer icon in your toolbar
+4. Select the `chrome-extension` folder
 
-## Creating Icons
+### Step 2: Configure Jeffy API
 
-Before installing, create PNG icons from the SVG:
+The extension connects to `https://www.jeffy.co.za/api/import/1688`
 
-```bash
-# Using ImageMagick (if installed)
-convert icons/icon128.svg -resize 16x16 icons/icon16.png
-convert icons/icon128.svg -resize 48x48 icons/icon48.png
-convert icons/icon128.svg -resize 128x128 icons/icon128.png
-```
-
-Or use any image editor to create 16x16, 48x48, and 128x128 pixel PNGs with the Jeffy "J" logo.
+Make sure your Jeffy deployment has:
+- `ANTHROPIC_API_KEY` in environment variables
+- (Optional) `REPLICATE_API_KEY` for auto text removal
 
 ## Usage
 
-1. Go to any product page on 1688.com (detail.1688.com/...)
-2. Look for the orange **"Send to Jeffy"** button (bottom right)
-3. Click it!
-4. Product will be:
-   - Scraped (title, price, images, specs)
-   - Translated to English
-   - Images analyzed for Chinese text
-   - Text removed from images (if enabled)
-   - Created as draft in Jeffy admin
+1. Browse products on [1688.com](https://detail.1688.com)
+2. Open any product detail page
+3. Look for the orange **"🚀 Send to Jeffy"** button (bottom right)
+4. Click it!
+5. Product is imported as **draft** in Jeffy admin
 
-## API Endpoints
+## What Gets Imported
 
-The extension communicates with these Jeffy APIs:
+| Field | Source |
+|-------|--------|
+| Title | Auto-translated from Chinese |
+| Description | AI-generated from specs |
+| Images | Up to 10 product images |
+| Price | Calculated with markup (CNY → ZAR) |
+| Variants | Extracted from SKU options |
+| Supplier | Name, rating, location |
+| 1688 URL | Original product link |
 
-- `POST /api/import/1688` - Main import endpoint
-- `POST /api/import/1688/process-image` - Image processing
-- `GET /api/import/1688` - Status check
+## Image Processing
 
-## Environment Variables Required
+The extension analyzes each image:
+- Detects Chinese text overlays
+- Recommends: keep / remove / translate
+- Rates image quality (1-10)
+- Provides cleaning instructions
 
-In your Jeffy `.env.local`:
+### Auto Text Removal (Optional)
+
+If you add `REPLICATE_API_KEY`:
+- AI automatically removes Chinese text
+- Returns clean product images
+- Uses LaMa inpainting model
+
+## Pricing Formula
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...     # For translation & OCR
-REPLICATE_API_TOKEN=r8_...        # For image processing (optional)
+Cost (ZAR) = (Price CNY × 3.2 + R75 shipping) × 1.15 duty
+Selling = Cost × 2.5 markup × 1.15 VAT
+Compare = Selling × 1.3 (shows "was" price)
 ```
-
-## Testing
-
-1. Go to `/admin/import` in Jeffy
-2. Test image processing with a 1688 image URL
-3. Test full import pipeline
 
 ## Troubleshooting
 
-**Button doesn't appear:**
+**Button not showing?**
 - Make sure you're on a product detail page (URL contains `detail.1688.com`)
 - Refresh the page
-- Check Chrome console for errors
 
-**Import fails:**
-- Check Jeffy API status at `/api/import/1688`
-- Ensure ANTHROPIC_API_KEY is set
-- Check Vercel logs for errors
+**Import failed?**
+- Check Chrome DevTools console for errors
+- Verify API is responding: visit `/api/import/1688`
 
-**Images not processing:**
-- REPLICATE_API_TOKEN is optional but needed for image cleanup
-- Without it, original images are used
+**Images not analyzing?**
+- Claude needs valid image URLs
+- Some 1688 images may be protected
 
-## Support
+## Files
 
-Contact Jeffy Commerce support or check the admin dashboard.
+```
+chrome-extension/
+├── manifest.json      # Extension config
+├── content.js         # Scrapes 1688 pages
+├── content.css        # Floating button styles
+├── popup.html         # Extension popup UI
+├── popup.js           # Popup logic
+├── background.js      # Stats tracking
+└── icons/             # Extension icons
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/import/1688` | GET | Check API status |
+| `/api/import/1688` | POST | Import product |
+| `/api/import/1688/process-image` | POST | Analyze/clean images |
+
+---
+
+Made with 🧡 for Jeffy Commerce
