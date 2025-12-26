@@ -14,7 +14,7 @@ interface UseInfiniteScrollReturn<T> {
   hasMore: boolean;
   loadMore: () => void;
   reset: () => void;
-  sentinelRef: React.RefObject<HTMLDivElement>;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
 }
 
 // Generic infinite scroll hook
@@ -101,7 +101,7 @@ export function ScrollSentinel({
   loading, 
   hasMore 
 }: { 
-  sentinelRef: React.RefObject<HTMLDivElement>;
+  sentinelRef: React.RefObject<HTMLDivElement | null>;
   loading: boolean;
   hasMore: boolean;
 }) {
