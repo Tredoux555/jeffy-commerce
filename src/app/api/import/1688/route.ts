@@ -131,6 +131,9 @@ export async function POST(request: NextRequest) {
 }
 
 async function translateProduct(titleCn: string, specifications?: Record<string, string>) {
+  console.log('🔤 Starting translation for:', titleCn);
+  console.log('🔑 API Key exists:', !!process.env.ANTHROPIC_API_KEY);
+  
   try {
     const specText = specifications 
       ? Object.entries(specifications).map(([k, v]) => `${k}: ${v}`).join('\n')
@@ -167,17 +170,23 @@ JSON only:
       }]
     });
 
+    console.log('✅ Translation API response received');
+
     const content = response.content[0];
     if (content.type === 'text') {
       const jsonMatch = content.text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
+        const result = JSON.parse(jsonMatch[0]);
+        console.log('✅ Translated title:', result.title);
+        return result;
       }
     }
-  } catch (e) {
-    console.error('Translation failed:', e);
+  } catch (e: any) {
+    console.error('❌ Translation failed:', e.message || e);
+    console.error('❌ Full error:', JSON.stringify(e, null, 2));
   }
 
+  console.log('⚠️ Using fallback (original Chinese title)');
   return { title: titleCn, description: '', shortDescription: '', keywords: [] };
 }
 
