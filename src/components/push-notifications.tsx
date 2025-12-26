@@ -1,171 +1,233 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, X } from 'lucide-react';
+import { Bell, BellOff, X, Check, ShoppingBag, Tag, Truck, Gift } from 'lucide-react';
 
-// Check if push is supported
-export function isPushSupported(): boolean {
-  return typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator;
-}
+// Check if browser supports notifications
+const isSupported = () => typeof window !== 'undefined' && 'Notification' in window;
 
 // Request permission
-export async function requestPushPermission(): Promise<NotificationPermission> {
-  if (!isPushSupported()) return 'denied';
-  return await Notification.requestPermission();
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (!isSupported()) return false;
+  
+  const permission = await Notification.requestPermission();
+  return permission === 'granted';
 }
 
-// Show a local notification
-export function showNotification(title: string, options?: NotificationOptions): void {
-  if (!isPushSupported() || Notification.permission !== 'granted') return;
+// Send a notification
+export function sendNotification(title: string, options?: NotificationOptions & { onClick?: () => void }) {
+  if (!isSupported() || Notification.permission !== 'granted') return null;
   
-  new Notification(title, {
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+  const notification = new Notification(title, {
+    icon: '/favicon.svg',
+    badge: '/favicon.svg',
     ...options,
   });
+
+  if (options?.onClick) {
+    notification.onclick = () => {
+      window.focus();
+      options.onClick?.();
+      notification.close();
+    };
+  }
+
+  return notification;
 }
 
-// Push notification prompts
-const NOTIFICATION_TYPES = {
-  orderUpdate: { title: 'Order Updates', description: 'Get notified when your order ships or delivers' },
-  newProducts: { title: 'New Products', description: 'Be the first to know about new arrivals' },
-  sales: { title: 'Sales & Deals', description: 'Never miss a flash sale or discount' },
-  wantUpdates: { title: 'Want Updates', description: 'Know when your wants get more agrees' },
+// Notification types for e-commerce
+export const NotificationTypes = {
+  ORDER_CONFIRMED: (orderNumber: string) => sendNotification('Order Confirmed! 🎉', {
+    body: `Your order #${orderNumber} has been confirmed.`,
+    tag: 'order-confirmed',
+  }),
+  
+  ORDER_SHIPPED: (orderNumber: string, trackingUrl?: string) => sendNotification('Your Order Has Shipped! 🚚', {
+    body: `Order #${orderNumber} is on its way!`,
+    tag: 'order-shipped',
+    onClick: () => trackingUrl && window.open(trackingUrl, '_blank'),
+  }),
+  
+  ORDER_DELIVERED: (orderNumber: string) => sendNotification('Order Delivered! 📦', {
+    body: `Order #${orderNumber} has been delivered.`,
+    tag: 'order-delivered',
+  }),
+  
+  FLASH_SALE: (message: string, url?: string) => sendNotification('🔥 Flash Sale!', {
+    body: message,
+    tag: 'flash-sale',
+    onClick: () => url && (window.location.href = url),
+  }),
+  
+  BACK_IN_STOCK: (productName: string, url?: string) => sendNotification('Back in Stock! 🎁', {
+    body: `${productName} is available again!`,
+    tag: 'back-in-stock',
+    onClick: () => url && (window.location.href = url),
+  }),
+  
+  PRICE_DROP: (productName: string, newPrice: string) => sendNotification('Price Drop! 💰', {
+    body: `${productName} is now ${newPrice}`,
+    tag: 'price-drop',
+  }),
+  
+  WANT_REACHED: (productName: string) => sendNotification('Your Want Reached 10! 🎉', {
+    body: `${productName} hit the target! You get it FREE!`,
+    tag: 'want-reached',
+  }),
 };
 
-// Push Permission Prompt Component
-export function PushPermissionPrompt({ onClose }: { onClose: () => void }) {
-  const [permission, setPermission] = useState<NotificationPermission | null>(null);
+// Permission status hook
+export function useNotificationPermission() {
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [supported, setSupported] = useState(false);
 
   useEffect(() => {
-    if (isPushSupported()) {
+    setSupported(isSupported());
+    if (isSupported()) {
       setPermission(Notification.permission);
     }
   }, []);
 
-  const handleEnable = async () => {
-    const result = await requestPushPermission();
-    setPermission(result);
-    if (result === 'granted') {
-      showNotification('Notifications Enabled! 🔔', {
-        body: 'You\'ll now receive updates about your orders and deals.',
-      });
-      onClose();
-    }
+  const request = async () => {
+    const granted = await requestNotificationPermission();
+    setPermission(granted ? 'granted' : 'denied');
+    return granted;
   };
 
-  if (permission === 'granted' || permission === 'denied') return null;
+  return { permission, supported, request };
+}
+
+// Enable notifications prompt component
+export function EnableNotificationsPrompt() {
+  const { permission, supported, request } = useNotificationPermission();
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    const wasDismissed = localStorage.getItem('notifications-dismissed');
+    if (wasDismissed) setDismissed(true);
+  }, []);
+
+  const handleDismiss = () => {
+    setDismissed(true);
+    localStorage.setItem('notifications-dismissed', 'true');
+  };
+
+  if (!supported || permission === 'granted' || permission === 'denied' || dismissed) {
+    return null;
+  }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white rounded-2xl shadow-2xl border p-6 z-50 animate-slide-up">
-      <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+    <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-white rounded-xl shadow-xl border p-4 z-50 animate-in slide-in-from-bottom">
+      <button onClick={handleDismiss} className="absolute top-2 right-2 text-gray-400 hover:text-gray-600">
         <X className="h-5 w-5" />
       </button>
       
-      <div className="flex items-start gap-4">
+      <div className="flex gap-4">
         <div className="p-3 bg-[#ff6b35]/10 rounded-xl">
           <Bell className="h-6 w-6 text-[#ff6b35]" />
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-lg">Stay Updated!</h3>
-          <p className="text-gray-600 text-sm mt-1">
-            Get instant notifications for order updates, deals, and more.
-          </p>
+          <h3 className="font-bold text-gray-900">Stay Updated!</h3>
+          <p className="text-sm text-gray-600 mt-1">Get notified about order updates, flash sales, and exclusive deals.</p>
+          <div className="flex gap-2 mt-3">
+            <button
+              onClick={request}
+              className="flex-1 bg-[#ff6b35] text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-orange-600 transition"
+            >
+              Enable Notifications
+            </button>
+            <button
+              onClick={handleDismiss}
+              className="px-4 py-2 text-gray-500 text-sm hover:text-gray-700"
+            >
+              Not now
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={onClose}
-          className="flex-1 py-2 border rounded-lg text-gray-600 hover:bg-gray-50"
-        >
-          Maybe Later
-        </button>
-        <button
-          onClick={handleEnable}
-          className="flex-1 py-2 bg-[#ff6b35] text-white rounded-lg font-medium hover:bg-orange-600"
-        >
-          Enable
-        </button>
       </div>
     </div>
   );
 }
 
-// Notification Settings Component
-export function NotificationSettings() {
-  const [settings, setSettings] = useState({
-    orderUpdate: true,
-    newProducts: true,
-    sales: true,
-    wantUpdates: true,
+// Notification preferences panel
+export function NotificationPreferences() {
+  const { permission, supported, request } = useNotificationPermission();
+  const [prefs, setPrefs] = useState({
+    orders: true,
+    shipping: true,
+    deals: true,
+    backInStock: true,
+    priceDrops: true,
+    wants: true,
   });
-  const [permission, setPermission] = useState<NotificationPermission>('default');
 
   useEffect(() => {
-    if (isPushSupported()) {
-      setPermission(Notification.permission);
-      // Load saved settings from localStorage
-      const saved = localStorage.getItem('notificationSettings');
-      if (saved) setSettings(JSON.parse(saved));
-    }
+    const saved = localStorage.getItem('notification-prefs');
+    if (saved) setPrefs(JSON.parse(saved));
   }, []);
 
-  const handleToggle = (key: keyof typeof settings) => {
-    const newSettings = { ...settings, [key]: !settings[key] };
-    setSettings(newSettings);
-    localStorage.setItem('notificationSettings', JSON.stringify(newSettings));
+  const updatePref = (key: keyof typeof prefs) => {
+    const newPrefs = { ...prefs, [key]: !prefs[key] };
+    setPrefs(newPrefs);
+    localStorage.setItem('notification-prefs', JSON.stringify(newPrefs));
   };
 
-  const handleEnableAll = async () => {
-    const result = await requestPushPermission();
-    setPermission(result);
-  };
-
-  if (!isPushSupported()) {
+  if (!supported) {
     return (
       <div className="bg-gray-50 rounded-xl p-4 text-center text-gray-500">
-        Push notifications are not supported in your browser.
+        <BellOff className="h-8 w-8 mx-auto mb-2" />
+        <p>Your browser doesn't support notifications</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border overflow-hidden">
-      <div className="px-6 py-4 border-b">
-        <h3 className="font-bold">Notification Preferences</h3>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+        <div className="flex items-center gap-3">
+          <Bell className="h-5 w-5 text-gray-500" />
+          <div>
+            <p className="font-medium">Push Notifications</p>
+            <p className="text-sm text-gray-500">
+              {permission === 'granted' ? 'Enabled' : permission === 'denied' ? 'Blocked' : 'Not enabled'}
+            </p>
+          </div>
+        </div>
+        {permission !== 'granted' && (
+          <button
+            onClick={request}
+            className="bg-[#ff6b35] text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            Enable
+          </button>
+        )}
+        {permission === 'granted' && <Check className="h-5 w-5 text-green-500" />}
       </div>
 
-      {permission !== 'granted' ? (
-        <div className="p-6 text-center">
-          <Bell className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-600 mb-4">Enable notifications to customize your preferences</p>
-          <button onClick={handleEnableAll} className="bg-[#ff6b35] text-white px-6 py-2 rounded-lg font-medium">
-            Enable Notifications
-          </button>
-        </div>
-      ) : (
-        <div className="divide-y">
-          {Object.entries(NOTIFICATION_TYPES).map(([key, { title, description }]) => (
-            <div key={key} className="px-6 py-4 flex items-center justify-between">
-              <div>
-                <p className="font-medium">{title}</p>
-                <p className="text-sm text-gray-500">{description}</p>
-              </div>
-              <button
-                onClick={() => handleToggle(key as keyof typeof settings)}
-                className={`w-12 h-6 rounded-full transition-colors ${
-                  settings[key as keyof typeof settings] ? 'bg-[#ff6b35]' : 'bg-gray-300'
-                }`}
-              >
-                <span className={`block w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                  settings[key as keyof typeof settings] ? 'translate-x-6' : 'translate-x-0.5'
-                }`} />
-              </button>
-            </div>
-          ))}
+      {permission === 'granted' && (
+        <div className="space-y-2">
+          <PreferenceToggle icon={ShoppingBag} label="Order updates" checked={prefs.orders} onChange={() => updatePref('orders')} />
+          <PreferenceToggle icon={Truck} label="Shipping updates" checked={prefs.shipping} onChange={() => updatePref('shipping')} />
+          <PreferenceToggle icon={Tag} label="Flash sales & deals" checked={prefs.deals} onChange={() => updatePref('deals')} />
+          <PreferenceToggle icon={Bell} label="Back in stock alerts" checked={prefs.backInStock} onChange={() => updatePref('backInStock')} />
+          <PreferenceToggle icon={Gift} label="Price drop alerts" checked={prefs.priceDrops} onChange={() => updatePref('priceDrops')} />
+          <PreferenceToggle icon={Gift} label="Want updates" checked={prefs.wants} onChange={() => updatePref('wants')} />
         </div>
       )}
     </div>
+  );
+}
+
+function PreferenceToggle({ icon: Icon, label, checked, onChange }: { icon: any; label: string; checked: boolean; onChange: () => void }) {
+  return (
+    <button onClick={onChange} className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition">
+      <div className="flex items-center gap-3">
+        <Icon className="h-4 w-4 text-gray-400" />
+        <span className="text-sm">{label}</span>
+      </div>
+      <div className={`w-10 h-6 rounded-full transition ${checked ? 'bg-[#ff6b35]' : 'bg-gray-300'}`}>
+        <div className={`w-5 h-5 bg-white rounded-full mt-0.5 transition-transform ${checked ? 'translate-x-4.5 ml-4' : 'translate-x-0.5 ml-0.5'}`} />
+      </div>
+    </button>
   );
 }
