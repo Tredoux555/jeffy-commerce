@@ -1,24 +1,14 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/server';
+import { checkMilestone, getMilestoneMessage, queueNotification } from './notification-service';
 
 // Normalize phone number for consistent duplicate checking
 function normalizePhone(phone: string): string {
-  // Remove all spaces, dashes, brackets, dots
   let cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
-  // Remove leading + if present
-  if (cleaned.startsWith('+')) {
-    cleaned = cleaned.slice(1);
-  }
-  // If starts with 27, keep as is
-  // If starts with 0, convert to 27
-  if (cleaned.startsWith('0')) {
-    cleaned = '27' + cleaned.slice(1);
-  }
-  // If it's just 9 digits (no country code), assume SA
-  if (cleaned.length === 9 && !cleaned.startsWith('27')) {
-    cleaned = '27' + cleaned;
-  }
+  if (cleaned.startsWith('+')) cleaned = cleaned.slice(1);
+  if (cleaned.startsWith('0')) cleaned = '27' + cleaned.slice(1);
+  if (cleaned.length === 9 && !cleaned.startsWith('27')) cleaned = '27' + cleaned;
   return cleaned;
 }
 
@@ -75,16 +65,14 @@ export async function addWantAgreement(wantId: string, name: string, phone: stri
   try {
     const supabase = await createAdminClient();
     
-    // Normalize phone for duplicate check
     const normalizedPhone = normalizePhone(phone);
     
-    // Check if already agreed (prevent duplicates) - check both original and normalized
+    // Check for duplicates
     const { data: existing } = await supabase
       .from('want_agrees')
       .select('id, phone')
       .eq('want_id', wantId);
 
-    // Check if any existing phone matches when normalized
     const alreadyAgreed = existing?.some(agree => 
       normalizePhone(agree.phone) === normalizedPhone
     );
@@ -93,7 +81,7 @@ export async function addWantAgreement(wantId: string, name: string, phone: stri
       return { success: false, error: 'This number has already agreed to this want' };
     }
 
-    // Add agreement with normalized phone
+    // Add agreement
     const { data: agreement, error: agreementError } = await supabase
       .from('want_agrees')
       .insert({ want_id: wantId, name, phone: normalizedPhone })
@@ -102,17 +90,18 @@ export async function addWantAgreement(wantId: string, name: string, phone: stri
 
     if (agreementError) throw agreementError;
 
-    // Get current count and increment
+    // Get current want data
     const { data: currentWant } = await supabase
       .from('wants')
-      .select('current_agrees, threshold, title, creator_name')
+      .select('current_agrees, threshold, title, creator_name, creator_phone')
       .eq('id', wantId)
       .single();
 
-    const newCount = (currentWant?.current_agrees || 0) + 1;
+    const previousCount = currentWant?.current_agrees || 0;
+    const newCount = previousCount + 1;
     const thresholdReached = newCount >= (currentWant?.threshold || 10);
 
-    // Update the count and status if threshold reached
+    // Update count and status
     const updateData: any = { current_agrees: newCount };
     if (thresholdReached) {
       updateData.status = 'threshold_reached';
@@ -127,11 +116,35 @@ export async function addWantAgreement(wantId: string, name: string, phone: stri
 
     if (updateError) throw updateError;
 
+    // ====== CHECK FOR MILESTONE & QUEUE NOTIFICATION ======
+    const milestone = checkMilestone(previousCount, newCount);
+    if (milestone && currentWant?.creator_phone) {
+      const message = getMilestoneMessage(
+        milestone,
+        currentWant.creator_name || 'there',
+        currentWant.title,
+        newCount
+      );
+      
+      // Queue the notification (will be sent manually or via API later)
+      await queueNotification(
+        wantId,
+        currentWant.creator_phone,
+        currentWant.creator_name || 'Creator',
+        milestone,
+        message
+      );
+      
+      console.log(`📱 Milestone ${milestone} reached for "${currentWant.title}" - notification queued`);
+    }
+    // ======================================================
+
     return {
       success: true,
       agreement,
       want: updatedWant,
       thresholdReached,
+      milestone, // Return milestone so frontend knows
     };
   } catch (err: any) {
     return { success: false, error: err.message };
@@ -183,11 +196,7 @@ export async function createWant(
 ) {
   try {
     const supabase = await createAdminClient();
-    
-    // Normalize creator phone
     const normalizedPhone = normalizePhone(creatorPhone);
-    
-    // Generate share code
     const shareCode = Math.random().toString(36).substring(2, 10).toUpperCase();
 
     const { data, error } = await supabase
