@@ -1,6 +1,6 @@
 'use client';
 
-import { useTrackProductView, RecentlyViewedProducts } from '@/components/recently-viewed';
+import { useTrackProductView, RecentlyViewed } from '@/components/recently-viewed';
 
 interface ProductDetailClientProps {
   product: {
@@ -18,9 +18,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
     id: product.id,
     name: product.name,
     slug: product.slug,
-    selling_price_cents: product.price,
-    primary_image_url: product.image || undefined,
+    price_cents: product.price,
+    image_url: product.image || undefined,
   });
 
-  return <RecentlyViewedProducts currentProductId={product.id} />;
+  return <RecentlyViewed excludeProductId={product.id} />;
 }
