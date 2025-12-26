@@ -27,17 +27,17 @@ export default async function HomePage() {
 
   return (
     <div>
-      <section className="bg-gradient-to-r from-jeffy-orange to-jeffy-yellow text-white">
-        <div className="container mx-auto px-4 py-16 md:py-24">
+      <section className="bg-gradient-to-br from-jeffy-orange to-jeffy-yellow text-white h-[400px] flex items-center">
+        <div className="container mx-auto px-4 w-full">
           <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">
               Eish, These Prices! 🔥
             </h1>
             <p className="text-xl text-white/90 mb-8">
               Quality products from China, lekker prices for South Africa. No middlemen, just savings.
             </p>
             <Link href="/products">
-              <Button size="lg" className="bg-jeffy-dark text-white hover:bg-jeffy-dark/90">
+              <Button size="lg" className="bg-[#0f172a] text-white hover:bg-[#1e293b]">
                 Start Shopping
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -82,7 +82,7 @@ export default async function HomePage() {
         </div>
         
         {products && products.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

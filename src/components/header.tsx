@@ -16,38 +16,38 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-jeffy-dark border-b border-white/10 shadow-sm">
+    <header className="sticky top-0 z-50 bg-[#0f172a] border-b border-white/10 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-jeffy-yellow">Jeffy</span>
+            <span className="text-2xl font-bold text-white">Jeffy</span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/products" className="text-gray-300 hover:text-white">
+            <Link href="/products" className="text-white hover:text-jeffy-orange transition-colors">
               Products
             </Link>
-            <Link href="/categories" className="text-gray-300 hover:text-white">
+            <Link href="/categories" className="text-white hover:text-jeffy-orange transition-colors">
               Categories
             </Link>
-            <Link href="/track" className="text-gray-300 hover:text-white">
+            <Link href="/track" className="text-white hover:text-jeffy-orange transition-colors">
               Track Order
             </Link>
           </nav>
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            <button className="hidden md:flex p-2 rounded-lg text-white hover:!bg-white hover:!text-gray-900 transition-all">
-              <Search className="h-5 w-5" />
+            <button className="hidden md:flex p-2 rounded-lg text-white hover:bg-white/10 transition-all">
+              <Search className="h-5 w-5 text-white" />
             </button>
 
             <AuthButtons />
             
             <Link href="/cart">
-              <button className="relative p-2 rounded-lg text-white hover:!bg-white hover:!text-gray-900 transition-all">
-                <ShoppingCart className="h-5 w-5" />
+              <button className="relative p-2 rounded-lg text-white hover:bg-white/10 transition-all">
+                <ShoppingCart className="h-5 w-5 text-white" />
                 {mounted && itemCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-jeffy-orange text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                     {itemCount > 99 ? '99+' : itemCount}
@@ -57,10 +57,10 @@ export function Header() {
             </Link>
 
             <button
-              className="md:hidden p-2 rounded-lg text-white hover:!bg-white hover:!text-gray-900 transition-all"
+              className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-all"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-5 w-5 text-white" /> : <Menu className="h-5 w-5 text-white" />}
             </button>
           </div>
         </div>

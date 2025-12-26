@@ -44,17 +44,17 @@ export function AuthButtons() {
         <Link href="/auth/profile">
           <button 
             title={user.email} 
-            className="p-2 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-all duration-200"
+            className="p-2 rounded-lg text-white hover:bg-white/10 transition-all duration-200"
           >
-            <User className="h-5 w-5" />
+            <User className="h-5 w-5 text-white" />
           </button>
         </Link>
         <button 
           onClick={handleSignOut} 
           title="Sign out" 
-          className="p-2 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-colors"
+          className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-5 w-5 text-white" />
         </button>
       </div>
     );
@@ -62,9 +62,9 @@ export function AuthButtons() {
 
   return (
     <Link href="/auth/login">
-      <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-white hover:bg-white hover:text-gray-900 transition-all duration-200">
-        <LogIn className="h-4 w-4" />
-        <span className="hidden sm:inline text-sm font-medium">Login</span>
+      <button className="flex items-center gap-2 px-3 py-2 rounded-lg text-white hover:bg-white/10 transition-all duration-200">
+        <LogIn className="h-4 w-4 text-white" />
+        <span className="hidden sm:inline text-sm font-medium text-white">Login</span>
       </button>
     </Link>
   );

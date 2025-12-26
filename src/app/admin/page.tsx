@@ -32,6 +32,17 @@ export default async function AdminDashboard() {
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
+      {/* Health Check Button */}
+      <div className="mb-8 flex gap-4">
+        <a 
+          href="/health" 
+          target="_blank"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#ff6b35] text-white hover:bg-orange-600 transition font-semibold shadow-lg"
+        >
+          🏥 System Health Check
+        </a>
+      </div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl p-6 border">

@@ -106,6 +106,16 @@ export default function AdminLayout({
               <Activity className="h-5 w-5" />
               Agent Portal
             </Link>
+            
+            {/* Health Check */}
+            <Link
+              href="/health"
+              target="_blank"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#ff6b35] text-white hover:bg-orange-600 transition font-semibold"
+            >
+              <span className="text-lg">🏥</span>
+              Health Check
+            </Link>
           </nav>
         </aside>
 
