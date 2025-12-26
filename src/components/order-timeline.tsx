@@ -1,9 +1,11 @@
 'use client';
 
-import { Check, Package, Truck, Home, PartyPopper } from 'lucide-react';
+import { Check, Package, Truck, Home, Clock } from 'lucide-react';
+
+type OrderStatus = 'pending' | 'paid' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled';
 
 interface OrderTimelineProps {
-  status: string;
+  status: OrderStatus;
   createdAt: string;
   paidAt?: string | null;
   shippedAt?: string | null;
@@ -11,44 +13,24 @@ interface OrderTimelineProps {
 }
 
 const steps = [
-  { key: 'pending', label: 'Order Placed', icon: Package },
-  { key: 'paid', label: 'Payment Confirmed', icon: Check },
+  { key: 'paid', label: 'Order Placed', icon: Check },
   { key: 'processing', label: 'Processing', icon: Package },
   { key: 'shipped', label: 'Shipped', icon: Truck },
   { key: 'delivered', label: 'Delivered', icon: Home },
 ];
 
-const statusOrder = ['pending', 'paid', 'processing', 'shipped', 'out_for_delivery', 'delivered'];
+const statusIndex: Record<OrderStatus, number> = {
+  pending: -1,
+  paid: 0,
+  processing: 1,
+  shipped: 2,
+  out_for_delivery: 2,
+  delivered: 3,
+  cancelled: -2,
+};
 
 export function OrderTimeline({ status, createdAt, paidAt, shippedAt, deliveredAt }: OrderTimelineProps) {
-  const currentIndex = statusOrder.indexOf(status);
-  
-  const getStepStatus = (stepKey: string) => {
-    const stepIndex = statusOrder.indexOf(stepKey);
-    if (stepIndex < currentIndex) return 'complete';
-    if (stepIndex === currentIndex) return 'current';
-    return 'upcoming';
-  };
-
-  const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return null;
-    return new Date(dateStr).toLocaleDateString('en-ZA', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getTimestamp = (stepKey: string) => {
-    switch (stepKey) {
-      case 'pending': return formatDate(createdAt);
-      case 'paid': return formatDate(paidAt);
-      case 'shipped': return formatDate(shippedAt);
-      case 'delivered': return formatDate(deliveredAt);
-      default: return null;
-    }
-  };
+  const currentIndex = statusIndex[status] ?? -1;
 
   if (status === 'cancelled') {
     return (
@@ -58,61 +40,76 @@ export function OrderTimeline({ status, createdAt, paidAt, shippedAt, deliveredA
     );
   }
 
+  const getDate = (step: string) => {
+    switch (step) {
+      case 'paid': return paidAt || createdAt;
+      case 'shipped': return shippedAt;
+      case 'delivered': return deliveredAt;
+      default: return null;
+    }
+  };
+
   return (
     <div className="py-4">
-      <div className="relative">
+      <div className="flex items-center justify-between relative">
+        {/* Progress Line */}
+        <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 -z-10">
+          <div 
+            className="h-full bg-[#ff6b35] transition-all duration-500"
+            style={{ width: `${Math.max(0, (currentIndex / (steps.length - 1)) * 100)}%` }}
+          />
+        </div>
+
         {steps.map((step, index) => {
-          const stepStatus = getStepStatus(step.key);
-          const timestamp = getTimestamp(step.key);
+          const isComplete = index <= currentIndex;
+          const isCurrent = index === currentIndex;
           const Icon = step.icon;
-          
+          const date = getDate(step.key);
+
           return (
-            <div key={step.key} className="flex items-start mb-6 last:mb-0">
-              {/* Line */}
-              {index < steps.length - 1 && (
-                <div className={`absolute left-5 mt-10 w-0.5 h-12 ${
-                  stepStatus === 'complete' ? 'bg-green-500' : 'bg-gray-200'
-                }`} style={{ top: `${index * 72}px` }} />
-              )}
-              
-              {/* Icon */}
-              <div className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full ${
-                stepStatus === 'complete' ? 'bg-green-500 text-white' :
-                stepStatus === 'current' ? 'bg-[#ff6b35] text-white animate-pulse' :
-                'bg-gray-200 text-gray-400'
-              }`}>
-                {stepStatus === 'complete' ? (
-                  <Check className="h-5 w-5" />
-                ) : (
-                  <Icon className="h-5 w-5" />
-                )}
+            <div key={step.key} className="flex flex-col items-center z-10">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                isComplete 
+                  ? 'bg-[#ff6b35] text-white' 
+                  : 'bg-gray-200 text-gray-400'
+              } ${isCurrent ? 'ring-4 ring-orange-200' : ''}`}>
+                {isComplete ? <Check className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
               </div>
-              
-              {/* Content */}
-              <div className="ml-4 flex-1">
-                <p className={`font-medium ${
-                  stepStatus === 'upcoming' ? 'text-gray-400' : 'text-gray-900'
-                }`}>
-                  {step.label}
+              <p className={`text-xs mt-2 font-medium ${isComplete ? 'text-gray-900' : 'text-gray-400'}`}>
+                {step.label}
+              </p>
+              {date && (
+                <p className="text-xs text-gray-500">
+                  {new Date(date).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' })}
                 </p>
-                {timestamp && (
-                  <p className="text-sm text-gray-500">{timestamp}</p>
-                )}
-              </div>
+              )}
             </div>
           );
         })}
       </div>
-      
-      {status === 'delivered' && (
-        <div className="mt-4 bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
-          <PartyPopper className="h-8 w-8 text-green-500" />
-          <div>
-            <p className="font-medium text-green-800">Order Delivered!</p>
-            <p className="text-sm text-green-600">Thank you for shopping with Jeffy</p>
-          </div>
+
+      {/* Current Status Message */}
+      <div className="mt-6 p-4 bg-orange-50 rounded-lg flex items-center gap-3">
+        <Clock className="h-5 w-5 text-[#ff6b35]" />
+        <div>
+          <p className="font-medium text-gray-900">
+            {status === 'pending' && 'Awaiting Payment'}
+            {status === 'paid' && 'Order Confirmed!'}
+            {status === 'processing' && 'Being Prepared'}
+            {status === 'shipped' && 'On the Way!'}
+            {status === 'out_for_delivery' && 'Out for Delivery!'}
+            {status === 'delivered' && 'Delivered!'}
+          </p>
+          <p className="text-sm text-gray-600">
+            {status === 'pending' && 'Complete payment to process your order'}
+            {status === 'paid' && 'We\'re getting your order ready'}
+            {status === 'processing' && 'Your items are being packed'}
+            {status === 'shipped' && 'Your package is on its way to you'}
+            {status === 'out_for_delivery' && 'Your package will arrive today'}
+            {status === 'delivered' && 'Your order has been delivered'}
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 }

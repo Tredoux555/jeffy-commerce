@@ -2,7 +2,7 @@
 
 import { useWishlistStore } from '@/lib/wishlist-store';
 import { useCartStore } from '@/lib/cart-store';
-import { Heart, Trash2, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Heart, Trash2, ShoppingCart, ArrowRight, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '@/lib/utils';
@@ -17,7 +17,6 @@ export default function WishlistPage() {
   }, []);
 
   const handleAddToCart = (item: typeof items[0]) => {
-    // Create a product-like object for the cart
     const product = {
       id: item.productId,
       name: item.name,
@@ -27,6 +26,21 @@ export default function WishlistPage() {
     } as any;
     addToCart(product);
     removeItem(item.productId);
+  };
+
+  const handleShareWishlist = () => {
+    if (items.length === 0) return;
+    
+    const baseUrl = window.location.origin;
+    const itemList = items.map((item, i) => 
+      `${i + 1}. ${item.name} - ${formatCurrency(item.price)}\n   ${baseUrl}/products/${item.slug}`
+    ).join('\n\n');
+    
+    const total = items.reduce((sum, item) => sum + item.price, 0);
+    
+    const message = `🎁 Check out my Jeffy wishlist!\n\n${itemList}\n\n💰 Total: ${formatCurrency(total)}\n\nShop at ${baseUrl}`;
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   if (!mounted) {
@@ -41,9 +55,18 @@ export default function WishlistPage() {
           My Wishlist ({items.length})
         </h1>
         {items.length > 0 && (
-          <button onClick={clearWishlist} className="text-sm text-gray-500 hover:text-red-500">
-            Clear All
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleShareWishlist}
+              className="flex items-center gap-2 text-sm bg-[#25D366] text-white px-3 py-2 rounded-lg hover:bg-green-600 transition"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </button>
+            <button onClick={clearWishlist} className="text-sm text-gray-500 hover:text-red-500">
+              Clear All
+            </button>
+          </div>
         )}
       </div>
 
@@ -99,6 +122,16 @@ export default function WishlistPage() {
               </div>
             </div>
           ))}
+
+          {/* Summary */}
+          <div className="bg-gray-50 rounded-xl p-4 mt-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Total value:</span>
+              <span className="text-xl font-bold text-[#ff6b35]">
+                {formatCurrency(items.reduce((sum, item) => sum + item.price, 0))}
+              </span>
+            </div>
+          </div>
 
           <div className="mt-6 flex justify-between items-center">
             <Link href="/products" className="text-[#ff6b35] hover:underline">

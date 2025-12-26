@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Check, Loader2 } from 'lucide-react';
+import { Bell, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
@@ -21,7 +21,7 @@ export function RestockAlert({ productId, productName }: RestockAlertProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email && !phone) {
-      setError('Please enter email or phone');
+      setError('Please enter email or phone number');
       return;
     }
 
@@ -31,7 +31,7 @@ export function RestockAlert({ productId, productName }: RestockAlertProps) {
     try {
       const supabase = createClient();
       
-      const { error: dbError } = await supabase
+      const { error: insertError } = await supabase
         .from('restock_alerts')
         .insert({
           product_id: productId,
@@ -40,11 +40,11 @@ export function RestockAlert({ productId, productName }: RestockAlertProps) {
           status: 'pending',
         });
 
-      if (dbError) throw dbError;
+      if (insertError) throw insertError;
       
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Failed to set alert');
+      setError(err.message || 'Failed to subscribe');
     } finally {
       setLoading(false);
     }
@@ -52,18 +52,21 @@ export function RestockAlert({ productId, productName }: RestockAlertProps) {
 
   if (success) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-        <Check className="h-5 w-5 text-green-500" />
-        <p className="text-green-700 text-sm">We'll notify you when it's back!</p>
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-center gap-3">
+        <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+        <div>
+          <p className="font-medium text-green-800">You're on the list!</p>
+          <p className="text-sm text-green-600">We'll notify you when {productName} is back in stock.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+    <div className="bg-gray-50 border rounded-xl p-4">
       <div className="flex items-center gap-2 mb-3">
-        <Bell className="h-5 w-5 text-orange-500" />
-        <p className="font-medium text-gray-900">Notify me when available</p>
+        <Bell className="h-5 w-5 text-[#ff6b35]" />
+        <h3 className="font-medium">Get notified when back in stock</h3>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -72,30 +75,28 @@ export function RestockAlert({ productId, productName }: RestockAlertProps) {
           placeholder="Email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full"
         />
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <div className="flex-1 h-px bg-gray-300" />
           <span>or</span>
+          <div className="flex-1 h-px bg-gray-300" />
         </div>
         <Input
           type="tel"
-          placeholder="WhatsApp number"
+          placeholder="WhatsApp number (082 123 4567)"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full"
         />
         
         {error && <p className="text-red-500 text-sm">{error}</p>}
         
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-4 w-4 animate-spin mr-2" />
           ) : (
-            <>
-              <Bell className="h-4 w-4 mr-2" />
-              Notify Me
-            </>
+            <Bell className="h-4 w-4 mr-2" />
           )}
+          Notify Me
         </Button>
       </form>
     </div>
