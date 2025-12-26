@@ -89,7 +89,7 @@ export default function CheckoutPage() {
     setDiscountError('');
   };
 
-  const handleLocationSelect = async (location: { lat: number; lng: number }) => {
+  const handleLocationSelect = async (location: { lat: number; lng: number; address?: string }) => {
     setDeliveryLocation(location);
     setZoneError(null);
     setZoneInfo(null);
@@ -98,14 +98,26 @@ export default function CheckoutPage() {
     const zone = await findZoneForLocation(supabase, location.lat, location.lng);
     
     if (!zone) {
-      setZoneError('Sorry, we don\'t deliver to this area yet.');
+      // Allow checkout without zone - standard delivery
+      setZoneInfo({
+        zoneId: '',
+        zoneName: 'Standard Delivery Area',
+        partnerId: '',
+        partnerName: 'Jeffy Direct',
+      });
       return;
     }
 
     const partner = await findPartnerForZone(supabase, zone.zoneId);
     
     if (!partner) {
-      setZoneError('No delivery partner available in this area.');
+      // Zone exists but no partner - still allow checkout
+      setZoneInfo({
+        zoneId: zone.zoneId,
+        zoneName: zone.zoneName,
+        partnerId: '',
+        partnerName: 'Jeffy Direct',
+      });
       return;
     }
 
@@ -146,12 +158,12 @@ export default function CheckoutPage() {
           customer: form,
           paymentMethod,
           discountCodeId: appliedDiscount?.id,
-          delivery: {
+          delivery: deliveryLocation ? {
             latitude: deliveryLocation.lat,
             longitude: deliveryLocation.lng,
-            zoneId: zoneInfo.zoneId,
-            partnerId: zoneInfo.partnerId,
-          },
+            zoneId: zoneInfo?.zoneId || null,
+            partnerId: zoneInfo?.partnerId || null,
+          } : null,
         }),
       });
 
