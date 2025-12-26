@@ -35,7 +35,7 @@ const nextConfig = {
   reactStrictMode: true,
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true,
+    // optimizeCss removed - requires critters package
   },
 };
 

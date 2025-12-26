@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
+export const dynamic = 'force-dynamic';
+
 // This endpoint can be called by a cron job (Vercel Cron, etc.)
 // to automatically mark expired wants and create notifications
 
