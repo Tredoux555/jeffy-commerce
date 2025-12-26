@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Bell, MessageCircle, Check, RefreshCw, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getPendingNotifications, markNotificationSent, getWhatsAppUrl } from '@/lib/notification-service';
+import { getPendingNotifications, markNotificationSent } from '@/lib/notification-service';
+import { getWhatsAppUrl, getMilestoneEmoji } from '@/lib/notification-utils';
 
 interface Notification {
   id: string;
@@ -52,18 +53,6 @@ export default function NotificationsPage() {
       await new Promise(r => setTimeout(r, 500));
     }
     setNotifications([]);
-  };
-
-  const getMilestoneEmoji = (milestone: number) => {
-    switch (milestone) {
-      case 1: return '🎉';
-      case 3: return '🔥';
-      case 5: return '⚡';
-      case 7: return '🚀';
-      case 9: return '😱';
-      case 10: return '🎊';
-      default: return '📱';
-    }
   };
 
   const getMilestoneColor = (milestone: number) => {

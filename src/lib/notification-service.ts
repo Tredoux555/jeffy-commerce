@@ -3,7 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/server';
 
 // Milestones that trigger notifications
-export const MILESTONES = [1, 3, 5, 7, 9, 10];
+const MILESTONES = [1, 3, 5, 7, 9, 10];
 
 // Message templates for each milestone
 export function getMilestoneMessage(
@@ -12,8 +12,6 @@ export function getMilestoneMessage(
   productTitle: string,
   currentAgrees: number
 ): string {
-  const remaining = 10 - currentAgrees;
-  
   switch (milestone) {
     case 1:
       return `🎉 Hey ${creatorName}!
@@ -155,51 +153,3 @@ export async function markNotificationSent(notificationId: string, sentVia: stri
     return { success: false, error: err.message };
   }
 }
-
-// Format phone for WhatsApp URL
-export function formatPhoneForWhatsApp(phone: string): string {
-  let cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
-  if (cleaned.startsWith('+')) cleaned = cleaned.slice(1);
-  if (cleaned.startsWith('0')) cleaned = '27' + cleaned.slice(1);
-  if (cleaned.length === 9) cleaned = '27' + cleaned;
-  return cleaned;
-}
-
-// Generate WhatsApp URL for a notification
-export function getWhatsAppUrl(phone: string, message: string): string {
-  const formattedPhone = formatPhoneForWhatsApp(phone);
-  return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-}
-
-// ============================================
-// FUTURE: Twilio/WATI Integration
-// ============================================
-// 
-// When ready to add automatic sending:
-// 
-// 1. Add to .env:
-//    TWILIO_ACCOUNT_SID=xxx
-//    TWILIO_AUTH_TOKEN=xxx
-//    TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-//
-// 2. Uncomment and use:
-//
-// import twilio from 'twilio';
-//
-// export async function sendViaTwilio(phone: string, message: string) {
-//   const client = twilio(
-//     process.env.TWILIO_ACCOUNT_SID,
-//     process.env.TWILIO_AUTH_TOKEN
-//   );
-//   
-//   const result = await client.messages.create({
-//     body: message,
-//     from: process.env.TWILIO_WHATSAPP_FROM,
-//     to: `whatsapp:+${formatPhoneForWhatsApp(phone)}`
-//   });
-//   
-//   return result;
-// }
-//
-// 3. Call sendViaTwilio() instead of queueing for manual send
-// ============================================
