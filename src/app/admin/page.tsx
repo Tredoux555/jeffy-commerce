@@ -41,6 +41,12 @@ export default async function AdminDashboard() {
         >
           🏥 System Health Check
         </a>
+        <a 
+          href="/admin/survey" 
+          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition font-semibold shadow-lg"
+        >
+          📊 Product Survey Results
+        </a>
       </div>
 
       {/* Stats Grid */}

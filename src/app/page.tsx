@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
+import FloatingWantsPromo from '@/components/floating-wants-promo';
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -27,6 +28,9 @@ export default async function HomePage() {
 
   return (
     <div>
+      {/* Floating Wants Promo */}
+      <FloatingWantsPromo />
+
       <section className="bg-gradient-to-br from-jeffy-orange to-jeffy-yellow text-white h-[400px] flex items-center">
         <div className="container mx-auto px-4 w-full">
           <div className="max-w-2xl">

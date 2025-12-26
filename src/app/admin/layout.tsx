@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3 } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -61,6 +61,17 @@ export default function AdminLayout({
             >
               <Gift className="h-5 w-5" />
               Wants
+            </Link>
+            <Link
+              href="/admin/survey"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/survey' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <BarChart3 className="h-5 w-5" />
+              Wants Stats
             </Link>
             <Link
               href="/admin/procurement"
