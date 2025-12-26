@@ -68,7 +68,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
           <div className="flex items-start justify-between gap-4 mb-4">
             <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-            <ShareButtons url={`/products/${product.slug}`} title={product.name} price={product.selling_price_cents} />
+            <ShareButtons url={`/products/${product.slug}`} title={product.name} />
           </div>
 
           {/* Price */}
