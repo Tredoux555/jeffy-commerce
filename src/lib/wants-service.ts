@@ -2,6 +2,26 @@
 
 import { createAdminClient } from '@/lib/supabase/server';
 
+// Normalize phone number for consistent duplicate checking
+function normalizePhone(phone: string): string {
+  // Remove all spaces, dashes, brackets, dots
+  let cleaned = phone.replace(/[\s\-\(\)\.]/g, '');
+  // Remove leading + if present
+  if (cleaned.startsWith('+')) {
+    cleaned = cleaned.slice(1);
+  }
+  // If starts with 27, keep as is
+  // If starts with 0, convert to 27
+  if (cleaned.startsWith('0')) {
+    cleaned = '27' + cleaned.slice(1);
+  }
+  // If it's just 9 digits (no country code), assume SA
+  if (cleaned.length === 9 && !cleaned.startsWith('27')) {
+    cleaned = '27' + cleaned;
+  }
+  return cleaned;
+}
+
 export async function getWants(limit = 20) {
   try {
     const supabase = await createAdminClient();
@@ -55,22 +75,28 @@ export async function addWantAgreement(wantId: string, name: string, phone: stri
   try {
     const supabase = await createAdminClient();
     
-    // Check if already agreed (prevent duplicates)
-    const { data: existing, error: checkError } = await supabase
+    // Normalize phone for duplicate check
+    const normalizedPhone = normalizePhone(phone);
+    
+    // Check if already agreed (prevent duplicates) - check both original and normalized
+    const { data: existing } = await supabase
       .from('want_agrees')
-      .select('id')
-      .eq('want_id', wantId)
-      .eq('phone', phone)
-      .single();
+      .select('id, phone')
+      .eq('want_id', wantId);
 
-    if (existing) {
-      return { success: false, error: 'You have already agreed to this want' };
+    // Check if any existing phone matches when normalized
+    const alreadyAgreed = existing?.some(agree => 
+      normalizePhone(agree.phone) === normalizedPhone
+    );
+
+    if (alreadyAgreed) {
+      return { success: false, error: 'This number has already agreed to this want' };
     }
 
-    // Add agreement
+    // Add agreement with normalized phone
     const { data: agreement, error: agreementError } = await supabase
       .from('want_agrees')
-      .insert({ want_id: wantId, name, phone })
+      .insert({ want_id: wantId, name, phone: normalizedPhone })
       .select()
       .single();
 
@@ -90,7 +116,6 @@ export async function addWantAgreement(wantId: string, name: string, phone: stri
     const updateData: any = { current_agrees: newCount };
     if (thresholdReached) {
       updateData.status = 'threshold_reached';
-      console.log(`🎉 THRESHOLD REACHED! Want "${currentWant?.title}" by ${currentWant?.creator_name} has ${newCount} agrees!`);
     }
 
     const { data: updatedWant, error: updateError } = await supabase
@@ -157,25 +182,13 @@ export async function createWant(
   maxPriceCents: number | null = null
 ) {
   try {
-    // Debug: Log environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    
-    console.log('🔍 [createWant] Debug Info:');
-    console.log('  - Supabase URL:', supabaseUrl || 'MISSING');
-    console.log('  - Service Role Key exists:', serviceRoleKey ? `YES (length: ${serviceRoleKey.length})` : 'NO');
-    console.log('  - Service Role Key starts with:', serviceRoleKey ? serviceRoleKey.substring(0, 20) + '...' : 'N/A');
-    
     const supabase = await createAdminClient();
+    
+    // Normalize creator phone
+    const normalizedPhone = normalizePhone(creatorPhone);
     
     // Generate share code
     const shareCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-
-    console.log('🔍 [createWant] Attempting insert with:');
-    console.log('  - Title:', title);
-    console.log('  - Share Code:', shareCode);
-    console.log('  - Threshold:', threshold);
-    console.log('  - Max Price Cents:', maxPriceCents);
 
     const { data, error } = await supabase
       .from('wants')
@@ -186,7 +199,7 @@ export async function createWant(
         reference_image_url: referenceImageUrl,
         max_price_cents: maxPriceCents,
         creator_name: creatorName,
-        creator_phone: creatorPhone,
+        creator_phone: normalizedPhone,
         threshold,
         share_code: shareCode,
         status: 'active',
@@ -194,23 +207,9 @@ export async function createWant(
       .select()
       .single();
 
-    if (error) {
-      console.error('❌ [createWant] Supabase Error:');
-      console.error('  - Error code:', error.code);
-      console.error('  - Error message:', error.message);
-      console.error('  - Error details:', JSON.stringify(error, null, 2));
-      console.error('  - Full error object:', error);
-      throw error;
-    }
-    
-    console.log('✅ [createWant] Success! Want created:', data);
+    if (error) throw error;
     return { success: true, want: data };
   } catch (err: any) {
-    console.error('❌ [createWant] Exception caught:');
-    console.error('  - Error type:', err?.constructor?.name);
-    console.error('  - Error message:', err?.message);
-    console.error('  - Error stack:', err?.stack);
-    console.error('  - Full error:', err);
     return { success: false, error: err.message };
   }
 }
@@ -232,13 +231,10 @@ export async function updateWantStatus(wantId: string, status: string) {
   }
 }
 
-// Simple survey vote - just increment survey_votes count (separate from official agrees)
-// This is for market research only - does NOT count toward the 10 threshold
 export async function addSurveyVote(wantId: string) {
   try {
     const supabase = await createAdminClient();
     
-    // Get current survey_votes count
     const { data: currentWant } = await supabase
       .from('wants')
       .select('survey_votes')
@@ -247,7 +243,6 @@ export async function addSurveyVote(wantId: string) {
 
     const newCount = (currentWant?.survey_votes || 0) + 1;
 
-    // Update the survey_votes count (NOT current_agrees)
     const { data, error } = await supabase
       .from('wants')
       .update({ survey_votes: newCount })
@@ -262,7 +257,6 @@ export async function addSurveyVote(wantId: string) {
   }
 }
 
-// Get all wants for admin view
 export async function getAllWantsForAdmin() {
   try {
     const supabase = await createAdminClient();
@@ -278,7 +272,6 @@ export async function getAllWantsForAdmin() {
   }
 }
 
-// Get wants that have reached threshold - need admin action
 export async function getThresholdReachedWants() {
   try {
     const supabase = await createAdminClient();

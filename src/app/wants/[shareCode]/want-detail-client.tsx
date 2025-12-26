@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Check } from 'lucide-react';
+import { Check, HelpCircle, X } from 'lucide-react';
 import { addWantAgreement } from '@/lib/wants-service';
 
 interface Want {
@@ -23,6 +23,7 @@ export function WantDetailClient({ want }: { want: Want }) {
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showHelp, setShowHelp] = useState(false);
 
   const creatorName = want.creator_name || 'Someone';
 
@@ -54,11 +55,68 @@ export function WantDetailClient({ want }: { want: Want }) {
     }
   };
 
+  // ============ HOW IT WORKS MODAL ============
+  const HelpModal = () => (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={() => setShowHelp(false)}>
+      <div className="bg-[#1e293b] rounded-2xl max-w-sm w-full p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-bold text-white">How does it work?</h3>
+          <button onClick={() => setShowHelp(false)} className="text-gray-400 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        
+        <div className="space-y-4 text-sm">
+          <div className="flex gap-3">
+            <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</div>
+            <p className="text-gray-300">Your friend wants a product and needs 10 people to agree.</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</div>
+            <p className="text-gray-300">When you tap <span className="text-blue-400 font-semibold">Agree</span>, you help them get closer to their goal.</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</div>
+            <p className="text-gray-300">Once 10 people agree, Jeffy sources the product and your friend gets it <span className="text-green-400 font-semibold">FREE!</span></p>
+          </div>
+          <div className="flex gap-3">
+            <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</div>
+            <p className="text-gray-300">Then YOU can create your own want and get 10 friends to help YOU get free stuff!</p>
+          </div>
+        </div>
+
+        <div className="mt-6 p-3 bg-[#ff6b35]/20 rounded-lg border border-[#ff6b35]/30">
+          <p className="text-[#ff6b35] text-sm font-medium text-center">
+            It's a loop of friends helping friends! 🔄
+          </p>
+        </div>
+
+        <button 
+          onClick={() => setShowHelp(false)}
+          className="w-full mt-4 bg-[#ff6b35] text-white py-3 rounded-xl font-bold"
+        >
+          Got it!
+        </button>
+      </div>
+    </div>
+  );
+
   // ============ MAIN VIEW: Two buttons ============
   if (step === 'view') {
     return (
       <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6">
+        {showHelp && <HelpModal />}
+        
         <div className="max-w-sm w-full text-center">
+          {/* Help Icon */}
+          <button 
+            onClick={() => setShowHelp(true)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white flex items-center gap-1 text-sm"
+          >
+            <HelpCircle className="h-5 w-5" />
+            <span className="hidden sm:inline">How does it work?</span>
+          </button>
+
           {/* Product Image */}
           {want.reference_image_url && want.reference_image_url.length > 50 && (
             <div className="w-24 h-24 mx-auto mb-4 rounded-xl overflow-hidden bg-gray-800">
@@ -86,6 +144,14 @@ export function WantDetailClient({ want }: { want: Want }) {
             </div>
           </Link>
           <p className="text-[#ff6b35] font-semibold mt-2">and get it free</p>
+
+          {/* Small help link at bottom */}
+          <button 
+            onClick={() => setShowHelp(true)}
+            className="text-gray-500 text-xs mt-8 underline"
+          >
+            How does this work?
+          </button>
         </div>
       </div>
     );
