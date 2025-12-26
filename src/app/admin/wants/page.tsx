@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { Eye, Users, CheckCircle, Clock, Bell, AlertTriangle, Package, ExternalLink, Image as ImageIcon } from 'lucide-react';
+import { Eye, Users, CheckCircle, Clock, Bell, AlertTriangle, Package, ExternalLink, Image as ImageIcon, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function getExpiryInfo(createdAt: string) {
@@ -9,6 +9,36 @@ function getExpiryInfo(createdAt: string) {
   const now = new Date();
   const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   return { daysLeft, expired: daysLeft <= 0 };
+}
+
+// Format phone for WhatsApp (SA format)
+function formatPhoneForWhatsApp(phone: string): string {
+  if (!phone) return '';
+  // Remove spaces, dashes, brackets
+  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
+  // If starts with 0, replace with 27
+  if (cleaned.startsWith('0')) {
+    cleaned = '27' + cleaned.slice(1);
+  }
+  // If doesn't start with +, add it
+  if (!cleaned.startsWith('+')) {
+    cleaned = '+' + cleaned;
+  }
+  return cleaned.replace('+', ''); // wa.me doesn't need the +
+}
+
+// Generate WhatsApp message for threshold reached
+function getWhatsAppUrl(phone: string, name: string, title: string): string {
+  const formattedPhone = formatPhoneForWhatsApp(phone);
+  const message = `🎉 Great news ${name}!
+
+Your want "${title}" just hit 10 agrees on Jeffy!
+
+We're now sourcing your product and will update you soon.
+
+Thank you for using Jeffy Wants! 🛒`;
+  
+  return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
 }
 
 export default async function AdminWantsPage() {
@@ -61,7 +91,7 @@ export default async function AdminWantsPage() {
             <Bell className="h-6 w-6 text-green-600" />
             <div>
               <p className="font-semibold text-green-800">🎉 {readyToSource.length} Want{readyToSource.length > 1 ? 's' : ''} Ready!</p>
-              <p className="text-sm text-green-600">These reached 10 agrees - time to source!</p>
+              <p className="text-sm text-green-600">WhatsApp them the good news, then source!</p>
             </div>
           </div>
         </div>
@@ -124,8 +154,12 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
   const isGuaranteed = maxPrice && maxPrice <= 1000;
   const hasImage = want.reference_image_url && want.reference_image_url.length > 50;
   const hasLink = want.reference_url;
+  const hasPhone = want.creator_phone && want.creator_phone.length > 5;
 
   const borderColor = type === 'ready' ? 'border-green-300 bg-green-50' : type === 'expired' ? 'border-red-200 bg-red-50/30' : 'border-gray-200';
+
+  // WhatsApp URL for notifying creator
+  const whatsappUrl = hasPhone ? getWhatsAppUrl(want.creator_phone, want.creator_name || 'there', want.title) : null;
 
   return (
     <div className={`bg-white rounded-xl border ${borderColor} overflow-hidden`}>
@@ -200,23 +234,34 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-2 mt-4 pt-4 border-t">
-          <Link href={`/wants/${want.share_code}`} target="_blank" className="flex-1">
-            <Button variant="outline" className="w-full" size="sm">
-              <Eye className="h-4 w-4 mr-1" /> View Page
+        <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
+          <Link href={`/wants/${want.share_code}`} target="_blank">
+            <Button variant="outline" size="sm">
+              <Eye className="h-4 w-4 mr-1" /> View
             </Button>
           </Link>
+          
           {hasImage && (
-            <a href={want.reference_image_url} target="_blank" className="flex-1">
-              <Button variant="outline" className="w-full" size="sm">
-                <ImageIcon className="h-4 w-4 mr-1" /> Full Image
+            <a href={want.reference_image_url} target="_blank">
+              <Button variant="outline" size="sm">
+                <ImageIcon className="h-4 w-4 mr-1" /> Image
               </Button>
             </a>
           )}
+          
+          {/* WhatsApp Creator Button - Only for READY wants with phone */}
+          {type === 'ready' && whatsappUrl && (
+            <a href={whatsappUrl} target="_blank">
+              <Button className="bg-[#25D366] hover:bg-[#1fb855] text-white" size="sm">
+                <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp Creator
+              </Button>
+            </a>
+          )}
+          
           {type === 'ready' && (
-            <Link href={`/admin/procurement/smart-finder?want_id=${want.id}&want_title=${encodeURIComponent(want.title)}`} className="flex-1">
-              <Button className="w-full bg-green-600 hover:bg-green-700" size="sm">
-                <Package className="h-4 w-4 mr-1" /> Source Now
+            <Link href={`/admin/procurement/smart-finder?want_id=${want.id}&want_title=${encodeURIComponent(want.title)}`}>
+              <Button className="bg-green-600 hover:bg-green-700" size="sm">
+                <Package className="h-4 w-4 mr-1" /> Source
               </Button>
             </Link>
           )}
