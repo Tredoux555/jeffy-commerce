@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/utils';
 import { Package, ShoppingCart, DollarSign, TrendingUp } from 'lucide-react';
+import { LowStockAlert } from '@/components/low-stock-alert';
+import { LowStockAlert } from '@/components/low-stock-alert';
 
 export default async function AdminDashboard() {
   const supabase = await createClient();
@@ -28,9 +30,21 @@ export default async function AdminDashboard() {
     .order('created_at', { ascending: false })
     .limit(5);
 
+  // Low stock products
+  const { data: allProducts } = await supabase
+    .from('products')
+    .select('id, name, slug, quantity, low_stock_threshold')
+    .eq('status', 'active')
+    .eq('track_inventory', true);
+
+  const lowStockProducts = (allProducts || []).filter(p => p.quantity <= p.low_stock_threshold);
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+
+      {/* Low Stock Alert */}
+      <LowStockAlert products={lowStockProducts} />
 
       {/* Health Check Button */}
       <div className="mb-8 flex gap-4">

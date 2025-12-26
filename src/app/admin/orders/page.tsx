@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Search, CheckCircle, Clock, Truck, Package, Filter, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Search, CheckCircle, Clock, Truck, Package, Filter, RefreshCw, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
@@ -94,6 +94,26 @@ export default function AdminOrdersPage() {
     setUpdating(null);
   };
 
+  const exportCSV = () => {
+    const headers = ['Order Number', 'Status', 'Payment Status', 'Total (R)', 'Address', 'Date'];
+    const rows = filteredOrders.map(o => [
+      o.order_number,
+      o.status,
+      o.payment_status,
+      (o.total_cents / 100).toFixed(2),
+      `"${o.delivery_address.replace(/"/g, '""')}"`,
+      new Date(o.created_at).toLocaleString(),
+    ]);
+    
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jeffy-orders-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
   const filteredOrders = orders.filter(order => {
     if (!search) return true;
     return order.order_number.toLowerCase().includes(search.toLowerCase()) ||
@@ -117,10 +137,16 @@ export default function AdminOrdersPage() {
                 <p className="text-sm text-gray-500">{orders.length} orders</p>
               </div>
             </div>
-            <Button onClick={fetchOrders} variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={exportCSV} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button onClick={fetchOrders} variant="outline" size="sm">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
       </div>

@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Tag } from 'lucide-react';
+import { AdminNotifications } from '@/components/admin-notifications';
 
 export default function AdminLayout({
   children,
@@ -18,9 +19,12 @@ export default function AdminLayout({
           <Link href="/admin" className="text-xl font-bold text-jeffy-orange">
             Jeffy Admin
           </Link>
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to Store
-          </Link>
+          <div className="flex items-center gap-4">
+            <AdminNotifications />
+            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
+              ← Back to Store
+            </Link>
+          </div>
         </div>
       </header>
 
@@ -35,6 +39,28 @@ export default function AdminLayout({
               Dashboard
             </Link>
             <Link
+              href="/admin/analytics"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/analytics' 
+                  ? 'bg-green-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <TrendingUp className="h-5 w-5" />
+              Analytics
+            </Link>
+            <Link
+              href="/admin/discounts"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/discounts' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Tag className="h-5 w-5" />
+              Discounts
+            </Link>
+            <Link
               href="/admin/products"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
@@ -47,6 +73,17 @@ export default function AdminLayout({
             >
               <ShoppingCart className="h-5 w-5" />
               Orders
+            </Link>
+            <Link
+              href="/admin/discounts"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/discounts' 
+                  ? 'bg-yellow-500 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Tag className="h-5 w-5" />
+              Discounts
             </Link>
             <Link
               href="/admin/categories"

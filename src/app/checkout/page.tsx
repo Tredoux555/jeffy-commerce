@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CreditCard, Building2, Loader2, MapPin, AlertCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Building2, Loader2, MapPin, AlertCircle, Tag, X, CheckCircle } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,15 @@ import { createClient } from '@/lib/supabase/client';
 import { findZoneForLocation, findPartnerForZone } from '@/lib/geo-utils';
 
 type PaymentMethod = 'payfast' | 'ozow' | 'eft';
+
+interface AppliedDiscount {
+  id: string;
+  code: string;
+  description: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  discountAmountCents: number;
+}
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -25,18 +34,60 @@ export default function CheckoutPage() {
   const [zoneInfo, setZoneInfo] = useState<{ zoneId: string; zoneName: string; partnerId: string; partnerName: string } | null>(null);
   const [zoneError, setZoneError] = useState<string | null>(null);
   
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState('');
+  const [discountLoading, setDiscountLoading] = useState(false);
+  const [discountError, setDiscountError] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
+  
   const [form, setForm] = useState({
-    firstName: 'Test',
-    lastName: 'User',
-    email: 'test@jeffy.co.za',
-    phone: '0821234567',
-    address: '123 Test Street',
-    city: 'Johannesburg',
-    province: 'GP',
-    postalCode: '2000',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    province: '',
+    postalCode: '',
   });
 
   const subtotal = getSubtotal();
+  const discountAmount = appliedDiscount?.discountAmountCents || 0;
+  const total = Math.max(0, subtotal - discountAmount);
+
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim()) return;
+    
+    setDiscountLoading(true);
+    setDiscountError('');
+    
+    try {
+      const res = await fetch('/api/discount/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: discountCode, orderTotalCents: subtotal }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok || !data.success) {
+        setDiscountError(data.error || 'Invalid discount code');
+        return;
+      }
+      
+      setAppliedDiscount(data.discount);
+      setDiscountCode('');
+    } catch (err) {
+      setDiscountError('Failed to apply discount code');
+    } finally {
+      setDiscountLoading(false);
+    }
+  };
+
+  const handleRemoveDiscount = () => {
+    setAppliedDiscount(null);
+    setDiscountError('');
+  };
 
   const handleLocationSelect = async (location: { lat: number; lng: number }) => {
     setDeliveryLocation(location);
@@ -44,20 +95,17 @@ export default function CheckoutPage() {
     setZoneInfo(null);
 
     const supabase = createClient();
-    
-    // Find which zone this location is in
     const zone = await findZoneForLocation(supabase, location.lat, location.lng);
     
     if (!zone) {
-      setZoneError('Sorry, we don\'t deliver to this area yet. Please select a different location.');
+      setZoneError('Sorry, we don\'t deliver to this area yet.');
       return;
     }
 
-    // Find the partner for this zone
     const partner = await findPartnerForZone(supabase, zone.zoneId);
     
     if (!partner) {
-      setZoneError('No delivery partner available in this area. Please try again later.');
+      setZoneError('No delivery partner available in this area.');
       return;
     }
 
@@ -78,7 +126,7 @@ export default function CheckoutPage() {
     }
 
     if (!zoneInfo) {
-      setError('Please select a valid delivery location within our service area');
+      setError('Please select a valid delivery location');
       return;
     }
 
@@ -97,6 +145,7 @@ export default function CheckoutPage() {
           })),
           customer: form,
           paymentMethod,
+          discountCodeId: appliedDiscount?.id,
           delivery: {
             latitude: deliveryLocation.lat,
             longitude: deliveryLocation.lng,
@@ -129,9 +178,7 @@ export default function CheckoutPage() {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
-        <Link href="/products">
-          <Button>Continue Shopping</Button>
-        </Link>
+        <Link href="/products"><Button>Continue Shopping</Button></Link>
       </div>
     );
   }
@@ -149,32 +196,25 @@ export default function CheckoutPage() {
           <h1 className="text-2xl font-bold mb-6">Checkout</h1>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Delivery Location Map */}
+            {/* Delivery Location */}
             <div className="bg-white rounded-xl border p-6">
               <h2 className="font-semibold mb-4 flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-orange-500" />
                 Delivery Location
               </h2>
               
-              <LocationPicker
-                onLocationSelect={handleLocationSelect}
-                initialLocation={deliveryLocation || undefined}
-              />
+              <LocationPicker onLocationSelect={handleLocationSelect} initialLocation={deliveryLocation || undefined} />
 
               {zoneInfo && (
                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800">
-                    <strong>Delivery Zone:</strong> {zoneInfo.zoneName}
-                  </p>
-                  <p className="text-sm text-green-600">
-                    Your order will be delivered by a local Jeffy Partner
-                  </p>
+                  <p className="text-sm text-green-800"><strong>Delivery Zone:</strong> {zoneInfo.zoneName}</p>
+                  <p className="text-sm text-green-600">Delivered by a local Jeffy Partner</p>
                 </div>
               )}
 
               {zoneError && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
                   <p className="text-sm text-red-700">{zoneError}</p>
                 </div>
               )}
@@ -187,70 +227,37 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">First Name *</label>
-                  <Input
-                    required
-                    value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                  />
+                  <Input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Last Name *</label>
-                  <Input
-                    required
-                    value={form.lastName}
-                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                  />
+                  <Input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
                 </div>
               </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">Email *</label>
-                <Input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
+                <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">Phone *</label>
-                <Input
-                  type="tel"
-                  required
-                  placeholder="082 123 4567"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                />
+                <Input type="tel" required placeholder="082 123 4567" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               </div>
 
               <div className="mt-4">
                 <label className="block text-sm font-medium mb-1">Street Address *</label>
-                <Input
-                  required
-                  placeholder="House number and street name"
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                />
+                <Input required placeholder="House number and street" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
               </div>
 
               <div className="grid grid-cols-3 gap-4 mt-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">City *</label>
-                  <Input
-                    required
-                    value={form.city}
-                    onChange={(e) => setForm({ ...form, city: e.target.value })}
-                  />
+                  <Input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Province *</label>
-                  <select
-                    required
-                    className="w-full h-10 border border-gray-300 rounded-lg px-3"
-                    value={form.province}
-                    onChange={(e) => setForm({ ...form, province: e.target.value })}
-                  >
+                  <select required className="w-full h-10 border border-gray-300 rounded-lg px-3" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value })}>
                     <option value="">Select</option>
                     <option value="GP">Gauteng</option>
                     <option value="WC">Western Cape</option>
@@ -265,11 +272,7 @@ export default function CheckoutPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Postal Code *</label>
-                  <Input
-                    required
-                    value={form.postalCode}
-                    onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
-                  />
+                  <Input required value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
                 </div>
               </div>
             </div>
@@ -280,13 +283,7 @@ export default function CheckoutPage() {
               
               <div className="space-y-3">
                 <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'payfast' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'payfast'}
-                    onChange={() => setPaymentMethod('payfast')}
-                    className="sr-only"
-                  />
+                  <input type="radio" name="payment" checked={paymentMethod === 'payfast'} onChange={() => setPaymentMethod('payfast')} className="sr-only" />
                   <CreditCard className="h-6 w-6 text-gray-600" />
                   <div>
                     <p className="font-medium">Card Payment</p>
@@ -295,64 +292,30 @@ export default function CheckoutPage() {
                 </label>
 
                 <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'ozow' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'ozow'}
-                    onChange={() => setPaymentMethod('ozow')}
-                    className="sr-only"
-                  />
+                  <input type="radio" name="payment" checked={paymentMethod === 'ozow'} onChange={() => setPaymentMethod('ozow')} className="sr-only" />
                   <Building2 className="h-6 w-6 text-gray-600" />
                   <div>
                     <p className="font-medium">Instant EFT</p>
-                    <p className="text-sm text-gray-500">Pay from your bank account</p>
+                    <p className="text-sm text-gray-500">Pay from your bank</p>
                   </div>
                 </label>
 
                 <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'eft' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    checked={paymentMethod === 'eft'}
-                    onChange={() => setPaymentMethod('eft')}
-                    className="sr-only"
-                  />
+                  <input type="radio" name="payment" checked={paymentMethod === 'eft'} onChange={() => setPaymentMethod('eft')} className="sr-only" />
                   <Building2 className="h-6 w-6 text-gray-600" />
                   <div>
                     <p className="font-medium">Manual EFT</p>
-                    <p className="text-sm text-gray-500">Bank transfer (24-48h processing)</p>
+                    <p className="text-sm text-gray-500">Bank transfer (24-48h)</p>
                   </div>
                 </label>
               </div>
             </div>
 
-            {error && (
-              <div className="bg-red-50 text-red-600 p-4 rounded-lg">
-                {error}
-              </div>
-            )}
+            {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>}
 
-            <Button 
-              type="submit" 
-              size="lg" 
-              className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600" 
-              disabled={loading || !zoneInfo}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                `Pay ${formatCurrency(subtotal)}`
-              )}
+            <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600" disabled={loading || !zoneInfo}>
+              {loading ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processing...</> : `Pay ${formatCurrency(total)}`}
             </Button>
-
-            {!zoneInfo && deliveryLocation && !zoneError && (
-              <p className="text-sm text-gray-500 text-center">
-                Checking delivery availability...
-              </p>
-            )}
           </form>
         </div>
 
@@ -370,9 +333,7 @@ export default function CheckoutPage() {
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-400 text-xs">No img</div>
                     )}
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                      {item.quantity}
-                    </span>
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">{item.quantity}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{item.name}</p>
@@ -383,26 +344,70 @@ export default function CheckoutPage() {
               ))}
             </div>
 
+            {/* Discount Code Input */}
+            <div className="border-t pt-4 mb-4">
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2">
+                <Tag className="h-4 w-4 text-orange-500" />
+                Discount Code
+              </label>
+              
+              {appliedDiscount ? (
+                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600" />
+                    <div>
+                      <p className="font-medium text-green-800">{appliedDiscount.code}</p>
+                      <p className="text-xs text-green-600">{appliedDiscount.description}</p>
+                    </div>
+                  </div>
+                  <button onClick={handleRemoveDiscount} className="text-gray-500 hover:text-red-500">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input 
+                    placeholder="Enter code" 
+                    value={discountCode} 
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    className="flex-1"
+                  />
+                  <Button type="button" variant="outline" onClick={handleApplyDiscount} disabled={discountLoading || !discountCode.trim()}>
+                    {discountLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                  </Button>
+                </div>
+              )}
+              
+              {discountError && <p className="text-red-500 text-sm mt-2">{discountError}</p>}
+            </div>
+
             <div className="border-t pt-4 space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Subtotal</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
+              
+              {appliedDiscount && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount ({appliedDiscount.code})</span>
+                  <span>-{formatCurrency(discountAmount)}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">Delivery</span>
                 <span className="text-green-600">Free</span>
               </div>
+              
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
                 <span>Total</span>
-                <span>{formatCurrency(subtotal)}</span>
+                <span>{formatCurrency(total)}</span>
               </div>
             </div>
 
             {zoneInfo && (
               <div className="mt-4 pt-4 border-t">
-                <p className="text-sm text-gray-600">
-                  <strong>Delivering to:</strong> {zoneInfo.zoneName}
-                </p>
+                <p className="text-sm text-gray-600"><strong>Delivering to:</strong> {zoneInfo.zoneName}</p>
               </div>
             )}
           </div>
