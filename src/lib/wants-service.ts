@@ -1,7 +1,8 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/server';
-import { checkMilestone, getMilestoneMessage, queueNotification } from './notification-service';
+import { checkMilestone, getMilestoneMessage } from './notification-utils';
+import { queueNotification } from './notification-service';
 
 // Normalize phone number for consistent duplicate checking
 function normalizePhone(phone: string): string {
