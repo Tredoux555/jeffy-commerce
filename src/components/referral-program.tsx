@@ -1,186 +1,127 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Gift, Copy, Check, Share2, Users, MessageCircle, Mail, Twitter, Facebook } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
+import { useState } from 'react';
+import { Gift, Copy, Check, Share2, Users, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/client';
 
-interface ReferralStats {
-  totalReferred: number;
-  pendingRewards: number;
-  earnedRewards: number;
+interface ReferralDashboardProps {
+  userId: string;
   referralCode: string;
+  referrals: number;
+  earnings: number;
 }
 
-// Generate referral code from email
-function generateReferralCode(email: string): string {
-  const base = email.split('@')[0].toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
-  const suffix = Math.random().toString(36).substring(2, 5).toUpperCase();
-  return `${base}${suffix}`;
-}
-
-export function ReferralDashboard({ email }: { email: string }) {
-  const [stats, setStats] = useState<ReferralStats>({
-    totalReferred: 0,
-    pendingRewards: 0,
-    earnedRewards: 0,
-    referralCode: generateReferralCode(email),
-  });
+export function ReferralDashboard({ userId, referralCode, referrals, earnings }: ReferralDashboardProps) {
   const [copied, setCopied] = useState(false);
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://jeffy.co.za';
+  const referralLink = `${baseUrl}?ref=${referralCode}`;
 
-  const referralLink = `https://jeffy.co.za?ref=${stats.referralCode}`;
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(referralLink);
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(referralLink);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareVia = (platform: string) => {
-    const message = encodeURIComponent(`Hey! Get R50 off your first order at Jeffy with my link: ${referralLink}`);
-    const urls: Record<string, string> = {
-      whatsapp: `https://wa.me/?text=${message}`,
-      twitter: `https://twitter.com/intent/tweet?text=${message}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`,
-      email: `mailto:?subject=${encodeURIComponent('Get R50 off at Jeffy!')}&body=${message}`,
-    };
-    window.open(urls[platform], '_blank');
+  const shareWhatsApp = () => {
+    const message = `Hey! Use my Jeffy referral link and we both get R50 off! 🎁\n\n${referralLink}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
     <div className="space-y-6">
-      {/* Hero Card */}
-      <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl p-6 text-white">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-white/20 rounded-xl">
-            <Gift className="h-8 w-8" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold">Give R50, Get R50</h2>
-            <p className="text-green-100">Share with friends and both of you save!</p>
-          </div>
-        </div>
-
-        {/* Referral Link */}
-        <div className="bg-white/20 rounded-xl p-4 mb-4">
-          <label className="text-green-100 text-sm mb-2 block">Your Referral Link</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              readOnly
-              value={referralLink}
-              className="flex-1 bg-white/30 text-white placeholder-white/60 rounded-lg px-4 py-3 text-sm font-mono"
-            />
-            <button
-              onClick={copyLink}
-              className="bg-white text-green-600 px-4 py-3 rounded-lg font-bold hover:bg-green-50 transition flex items-center gap-2"
-            >
-              {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
-              {copied ? 'Copied!' : 'Copy'}
-            </button>
-          </div>
-        </div>
-
-        {/* Share Buttons */}
-        <div className="flex gap-2">
-          <button onClick={() => shareVia('whatsapp')} className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl flex items-center justify-center gap-2 transition">
-            <MessageCircle className="h-5 w-5" /> WhatsApp
-          </button>
-          <button onClick={() => shareVia('facebook')} className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl flex items-center justify-center gap-2 transition">
-            <Facebook className="h-5 w-5" /> Facebook
-          </button>
-          <button onClick={() => shareVia('twitter')} className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl flex items-center justify-center gap-2 transition">
-            <Twitter className="h-5 w-5" /> Twitter
-          </button>
-          <button onClick={() => shareVia('email')} className="flex-1 bg-white/20 hover:bg-white/30 py-3 rounded-xl flex items-center justify-center gap-2 transition">
-            <Mail className="h-5 w-5" /> Email
-          </button>
-        </div>
-      </div>
-
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl border p-4 text-center">
-          <Users className="h-6 w-6 mx-auto text-green-500 mb-2" />
-          <p className="text-2xl font-bold">{stats.totalReferred}</p>
-          <p className="text-gray-500 text-sm">Friends Referred</p>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-gradient-to-br from-[#ff6b35] to-orange-500 rounded-xl p-4 text-white">
+          <Users className="h-6 w-6 mb-2 opacity-80" />
+          <p className="text-3xl font-bold">{referrals}</p>
+          <p className="text-sm opacity-80">Friends Referred</p>
         </div>
-        <div className="bg-white rounded-xl border p-4 text-center">
-          <Gift className="h-6 w-6 mx-auto text-amber-500 mb-2" />
-          <p className="text-2xl font-bold">{formatCurrency(stats.pendingRewards)}</p>
-          <p className="text-gray-500 text-sm">Pending Rewards</p>
-        </div>
-        <div className="bg-white rounded-xl border p-4 text-center">
-          <Check className="h-6 w-6 mx-auto text-green-500 mb-2" />
-          <p className="text-2xl font-bold">{formatCurrency(stats.earnedRewards)}</p>
-          <p className="text-gray-500 text-sm">Total Earned</p>
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 text-white">
+          <Gift className="h-6 w-6 mb-2 opacity-80" />
+          <p className="text-3xl font-bold">R{earnings}</p>
+          <p className="text-sm opacity-80">Total Earned</p>
         </div>
       </div>
 
-      {/* How It Works */}
-      <div className="bg-white rounded-xl border p-6">
-        <h3 className="font-bold mb-4">How It Works</h3>
-        <div className="space-y-4">
-          <Step number={1} title="Share your link" description="Send your unique link to friends via WhatsApp, email, or social media." />
-          <Step number={2} title="Friend signs up & orders" description="Your friend gets R50 off their first order of R200 or more." />
-          <Step number={3} title="You get R50" description="Once their order is delivered, you get R50 credit to use on your next purchase!" />
+      {/* Referral Link */}
+      <div className="bg-gray-50 rounded-xl p-4">
+        <h3 className="font-medium mb-2">Your Referral Link</h3>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={referralLink}
+            readOnly
+            className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm"
+          />
+          <Button onClick={copyLink} variant="outline">
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          </Button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Your code: <span className="font-mono font-bold">{referralCode}</span>
+        </p>
+      </div>
+
+      {/* Share Buttons */}
+      <div className="flex gap-3">
+        <Button onClick={shareWhatsApp} className="flex-1 bg-[#25D366] hover:bg-green-600">
+          <Share2 className="h-4 w-4 mr-2" />
+          Share on WhatsApp
+        </Button>
+        <Button onClick={copyLink} variant="outline" className="flex-1">
+          <Copy className="h-4 w-4 mr-2" />
+          Copy Link
+        </Button>
+      </div>
+
+      {/* How it Works */}
+      <div className="border rounded-xl p-4">
+        <h3 className="font-medium mb-3">How it Works</h3>
+        <div className="space-y-3 text-sm">
+          <div className="flex gap-3">
+            <span className="w-6 h-6 bg-[#ff6b35] text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+            <p>Share your link with friends</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="w-6 h-6 bg-[#ff6b35] text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+            <p>They get R50 off their first order</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="w-6 h-6 bg-[#ff6b35] text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+            <p>You get R50 credit when they order</p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-function Step({ number, title, description }: { number: number; title: string; description: string }) {
+// Referral signup form (for new users coming from referral link)
+export function ReferralWelcome({ referrerName, discount }: { referrerName: string; discount: number }) {
   return (
-    <div className="flex gap-4">
-      <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center font-bold flex-shrink-0">
-        {number}
+    <div className="bg-gradient-to-r from-[#ff6b35] to-orange-500 text-white rounded-xl p-6 text-center">
+      <Gift className="h-12 w-12 mx-auto mb-3" />
+      <h2 className="text-xl font-bold mb-2">You've been invited!</h2>
+      <p className="text-white/90 mb-4">
+        {referrerName} sent you R{discount} off your first order
+      </p>
+      <div className="bg-white/20 rounded-lg py-2 px-4 inline-block">
+        <span className="text-2xl font-bold">R{discount} OFF</span>
       </div>
-      <div>
-        <p className="font-medium">{title}</p>
-        <p className="text-gray-500 text-sm">{description}</p>
-      </div>
+      <p className="text-sm text-white/70 mt-3">
+        Applied automatically at checkout
+      </p>
     </div>
   );
 }
 
-// Compact referral banner for homepage/product pages
-export function ReferralBanner() {
-  return (
-    <div className="bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Gift className="h-5 w-5" />
-          <span><strong>Give R50, Get R50!</strong> Refer a friend and both of you save.</span>
-        </div>
-        <a href="/account/referrals" className="bg-white text-green-600 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-green-50 transition">
-          Start Sharing →
-        </a>
-      </div>
-    </div>
-  );
-}
-
-// Popup for new visitors from referral link
-export function ReferralWelcomePopup({ code, onClose }: { code: string; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl p-8 max-w-md w-full text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Gift className="h-8 w-8 text-green-600" />
-        </div>
-        <h2 className="text-2xl font-bold mb-2">You've Been Invited!</h2>
-        <p className="text-gray-600 mb-6">Your friend sent you R50 off your first order at Jeffy!</p>
-        
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
-          <p className="text-green-700">Your discount will be applied automatically at checkout</p>
-          <p className="text-sm text-green-600 mt-1">Minimum order R200</p>
-        </div>
-
-        <button onClick={onClose} className="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition">
-          Start Shopping with R50 Off
-        </button>
-      </div>
-    </div>
-  );
+// Generate referral code
+export function generateReferralCode(userId: string): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'JEF';
+  for (let i = 0; i < 5; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }

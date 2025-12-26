@@ -1,199 +1,193 @@
 'use client';
 
 import { useState } from 'react';
-import { HelpCircle, MessageSquare, ThumbsUp, ChevronDown, ChevronUp, Send, Loader2, CheckCircle } from 'lucide-react';
+import { MessageCircle, Send, ThumbsUp, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/client';
 
 interface Question {
   id: string;
-  user_name: string;
   question: string;
-  created_at: string;
-  helpful_count: number;
-  answers: Answer[];
-}
-
-interface Answer {
-  id: string;
-  answer: string;
-  answered_by: string;
-  is_official: boolean;
-  helpful_count: number;
-  created_at: string;
+  askerName: string;
+  createdAt: string;
+  answer?: string;
+  answeredAt?: string;
+  helpful: number;
 }
 
 interface ProductQAProps {
   productId: string;
-  questions?: Question[];
+  questions: Question[];
 }
 
-export function ProductQA({ productId, questions: initialQuestions = [] }: ProductQAProps) {
-  const [questions, setQuestions] = useState<Question[]>(initialQuestions);
+export function ProductQA({ productId, questions: initialQuestions }: ProductQAProps) {
+  const [questions, setQuestions] = useState(initialQuestions);
   const [showForm, setShowForm] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [form, setForm] = useState({ name: '', email: '', question: '' });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const visibleQuestions = showAll ? questions : questions.slice(0, 3);
+  const answeredQuestions = questions.filter(q => q.answer);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    if (!newQuestion.trim()) return;
 
+    setLoading(true);
     try {
-      await fetch('/api/products/questions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, ...form }),
-      });
-      setSubmitted(true);
-      setForm({ name: '', email: '', question: '' });
-      setTimeout(() => {
-        setSubmitted(false);
-        setShowForm(false);
-      }, 3000);
+      const supabase = createClient();
+      
+      const { data, error } = await supabase
+        .from('product_questions')
+        .insert({
+          product_id: productId,
+          question: newQuestion,
+          asker_name: name || 'Anonymous',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      setQuestions([data, ...questions]);
+      setNewQuestion('');
+      setName('');
+      setSuccess(true);
+      setShowForm(false);
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error('Error submitting question:', err);
+      console.error('Failed to submit question:', err);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const handleHelpful = async (questionId: string) => {
-    // Would call API to increment helpful count
-    setQuestions(prev => prev.map(q => 
-      q.id === questionId ? { ...q, helpful_count: q.helpful_count + 1 } : q
+  const markHelpful = async (questionId: string) => {
+    const supabase = createClient();
+    await supabase.rpc('increment_helpful', { question_id: questionId });
+    
+    setQuestions(questions.map(q => 
+      q.id === questionId ? { ...q, helpful: q.helpful + 1 } : q
     ));
   };
 
   return (
-    <div className="mt-8">
+    <div className="border-t pt-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <HelpCircle className="h-6 w-6 text-gray-400" />
-          Questions & Answers
-          {questions.length > 0 && (
-            <span className="text-sm font-normal text-gray-500">({questions.length})</span>
-          )}
-        </h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="text-[#ff6b35] font-medium hover:underline"
-        >
+        <h3 className="text-lg font-bold flex items-center gap-2">
+          <MessageCircle className="h-5 w-5" />
+          Questions & Answers ({answeredQuestions.length})
+        </h3>
+        <Button variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
           Ask a Question
-        </button>
+        </Button>
       </div>
 
-      {/* Ask Question Form */}
-      {showForm && (
-        <div className="bg-gray-50 rounded-xl p-6 mb-6">
-          {submitted ? (
-            <div className="text-center py-4">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-3" />
-              <p className="font-bold text-lg">Question Submitted!</p>
-              <p className="text-gray-500">We'll review and answer it soon.</p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <h3 className="font-bold mb-4">Ask a Question</h3>
-              <div className="grid md:grid-cols-2 gap-4 mb-4">
-                <input
-                  type="text"
-                  placeholder="Your name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="border rounded-lg px-4 py-2"
-                  required
-                />
-                <input
-                  type="email"
-                  placeholder="Email (optional, for notification)"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="border rounded-lg px-4 py-2"
-                />
-              </div>
-              <textarea
-                placeholder="What would you like to know about this product?"
-                value={form.question}
-                onChange={(e) => setForm({ ...form, question: e.target.value })}
-                className="w-full border rounded-lg px-4 py-3 resize-none"
-                rows={3}
-                required
-              />
-              <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-gray-600 hover:text-gray-800">
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex items-center gap-2 bg-[#ff6b35] text-white px-6 py-2 rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
-                >
-                  {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Submit Question
-                </button>
-              </div>
-            </form>
-          )}
+      {/* Success Message */}
+      {success && (
+        <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-sm">
+          Your question has been submitted! We'll answer it soon.
         </div>
       )}
 
+      {/* Question Form */}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium block mb-1">Your Question</label>
+              <textarea
+                value={newQuestion}
+                onChange={(e) => setNewQuestion(e.target.value)}
+                placeholder="What would you like to know about this product?"
+                rows={3}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff6b35] resize-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium block mb-1">Your Name (optional)</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Anonymous"
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff6b35]"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={loading}>
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                Submit Question
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </form>
+      )}
+
       {/* Questions List */}
-      {questions.length > 0 ? (
+      {questions.length === 0 ? (
+        <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <MessageCircle className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+          <p className="text-gray-500">No questions yet. Be the first to ask!</p>
+        </div>
+      ) : (
         <div className="space-y-4">
-          {questions.map((q) => (
-            <div key={q.id} className="border rounded-xl overflow-hidden">
-              <button
-                onClick={() => setExpandedId(expandedId === q.id ? null : q.id)}
-                className="w-full px-5 py-4 text-left flex items-start gap-3 hover:bg-gray-50"
-              >
+          {visibleQuestions.map((q) => (
+            <div key={q.id} className="border rounded-lg p-4">
+              <div className="flex items-start gap-3">
                 <span className="text-[#ff6b35] font-bold">Q:</span>
                 <div className="flex-1">
                   <p className="font-medium">{q.question}</p>
-                  <p className="text-sm text-gray-500 mt-1">Asked by {q.user_name} • {new Date(q.created_at).toLocaleDateString()}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Asked by {q.askerName} • {new Date(q.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
-                {q.answers.length > 0 && (
-                  <span className="text-sm bg-green-100 text-green-700 px-2 py-1 rounded-full">
-                    {q.answers.length} answer{q.answers.length > 1 ? 's' : ''}
-                  </span>
-                )}
-                {expandedId === q.id ? <ChevronUp className="h-5 w-5 text-gray-400" /> : <ChevronDown className="h-5 w-5 text-gray-400" />}
-              </button>
-
-              {expandedId === q.id && q.answers.length > 0 && (
-                <div className="bg-gray-50 px-5 py-4 border-t">
-                  {q.answers.map((a) => (
-                    <div key={a.id} className="flex gap-3 mb-4 last:mb-0">
-                      <span className="text-green-600 font-bold">A:</span>
-                      <div className="flex-1">
-                        <p className="text-gray-700">{a.answer}</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm">
-                          <span className={`${a.is_official ? 'text-[#ff6b35] font-medium' : 'text-gray-500'}`}>
-                            {a.is_official && '✓ '}{a.answered_by}
-                          </span>
-                          <button className="flex items-center gap-1 text-gray-400 hover:text-gray-600">
-                            <ThumbsUp className="h-4 w-4" /> Helpful ({a.helpful_count})
-                          </button>
-                        </div>
-                      </div>
+              </div>
+              
+              {q.answer ? (
+                <div className="flex items-start gap-3 mt-4 pl-6 border-l-2 border-green-500">
+                  <span className="text-green-600 font-bold">A:</span>
+                  <div className="flex-1">
+                    <p className="text-gray-700">{q.answer}</p>
+                    <div className="flex items-center gap-4 mt-2">
+                      <p className="text-xs text-gray-500">
+                        Answered {new Date(q.answeredAt!).toLocaleDateString()}
+                      </p>
+                      <button
+                        onClick={() => markHelpful(q.id)}
+                        className="flex items-center gap-1 text-xs text-gray-500 hover:text-[#ff6b35]"
+                      >
+                        <ThumbsUp className="h-3 w-3" />
+                        Helpful ({q.helpful})
+                      </button>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              )}
-
-              {expandedId === q.id && q.answers.length === 0 && (
-                <div className="bg-gray-50 px-5 py-4 border-t text-center text-gray-500">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                  <p>No answers yet. Be the first to help!</p>
-                </div>
+              ) : (
+                <p className="text-sm text-gray-400 mt-2 pl-6">Awaiting answer...</p>
               )}
             </div>
           ))}
-        </div>
-      ) : (
-        <div className="text-center py-8 bg-gray-50 rounded-xl">
-          <HelpCircle className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-          <p className="text-gray-600 mb-2">No questions yet</p>
-          <p className="text-gray-400 text-sm">Be the first to ask about this product!</p>
+
+          {questions.length > 3 && (
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="w-full py-2 text-center text-[#ff6b35] hover:underline flex items-center justify-center gap-1"
+            >
+              {showAll ? (
+                <>Show Less <ChevronUp className="h-4 w-4" /></>
+              ) : (
+                <>Show All {questions.length} Questions <ChevronDown className="h-4 w-4" /></>
+              )}
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -1,182 +1,160 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Plus, Check, Minus, Scale } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import Image from 'next/image';
+import Link from 'next/link';
+import { X, Check, Minus, ShoppingCart } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useCartStore } from '@/lib/cart-store';
 
-interface Product {
+interface CompareProduct {
   id: string;
   name: string;
   slug: string;
   price: number;
-  image?: string;
-  specs?: Record<string, string>;
-  rating?: number;
-  reviewCount?: number;
+  comparePrice?: number;
+  image: string | null;
+  specs: Record<string, string>;
 }
 
-// Compare store
-interface CompareState {
-  items: Product[];
-  addItem: (product: Product) => void;
-  removeItem: (id: string) => void;
+interface CompareStore {
+  products: CompareProduct[];
+  addProduct: (product: CompareProduct) => void;
+  removeProduct: (id: string) => void;
   clearAll: () => void;
-  isInCompare: (id: string) => boolean;
 }
 
-export const useCompareStore = create<CompareState>()(
+export const useCompareStore = create<CompareStore>()(
   persist(
     (set, get) => ({
-      items: [],
-      addItem: (product) => {
-        const current = get().items;
-        if (current.length >= 4) return; // Max 4 items
-        if (current.find(p => p.id === product.id)) return;
-        set({ items: [...current, product] });
+      products: [],
+      addProduct: (product) => {
+        const current = get().products;
+        if (current.length >= 4) return; // Max 4 products
+        if (current.find(p => p.id === product.id)) return; // Already added
+        set({ products: [...current, product] });
       },
-      removeItem: (id) => set({ items: get().items.filter(p => p.id !== id) }),
-      clearAll: () => set({ items: [] }),
-      isInCompare: (id) => get().items.some(p => p.id === id),
+      removeProduct: (id) => {
+        set({ products: get().products.filter(p => p.id !== id) });
+      },
+      clearAll: () => set({ products: [] }),
     }),
     { name: 'jeffy-compare' }
   )
 );
 
-// Add to Compare Button
-export function CompareButton({ product }: { product: Product }) {
-  const { addItem, removeItem, isInCompare, items } = useCompareStore();
-  const inCompare = isInCompare(product.id);
-  const isFull = items.length >= 4;
+// Compare button for product cards
+export function CompareButton({ product }: { product: CompareProduct }) {
+  const { products, addProduct, removeProduct } = useCompareStore();
+  const isAdded = products.some(p => p.id === product.id);
+  const isFull = products.length >= 4;
 
-  const handleClick = () => {
-    if (inCompare) {
-      removeItem(product.id);
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isAdded) {
+      removeProduct(product.id);
     } else if (!isFull) {
-      addItem(product);
+      addProduct(product);
     }
   };
 
   return (
     <button
       onClick={handleClick}
-      disabled={isFull && !inCompare}
-      className={`flex items-center gap-1 text-sm px-3 py-1.5 rounded-lg transition ${
-        inCompare 
-          ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
+      disabled={!isAdded && isFull}
+      className={`text-xs px-2 py-1 rounded transition ${
+        isAdded 
+          ? 'bg-[#ff6b35] text-white' 
           : isFull 
-            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
       }`}
     >
-      <Scale className="h-4 w-4" />
-      {inCompare ? 'In Compare' : 'Compare'}
+      {isAdded ? '✓ Comparing' : 'Compare'}
     </button>
   );
 }
 
-// Floating Compare Bar
+// Floating compare bar
 export function CompareBar() {
-  const { items, removeItem, clearAll } = useCompareStore();
+  const { products, removeProduct, clearAll } = useCompareStore();
+  const [mounted, setMounted] = useState(false);
 
-  if (items.length === 0) return null;
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted || products.length === 0) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-50 p-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span className="font-bold text-sm">Compare ({items.length}/4)</span>
-          <div className="flex gap-2">
-            {items.map((item) => (
-              <div key={item.id} className="relative">
-                <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden">
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xl">📦</div>
-                  )}
-                </div>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-            {Array.from({ length: 4 - items.length }).map((_, i) => (
-              <div key={i} className="w-12 h-12 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                <Plus className="h-4 w-4 text-gray-400" />
-              </div>
-            ))}
-          </div>
+    <div className="fixed bottom-20 lg:bottom-4 left-1/2 -translate-x-1/2 z-40 bg-white rounded-xl shadow-2xl border p-4 animate-slide-up">
+      <div className="flex items-center gap-4">
+        <div className="flex gap-2">
+          {products.map((product) => (
+            <div key={product.id} className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
+              {product.image ? (
+                <Image src={product.image} alt={product.name} fill className="object-cover" />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-400">📦</div>
+              )}
+              <button
+                onClick={() => removeProduct(product.id)}
+                className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          {/* Empty slots */}
+          {Array.from({ length: 4 - products.length }).map((_, i) => (
+            <div key={i} className="w-16 h-16 border-2 border-dashed border-gray-200 rounded-lg flex items-center justify-center text-gray-300">
+              +
+            </div>
+          ))}
         </div>
-        <div className="flex gap-3">
-          <button onClick={clearAll} className="text-gray-500 hover:text-gray-700 text-sm">
-            Clear All
-          </button>
+        
+        <div className="flex gap-2">
           <Link href="/compare">
-            <button disabled={items.length < 2} className="bg-[#ff6b35] text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed">
-              Compare Now
-            </button>
+            <Button size="sm" disabled={products.length < 2}>
+              Compare ({products.length})
+            </Button>
           </Link>
+          <Button size="sm" variant="outline" onClick={clearAll}>
+            Clear
+          </Button>
         </div>
       </div>
     </div>
   );
 }
 
-// Compare Page Table
-export function CompareTable() {
-  const { items, removeItem } = useCompareStore();
+// Full comparison table
+export function CompareTable({ products }: { products: CompareProduct[] }) {
+  const addToCart = useCartStore((state) => state.addItem);
 
-  if (items.length < 2) {
-    return (
-      <div className="text-center py-16">
-        <Scale className="h-16 w-16 mx-auto text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold mb-2">Add products to compare</h2>
-        <p className="text-gray-500 mb-4">Select at least 2 products to compare them side by side</p>
-        <Link href="/products">
-          <button className="bg-[#ff6b35] text-white px-6 py-2 rounded-lg font-bold hover:bg-orange-600">
-            Browse Products
-          </button>
-        </Link>
-      </div>
-    );
-  }
-
+  // Get all unique spec keys
   const allSpecs = new Set<string>();
-  items.forEach(item => {
-    if (item.specs) {
-      Object.keys(item.specs).forEach(key => allSpecs.add(key));
-    }
-  });
+  products.forEach(p => Object.keys(p.specs || {}).forEach(k => allSpecs.add(k)));
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[600px]">
+      <table className="w-full border-collapse">
         <thead>
           <tr>
-            <th className="p-4 text-left w-40"></th>
-            {items.map((item) => (
-              <th key={item.id} className="p-4 text-center">
-                <div className="relative inline-block">
-                  <button
-                    onClick={() => removeItem(item.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center z-10"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  <div className="w-32 h-32 bg-gray-100 rounded-xl mx-auto mb-3 overflow-hidden">
-                    {item.image ? (
-                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
-                    )}
+            <th className="p-4 text-left bg-gray-50 border-b w-32"></th>
+            {products.map((product) => (
+              <th key={product.id} className="p-4 border-b min-w-[200px]">
+                <div className="space-y-3">
+                  <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                    {product.image ? (
+                      <Image src={product.image} alt={product.name} fill className="object-cover" />
+                    ) : null}
                   </div>
-                  <Link href={`/products/${item.slug}`} className="font-bold hover:text-[#ff6b35]">{item.name}</Link>
+                  <Link href={`/products/${product.slug}`} className="font-medium hover:text-[#ff6b35] line-clamp-2 block">
+                    {product.name}
+                  </Link>
                 </div>
               </th>
             ))}
@@ -184,53 +162,44 @@ export function CompareTable() {
         </thead>
         <tbody>
           {/* Price Row */}
-          <tr className="bg-gray-50">
-            <td className="p-4 font-medium">Price</td>
-            {items.map((item) => (
-              <td key={item.id} className="p-4 text-center">
-                <span className="text-xl font-bold text-[#ff6b35]">{formatCurrency(item.price)}</span>
-              </td>
-            ))}
-          </tr>
-          
-          {/* Rating Row */}
           <tr>
-            <td className="p-4 font-medium">Rating</td>
-            {items.map((item) => (
-              <td key={item.id} className="p-4 text-center">
-                {item.rating ? (
-                  <div className="flex items-center justify-center gap-1">
-                    <span className="text-yellow-500">★</span>
-                    <span>{item.rating.toFixed(1)}</span>
-                    <span className="text-gray-400 text-sm">({item.reviewCount})</span>
-                  </div>
-                ) : (
-                  <span className="text-gray-400">No reviews</span>
+            <td className="p-4 font-medium bg-gray-50 border-b">Price</td>
+            {products.map((product) => (
+              <td key={product.id} className="p-4 border-b text-center">
+                <span className="text-xl font-bold text-[#ff6b35]">{formatCurrency(product.price)}</span>
+                {product.comparePrice && (
+                  <span className="block text-sm text-gray-400 line-through">
+                    {formatCurrency(product.comparePrice)}
+                  </span>
                 )}
               </td>
             ))}
           </tr>
 
-          {/* Specs Rows */}
+          {/* Spec Rows */}
           {Array.from(allSpecs).map((spec) => (
-            <tr key={spec} className="border-t">
-              <td className="p-4 font-medium">{spec}</td>
-              {items.map((item) => (
-                <td key={item.id} className="p-4 text-center">
-                  {item.specs?.[spec] || <Minus className="h-4 w-4 mx-auto text-gray-300" />}
+            <tr key={spec}>
+              <td className="p-4 font-medium bg-gray-50 border-b">{spec}</td>
+              {products.map((product) => (
+                <td key={product.id} className="p-4 border-b text-center">
+                  {product.specs?.[spec] || <Minus className="h-4 w-4 mx-auto text-gray-300" />}
                 </td>
               ))}
             </tr>
           ))}
 
           {/* Add to Cart Row */}
-          <tr className="bg-gray-50">
-            <td className="p-4"></td>
-            {items.map((item) => (
-              <td key={item.id} className="p-4 text-center">
-                <button className="bg-[#ff6b35] text-white px-4 py-2 rounded-lg font-bold hover:bg-orange-600 w-full">
+          <tr>
+            <td className="p-4 bg-gray-50"></td>
+            {products.map((product) => (
+              <td key={product.id} className="p-4 text-center">
+                <Button
+                  onClick={() => addToCart(product as any, 1)}
+                  className="w-full"
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
                   Add to Cart
-                </button>
+                </Button>
               </td>
             ))}
           </tr>
