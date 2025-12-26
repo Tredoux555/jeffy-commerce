@@ -1,58 +1,74 @@
 'use client';
 
-import { Shield, Truck, RefreshCw, CreditCard, Lock, Award } from 'lucide-react';
+import { Shield, Truck, RefreshCcw, CreditCard, Lock, Award } from 'lucide-react';
 
 export function TrustBadges() {
   const badges = [
-    { icon: Shield, label: 'Quality Guaranteed', color: 'text-green-600' },
-    { icon: Truck, label: 'Fast Delivery', color: 'text-blue-600' },
-    { icon: RefreshCw, label: '7-Day Returns', color: 'text-purple-600' },
-    { icon: Lock, label: 'Secure Checkout', color: 'text-orange-600' },
+    { icon: Shield, label: 'Secure Checkout', sublabel: '256-bit SSL' },
+    { icon: Truck, label: 'Free Delivery', sublabel: 'Orders R500+' },
+    { icon: RefreshCcw, label: '30-Day Returns', sublabel: 'Easy refunds' },
+    { icon: CreditCard, label: 'Safe Payment', sublabel: 'PayFast secured' },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-      {badges.map(({ icon: Icon, label, color }) => (
-        <div key={label} className="flex items-center gap-2 text-sm text-gray-600">
-          <Icon className={`h-5 w-5 ${color}`} />
-          <span>{label}</span>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {badges.map((badge) => (
+        <div key={badge.label} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+          <badge.icon className="h-6 w-6 text-[#ff6b35]" />
+          <div>
+            <p className="text-sm font-medium">{badge.label}</p>
+            <p className="text-xs text-gray-500">{badge.sublabel}</p>
+          </div>
         </div>
       ))}
     </div>
   );
 }
 
-export function TrustBadgesCompact() {
+// Compact version for product pages
+export function ProductGuarantees() {
+  const guarantees = [
+    { icon: Shield, text: 'Quality Guaranteed' },
+    { icon: Truck, text: 'Fast Nationwide Delivery' },
+    { icon: RefreshCcw, text: '30-Day Easy Returns' },
+    { icon: Lock, text: 'Secure Payment' },
+  ];
+
   return (
-    <div className="flex items-center justify-center gap-4 py-3 border-t border-b bg-gray-50">
-      <div className="flex items-center gap-1 text-xs text-gray-600">
-        <Shield className="h-4 w-4 text-green-600" />
-        <span>Quality</span>
-      </div>
-      <div className="flex items-center gap-1 text-xs text-gray-600">
-        <Truck className="h-4 w-4 text-blue-600" />
-        <span>Fast Ship</span>
-      </div>
-      <div className="flex items-center gap-1 text-xs text-gray-600">
-        <Lock className="h-4 w-4 text-orange-600" />
-        <span>Secure</span>
-      </div>
-      <div className="flex items-center gap-1 text-xs text-gray-600">
-        <RefreshCw className="h-4 w-4 text-purple-600" />
-        <span>Returns</span>
-      </div>
+    <div className="flex flex-wrap gap-4 py-4 border-t border-b">
+      {guarantees.map((g) => (
+        <div key={g.text} className="flex items-center gap-2 text-sm text-gray-600">
+          <g.icon className="h-4 w-4 text-green-600" />
+          <span>{g.text}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-export function PaymentBadges() {
+// Checkout trust indicators
+export function CheckoutTrust() {
   return (
-    <div className="flex items-center gap-3 text-gray-400">
-      <CreditCard className="h-6 w-6" />
-      <span className="text-xs">Visa</span>
-      <span className="text-xs">Mastercard</span>
-      <span className="text-xs">PayFast</span>
-      <span className="text-xs">Ozow</span>
+    <div className="bg-gray-50 rounded-xl p-4 space-y-3">
+      <div className="flex items-center gap-3">
+        <Lock className="h-5 w-5 text-green-600" />
+        <div>
+          <p className="font-medium text-sm">Secure Checkout</p>
+          <p className="text-xs text-gray-500">Your information is protected</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <Award className="h-5 w-5 text-blue-600" />
+        <div>
+          <p className="font-medium text-sm">Buyer Protection</p>
+          <p className="text-xs text-gray-500">Full refund if item not received</p>
+        </div>
+      </div>
+      <div className="pt-2 border-t">
+        <p className="text-xs text-gray-400 text-center">
+          Payments secured by PayFast
+        </p>
+      </div>
     </div>
   );
 }

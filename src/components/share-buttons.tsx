@@ -1,93 +1,143 @@
 'use client';
 
-import { Share2, MessageCircle, Facebook, Twitter, Link2, Check } from 'lucide-react';
 import { useState } from 'react';
+import { Share2, Link, MessageCircle, Facebook, Twitter, Check, Copy } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ShareButtonsProps {
   url: string;
   title: string;
-  price?: number;
+  image?: string;
 }
 
-export function ShareButtons({ url, title, price }: ShareButtonsProps) {
+export function ShareButtons({ url, title, image }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
 
-  const fullUrl = typeof window !== 'undefined' ? `${window.location.origin}${url}` : url;
-  const priceText = price ? ` - Only R${(price / 100).toFixed(2)}!` : '';
-  const shareText = `Check out ${title}${priceText} on Jeffy Commerce!`;
-  
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${shareText}\n${fullUrl}`)}`;
-  const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(fullUrl)}`;
-  const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(fullUrl)}`;
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${url}` : url;
+  const encodedUrl = encodeURIComponent(shareUrl);
+  const encodedTitle = encodeURIComponent(title);
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(fullUrl);
+    await navigator.clipboard.writeText(shareUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodedTitle}%20${encodedUrl}`, '_blank');
+  };
+
+  const shareFacebook = () => {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
+  };
+
+  const shareTwitter = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`, '_blank');
+  };
+
+  // Native share if available
+  const nativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, url: shareUrl });
+      } catch (e) {
+        // User cancelled
+      }
+    }
+  };
+
   return (
-    <div className="relative">
-      <button 
-        onClick={() => setShowMenu(!showMenu)}
-        className="flex items-center gap-2 text-gray-600 hover:text-[#ff6b35] transition"
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-gray-500">Share:</span>
+      
+      <button
+        onClick={copyLink}
+        className="p-2 rounded-full hover:bg-gray-100 transition"
+        title="Copy link"
       >
-        <Share2 className="h-5 w-5" />
-        <span className="text-sm font-medium">Share</span>
+        {copied ? <Check className="h-4 w-4 text-green-500" /> : <Link className="h-4 w-4 text-gray-500" />}
       </button>
 
-      {showMenu && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-          <div className="absolute right-0 top-full mt-2 bg-white rounded-xl shadow-xl border p-3 z-50 w-48">
-            <div className="space-y-1">
-              <a 
-                href={whatsappUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-2 hover:bg-green-50 rounded-lg transition text-gray-700"
-              >
-                <MessageCircle className="h-5 w-5 text-green-500" />
-                <span className="text-sm">WhatsApp</span>
-              </a>
-              <a 
-                href={facebookUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-2 hover:bg-blue-50 rounded-lg transition text-gray-700"
-              >
-                <Facebook className="h-5 w-5 text-blue-600" />
-                <span className="text-sm">Facebook</span>
-              </a>
-              <a 
-                href={twitterUrl} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 px-3 py-2 hover:bg-sky-50 rounded-lg transition text-gray-700"
-              >
-                <Twitter className="h-5 w-5 text-sky-500" />
-                <span className="text-sm">Twitter</span>
-              </a>
-              <button 
-                onClick={copyLink}
-                className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg transition text-gray-700 w-full"
-              >
-                {copied ? (
-                  <>
-                    <Check className="h-5 w-5 text-green-500" />
-                    <span className="text-sm text-green-600">Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Link2 className="h-5 w-5 text-gray-500" />
-                    <span className="text-sm">Copy Link</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </>
+      <button
+        onClick={shareWhatsApp}
+        className="p-2 rounded-full hover:bg-green-50 transition"
+        title="Share on WhatsApp"
+      >
+        <MessageCircle className="h-4 w-4 text-[#25D366]" />
+      </button>
+
+      <button
+        onClick={shareFacebook}
+        className="p-2 rounded-full hover:bg-blue-50 transition"
+        title="Share on Facebook"
+      >
+        <Facebook className="h-4 w-4 text-[#1877F2]" />
+      </button>
+
+      <button
+        onClick={shareTwitter}
+        className="p-2 rounded-full hover:bg-sky-50 transition"
+        title="Share on Twitter"
+      >
+        <Twitter className="h-4 w-4 text-[#1DA1F2]" />
+      </button>
+
+      {typeof navigator !== 'undefined' && navigator.share && (
+        <button
+          onClick={nativeShare}
+          className="p-2 rounded-full hover:bg-gray-100 transition"
+          title="More options"
+        >
+          <Share2 className="h-4 w-4 text-gray-500" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Compact share button
+export function ShareButton({ url, title }: { url: string; title: string }) {
+  const [showOptions, setShowOptions] = useState(false);
+
+  const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}${url}` : url;
+
+  const shareWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(title)}%20${encodeURIComponent(shareUrl)}`, '_blank');
+  };
+
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setShowOptions(false);
+  };
+
+  return (
+    <div className="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowOptions(!showOptions)}
+      >
+        <Share2 className="h-4 w-4 mr-2" />
+        Share
+      </Button>
+
+      {showOptions && (
+        <div className="absolute right-0 mt-2 bg-white rounded-lg shadow-xl border py-2 z-50 min-w-[160px]">
+          <button
+            onClick={shareWhatsApp}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
+          >
+            <MessageCircle className="h-4 w-4 text-[#25D366]" />
+            WhatsApp
+          </button>
+          <button
+            onClick={copyLink}
+            className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-3"
+          >
+            <Copy className="h-4 w-4 text-gray-500" />
+            Copy Link
+          </button>
+        </div>
       )}
     </div>
   );

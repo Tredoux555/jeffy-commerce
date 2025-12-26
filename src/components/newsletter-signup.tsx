@@ -3,14 +3,9 @@
 import { useState } from 'react';
 import { Mail, Loader2, Check, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { createClient } from '@/lib/supabase/client';
 
-interface NewsletterSignupProps {
-  variant?: 'default' | 'footer';
-  source?: string;
-}
-
-export function NewsletterSignup({ variant = 'default', source = 'homepage' }: NewsletterSignupProps) {
+export function NewsletterSignup() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -24,11 +19,23 @@ export function NewsletterSignup({ variant = 'default', source = 'homepage' }: N
     setError('');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSuccess(true);
-      setEmail('');
-    } catch (err) {
-      setError('Failed to subscribe. Please try again.');
+      const supabase = createClient();
+      
+      const { error: insertError } = await supabase
+        .from('newsletter_subscribers')
+        .insert({ email, source: 'footer' });
+
+      if (insertError) {
+        if (insertError.code === '23505') {
+          setError('You\'re already subscribed!');
+        } else {
+          throw insertError;
+        }
+      } else {
+        setSuccess(true);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to subscribe');
     } finally {
       setLoading(false);
     }
@@ -36,57 +43,103 @@ export function NewsletterSignup({ variant = 'default', source = 'homepage' }: N
 
   if (success) {
     return (
-      <div className={`${variant === 'footer' ? 'p-4' : 'p-6'} bg-green-50 border border-green-200 rounded-xl text-center`}>
-        <Check className="h-8 w-8 text-green-500 mx-auto mb-2" />
-        <p className="font-medium text-green-800">You're subscribed!</p>
+      <div className="flex items-center gap-3 text-green-400">
+        <Check className="h-5 w-5" />
+        <span>Thanks for subscribing! Check your inbox for 10% off.</span>
       </div>
-    );
-  }
-
-  if (variant === 'footer') {
-    return (
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input
-          type="email"
-          placeholder="Your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="flex-1 bg-white/10 border-white/20 text-white placeholder-gray-400"
-          required
-        />
-        <Button type="submit" disabled={loading} className="bg-[#ff6b35] hover:bg-orange-600 text-white">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Join'}
-        </Button>
-      </form>
     );
   }
 
   return (
-    <div className="bg-gradient-to-r from-[#ff6b35] to-orange-500 rounded-xl p-6 text-white">
-      <div className="flex items-center gap-2 mb-2">
-        <Gift className="h-6 w-6" />
-        <h3 className="font-bold text-lg">Get 10% Off Your First Order!</h3>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
+        <Gift className="h-4 w-4 text-[#ff6b35]" />
+        <span>Get 10% off your first order</span>
       </div>
-      <p className="text-white/90 text-sm mb-4">
-        Subscribe for exclusive deals, new arrivals, and Jeffy Wants updates.
-      </p>
-      
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <Input
-          type="email"
-          placeholder="Your email address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="flex-1 bg-white text-gray-900"
-          required
-        />
-        <Button type="submit" disabled={loading} className="bg-white text-[#ff6b35] hover:bg-gray-100">
-          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Enter your email"
+            className="w-full pl-10 pr-4 py-2.5 bg-white/10 border border-white/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#ff6b35]"
+            required
+          />
+        </div>
+        <Button type="submit" disabled={loading} className="px-6">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Subscribe'}
         </Button>
-      </form>
-      
-      {error && <p className="text-white/80 text-sm mt-2">{error}</p>}
-      <p className="text-white/70 text-xs mt-3">No spam, unsubscribe anytime.</p>
+      </div>
+      {error && <p className="text-red-400 text-sm">{error}</p>}
+    </form>
+  );
+}
+
+// Popup version
+export function NewsletterPopup({ onClose }: { onClose: () => void }) {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+
+    setLoading(true);
+    const supabase = createClient();
+    
+    await supabase.from('newsletter_subscribers').insert({ email, source: 'popup' });
+    
+    setSuccess(true);
+    setLoading(false);
+    
+    // Close after success
+    setTimeout(onClose, 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+      <div className="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl">
+        <div className="bg-gradient-to-r from-[#ff6b35] to-orange-500 p-6 text-white text-center">
+          <div className="text-4xl mb-2">🎁</div>
+          <h2 className="text-2xl font-bold">Get 10% Off!</h2>
+          <p className="text-white/90 mt-1">Subscribe to our newsletter</p>
+        </div>
+        
+        <div className="p-6">
+          {success ? (
+            <div className="text-center py-4">
+              <Check className="h-12 w-12 text-green-500 mx-auto mb-3" />
+              <p className="font-semibold">You're subscribed!</p>
+              <p className="text-sm text-gray-500">Check your email for your discount code.</p>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#ff6b35]"
+                required
+              />
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Get My 10% Off
+              </Button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full text-sm text-gray-500 hover:text-gray-700"
+              >
+                No thanks, I'll pay full price
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

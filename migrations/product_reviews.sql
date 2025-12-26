@@ -1,23 +1,38 @@
 -- Product Reviews Table
+-- Run this in Supabase SQL Editor
+
 CREATE TABLE IF NOT EXISTS product_reviews (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-  user_name TEXT NOT NULL,
-  user_email TEXT,
-  user_phone TEXT,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
   rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-  title TEXT,
   review_text TEXT,
-  is_verified_purchase BOOLEAN DEFAULT FALSE,
-  is_approved BOOLEAN DEFAULT FALSE,
-  helpful_count INTEGER DEFAULT 0,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  reviewer_name TEXT DEFAULT 'Anonymous',
+  status TEXT DEFAULT 'pending', -- pending, approved, rejected
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_reviews_product ON product_reviews(product_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_approved ON product_reviews(is_approved);
+CREATE INDEX IF NOT EXISTS idx_reviews_status ON product_reviews(status);
 
--- Add average rating to products table
-ALTER TABLE products ADD COLUMN IF NOT EXISTS avg_rating DECIMAL(2,1) DEFAULT 0;
-ALTER TABLE products ADD COLUMN IF NOT EXISTS review_count INTEGER DEFAULT 0;
+ALTER TABLE product_reviews ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can create reviews" ON product_reviews
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Anyone can read approved reviews" ON product_reviews
+  FOR SELECT USING (status = 'approved');
+
+CREATE POLICY "Service role can manage all reviews" ON product_reviews
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- Add average rating to products (optional materialized view)
+-- CREATE OR REPLACE VIEW product_ratings AS
+-- SELECT 
+--   product_id,
+--   AVG(rating)::NUMERIC(2,1) as avg_rating,
+--   COUNT(*) as review_count
+-- FROM product_reviews
+-- WHERE status = 'approved'
+-- GROUP BY product_id;
