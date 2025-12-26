@@ -7,7 +7,6 @@ import { WhatsAppSupport } from "@/components/whatsapp-share";
 import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 import { CartReminderBanner } from "@/components/cart-reminder-banner";
 import { BackToTopButton } from "@/components/back-to-top";
-import { BackToTop } from "@/components/back-to-top";
 
 export const metadata: Metadata = {
   title: {
