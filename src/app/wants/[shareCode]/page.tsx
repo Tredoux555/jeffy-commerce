@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: WantPageProps): Promise<Metad
 
   const { data: want } = await supabase
     .from('wants')
-    .select('title, description')
+    .select('title, description, creator_name')
     .eq('share_code', shareCode)
     .single();
 
@@ -21,12 +21,14 @@ export async function generateMetadata({ params }: WantPageProps): Promise<Metad
     return { title: 'Want Not Found' };
   }
 
+  const creatorName = want.creator_name || 'Someone';
+
   return {
-    title: `${want.title} - Help me get this FREE!`,
-    description: want.description || `Help me get "${want.title}" FREE on Jeffy! Only need 10 friends to agree.`,
+    title: `Help ${creatorName} get "${want.title}" FREE!`,
+    description: `${creatorName} wants this FREE on Jeffy! Agree to help them get it, then create your own want!`,
     openGraph: {
-      title: `${want.title} - Help me get this FREE!`,
-      description: want.description || `Only need 10 friends to agree!`,
+      title: `Help ${creatorName} get this FREE! 🎁`,
+      description: `Agree to help, then get YOUR free stuff too!`,
     },
   };
 }
@@ -45,10 +47,5 @@ export default async function WantPage({ params }: WantPageProps) {
     notFound();
   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <WantDetailClient want={want} />
-    </div>
-  );
+  return <WantDetailClient want={want} />;
 }
-
