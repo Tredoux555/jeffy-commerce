@@ -4,10 +4,10 @@ import { Clock, AlertTriangle } from 'lucide-react';
 
 export default async function AdminWantsStatsPage() {
   const res = await getAllWantsForAdmin();
-  const wants = res.success ? res.wants : [];
+  const wants = res.success && res.wants ? res.wants : [];
   
   // Sort by survey_votes for this page
-  const sortedWants = [...wants].sort((a, b) => (b.survey_votes || 0) - (a.survey_votes || 0));
+  const sortedWants = [...(wants || [])].sort((a, b) => (b.survey_votes || 0) - (a.survey_votes || 0));
 
   // Calculate days remaining for each want
   const getExpiryInfo = (createdAt: string) => {
