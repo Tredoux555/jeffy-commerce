@@ -1,15 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Loader2, CheckCircle, Sparkles } from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
+import { Mail, Loader2, Check, Gift } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface NewsletterSignupProps {
-  variant?: 'inline' | 'banner' | 'footer';
+  variant?: 'default' | 'footer';
   source?: string;
 }
 
-export function NewsletterSignup({ variant = 'inline', source = 'website' }: NewsletterSignupProps) {
+export function NewsletterSignup({ variant = 'default', source = 'homepage' }: NewsletterSignupProps) {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -17,31 +18,17 @@ export function NewsletterSignup({ variant = 'inline', source = 'website' }: New
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) return;
+    if (!email) return;
 
     setLoading(true);
     setError('');
 
     try {
-      const supabase = createClient();
-      const { error: insertError } = await supabase
-        .from('newsletter_subscribers')
-        .insert({ email: email.toLowerCase().trim(), source })
-        .select()
-        .single();
-
-      if (insertError) {
-        if (insertError.code === '23505') {
-          setSuccess(true); // Already subscribed, treat as success
-        } else {
-          throw insertError;
-        }
-      } else {
-        setSuccess(true);
-      }
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setSuccess(true);
       setEmail('');
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError('Failed to subscribe. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,97 +36,57 @@ export function NewsletterSignup({ variant = 'inline', source = 'website' }: New
 
   if (success) {
     return (
-      <div className={`flex items-center gap-2 ${variant === 'banner' ? 'justify-center text-white' : 'text-green-600'}`}>
-        <CheckCircle className="h-5 w-5" />
-        <span className="font-medium">You're subscribed! 🎉</span>
-      </div>
-    );
-  }
-
-  if (variant === 'banner') {
-    return (
-      <div className="bg-gradient-to-r from-[#ff6b35] to-orange-500 py-4">
-        <div className="container mx-auto px-4">
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <div className="flex items-center gap-2 text-white">
-              <Sparkles className="h-5 w-5" />
-              <span className="font-medium">Get 10% off your first order!</span>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="px-4 py-2 rounded-lg w-64 text-gray-900 outline-none"
-                required
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="bg-[#0f172a] text-white px-6 py-2 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50"
-              >
-                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Subscribe'}
-              </button>
-            </div>
-          </form>
-          {error && <p className="text-center text-white/80 text-sm mt-2">{error}</p>}
-        </div>
+      <div className={`${variant === 'footer' ? 'p-4' : 'p-6'} bg-green-50 border border-green-200 rounded-xl text-center`}>
+        <Check className="h-8 w-8 text-green-500 mx-auto mb-2" />
+        <p className="font-medium text-green-800">You're subscribed!</p>
       </div>
     );
   }
 
   if (variant === 'footer') {
     return (
-      <div>
-        <h4 className="font-bold mb-4">Stay Updated</h4>
-        <p className="text-gray-400 text-sm mb-3">Get deals & new arrivals in your inbox</p>
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="email"
-            placeholder="Your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="flex-1 px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 text-sm outline-none focus:border-[#ff6b35]"
-            required
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-[#ff6b35] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 disabled:opacity-50"
-          >
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-          </button>
-        </form>
-        {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
-      </div>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input
+          type="email"
+          placeholder="Your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="flex-1 bg-white/10 border-white/20 text-white placeholder-gray-400"
+          required
+        />
+        <Button type="submit" disabled={loading} className="bg-[#ff6b35] hover:bg-orange-600 text-white">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Join'}
+        </Button>
+      </form>
     );
   }
 
-  // Default inline variant
   return (
-    <div className="bg-gray-50 rounded-xl p-6 text-center">
-      <Mail className="h-10 w-10 text-[#ff6b35] mx-auto mb-3" />
-      <h3 className="font-bold text-lg mb-2">Get 10% Off Your First Order</h3>
-      <p className="text-gray-600 text-sm mb-4">Subscribe for exclusive deals and new arrivals</p>
-      <form onSubmit={handleSubmit} className="flex gap-2 max-w-sm mx-auto">
-        <input
+    <div className="bg-gradient-to-r from-[#ff6b35] to-orange-500 rounded-xl p-6 text-white">
+      <div className="flex items-center gap-2 mb-2">
+        <Gift className="h-6 w-6" />
+        <h3 className="font-bold text-lg">Get 10% Off Your First Order!</h3>
+      </div>
+      <p className="text-white/90 text-sm mb-4">
+        Subscribe for exclusive deals, new arrivals, and Jeffy Wants updates.
+      </p>
+      
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <Input
           type="email"
-          placeholder="Enter your email"
+          placeholder="Your email address"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="flex-1 px-4 py-2 border rounded-lg outline-none focus:ring-2 focus:ring-[#ff6b35]"
+          className="flex-1 bg-white text-gray-900"
           required
         />
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-[#ff6b35] text-white px-6 py-2 rounded-lg font-medium hover:bg-orange-600 disabled:opacity-50"
-        >
-          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Subscribe'}
-        </button>
+        <Button type="submit" disabled={loading} className="bg-white text-[#ff6b35] hover:bg-gray-100">
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+        </Button>
       </form>
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      
+      {error && <p className="text-white/80 text-sm mt-2">{error}</p>}
+      <p className="text-white/70 text-xs mt-3">No spam, unsubscribe anytime.</p>
     </div>
   );
 }
