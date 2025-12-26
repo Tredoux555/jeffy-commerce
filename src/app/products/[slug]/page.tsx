@@ -1,11 +1,11 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
-import { formatCurrency } from '@/lib/utils';
 import { AddToCartButton } from './add-to-cart-button';
 import { ShareButtons } from '@/components/share-buttons';
 import { RelatedProducts } from '@/components/related-products';
 import { ProductDetailClient } from './product-detail-client';
+import { ProductImageGallery } from './product-image-gallery';
+import { formatCurrency } from '@/lib/utils';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -35,7 +35,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Track recently viewed */}
       <ProductDetailClient product={{
         id: product.id,
         name: product.name,
@@ -45,32 +44,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
       }} />
 
       <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Images */}
-        <div className="space-y-4">
-          <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
-            {images[0] ? (
-              <Image src={images[0]} alt={product.name} fill className="object-cover" priority />
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">No image</div>
-            )}
-            
-            {hasDiscount && (
-              <span className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded">
-                Save {discountPercent}%
-              </span>
-            )}
-          </div>
-
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {images.map((img: string, index: number) => (
-                <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#ff6b35]">
-                  <Image src={img} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Images - Interactive Gallery */}
+        <ProductImageGallery 
+          images={images} 
+          productName={product.name} 
+          discountPercent={hasDiscount ? discountPercent : 0} 
+        />
 
         {/* Product Info */}
         <div>
@@ -119,15 +98,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <AddToCartButton product={product} />
           </div>
 
-          {/* Want it FREE? */}
-          <div className="bg-gradient-to-r from-[#ff6b35] to-orange-500 rounded-xl p-4 mb-6">
-            <p className="text-white font-bold mb-2">🎁 Want this for FREE?</p>
-            <p className="text-white/90 text-sm mb-3">Share with 10 friends and get it FREE!</p>
-            <a href="/wants/create" className="inline-block bg-white text-[#ff6b35] px-4 py-2 rounded-lg font-bold text-sm hover:bg-gray-100 transition">
-              Create a Want →
-            </a>
-          </div>
-
           {product.description && (
             <div className="border-t pt-6">
               <h3 className="font-semibold mb-3">Description</h3>
@@ -139,7 +109,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
-      {/* Related Products */}
       <RelatedProducts currentProductId={product.id} categoryId={product.category_id} />
     </div>
   );

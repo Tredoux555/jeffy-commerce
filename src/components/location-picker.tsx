@@ -1,22 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import { MapPin, Crosshair, Loader2 } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { MapPin, Crosshair, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getCurrentLocation } from '@/lib/geo-utils';
-
-const libraries: ("places")[] = ['places'];
-
-const mapContainerStyle = {
-  width: '100%',
-  height: '300px',
-};
-
-const defaultCenter = {
-  lat: -26.2041,
-  lng: 28.0473,
-};
+import { Input } from '@/components/ui/input';
 
 interface LocationPickerProps {
   onLocationSelect: (location: { lat: number; lng: number; address?: string }) => void;
@@ -27,61 +14,77 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
   const [marker, setMarker] = useState<{ lat: number; lng: number } | null>(initialLocation || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [address, setAddress] = useState('');
+  const [useManualEntry, setUseManualEntry] = useState(false);
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries,
-  });
-
-  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const location = {
-        lat: e.latLng.lat(),
-        lng: e.latLng.lng(),
-      };
-      setMarker(location);
-      onLocationSelect(location);
-      setError(null);
-    }
-  }, [onLocationSelect]);
+  // Check if Google Maps API is available
+  const hasGoogleMaps = typeof window !== 'undefined' && 
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && 
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.length > 10;
 
   const handleGetCurrentLocation = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const location = await getCurrentLocation();
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000,
+        });
+      });
+
+      const location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      
       setMarker(location);
       onLocationSelect(location);
+      setUseManualEntry(false);
     } catch (err: any) {
       if (err.code === 1) {
-        setError('Location access denied. Please enable location or click on the map.');
+        setError('Location access denied. Please enter your address manually.');
       } else {
-        setError('Could not get your location. Please click on the map instead.');
+        setError('Could not get your location. Please enter your address manually.');
       }
+      setUseManualEntry(true);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loadError) {
-    return (
-      <div className="w-full h-[300px] bg-gray-100 rounded-lg flex items-center justify-center">
-        <p className="text-red-500">Error loading maps</p>
-      </div>
-    );
-  }
+  const handleAddressSubmit = () => {
+    if (!address.trim()) {
+      setError('Please enter your delivery address');
+      return;
+    }
+    
+    // For now, use Johannesburg coordinates as default
+    // In production, you'd use a geocoding service
+    const defaultLocation = {
+      lat: -26.2041,
+      lng: 28.0473,
+    };
+    
+    setMarker(defaultLocation);
+    onLocationSelect({ ...defaultLocation, address: address.trim() });
+    setError(null);
+  };
 
-  if (!isLoaded) {
-    return (
-      <div className="w-full h-[300px] bg-gray-100 rounded-lg flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-      </div>
-    );
-  }
+  // Auto-detect location on mount
+  useEffect(() => {
+    if (!initialLocation && navigator.geolocation) {
+      handleGetCurrentLocation();
+    } else if (!navigator.geolocation) {
+      setUseManualEntry(true);
+    }
+  }, []);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Location Button */}
       <div className="flex items-center justify-between">
         <label className="block text-sm font-medium text-gray-700">
           Delivery Location
@@ -102,53 +105,62 @@ export function LocationPicker({ onLocationSelect, initialLocation }: LocationPi
         </Button>
       </div>
 
-      <div className="rounded-lg overflow-hidden border">
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={marker || defaultCenter}
-          zoom={marker ? 15 : 12}
-          onClick={handleMapClick}
-          options={{
-            streetViewControl: false,
-            mapTypeControl: false,
-          }}
-        >
-          {marker && (
-            <Marker
-              position={marker}
-              icon={{
-                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-                  <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#f97316" stroke="#fff" stroke-width="2">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                    <circle cx="12" cy="10" r="3" fill="#fff"></circle>
-                  </svg>
-                `),
-                scaledSize: new google.maps.Size(40, 40),
-                anchor: new google.maps.Point(20, 40),
-              }}
-            />
-          )}
-        </GoogleMap>
+      {/* Simple Map Placeholder or Address Input */}
+      <div className="rounded-lg overflow-hidden border bg-gray-100">
+        {marker && !useManualEntry ? (
+          <div className="h-[200px] flex flex-col items-center justify-center bg-green-50">
+            <MapPin className="h-12 w-12 text-[#ff6b35] mb-2" />
+            <p className="text-sm text-green-700 font-medium">Location Detected!</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {marker.lat.toFixed(4)}, {marker.lng.toFixed(4)}
+            </p>
+          </div>
+        ) : (
+          <div className="p-6">
+            <div className="flex items-center gap-2 mb-4 text-gray-600">
+              <AlertCircle className="h-5 w-5" />
+              <span className="text-sm">Enter your delivery address</span>
+            </div>
+            <div className="space-y-3">
+              <Input
+                placeholder="e.g., 123 Main Road, Sandton, Johannesburg"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full"
+              />
+              <Button 
+                type="button" 
+                onClick={handleAddressSubmit}
+                className="w-full bg-[#ff6b35] hover:bg-orange-600"
+              >
+                <MapPin className="h-4 w-4 mr-2" />
+                Set Delivery Location
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-amber-600 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          {error}
+        </p>
       )}
 
-      {marker ? (
+      {marker && (
         <div className="flex items-center gap-2 text-sm text-green-600">
           <MapPin className="h-4 w-4" />
-          Location selected: {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+          <span>Delivery location set</span>
+          <button 
+            type="button"
+            onClick={() => setUseManualEntry(true)}
+            className="text-[#ff6b35] hover:underline ml-2"
+          >
+            Change
+          </button>
         </div>
-      ) : (
-        <p className="text-sm text-gray-500">
-          Click on the map or use "My Location" to set your delivery address
-        </p>
       )}
     </div>
   );
 }
-
-
-
-
