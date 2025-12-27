@@ -60,11 +60,11 @@ export default function AgentPortal() {
     const supabase = createClient();
 
     try {
-      // Step 1: Get all paid/processing orders
+      // Step 1: Get all paid/preparing orders
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('id, order_number, status')
-        .in('status', ['paid', 'processing'])
+        .in('status', ['paid', 'preparing', 'assigned_to_franchise'])
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
