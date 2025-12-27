@@ -120,9 +120,9 @@ export async function POST(request: NextRequest) {
         compare_at_price_cents: comparePrice,
         cost_price: costPriceZAR,
         cost_price_cents: costPriceZAR,
-        stock: 100,
-        quantity: 100,
-        stock_quantity: 100,
+        stock: 10,
+        quantity: 10,
+        stock_quantity: 10,
         images: images || [],
         main_image: mainImage || images?.[0] || null,
         primary_image_url: mainImage || images?.[0] || null,
@@ -167,6 +167,67 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Download and store images in Supabase Storage
+    let storedImages: string[] = [];
+    let primaryStoredImage: string | null = null;
+    
+    if (images && images.length > 0) {
+      try {
+        const timestamp = Date.now();
+        for (let i = 0; i < Math.min(images.length, 10); i++) {
+          const url = images[i];
+          try {
+            const response = await fetch(url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://detail.1688.com/',
+                'Accept': 'image/webp,image/*,*/*'
+              }
+            });
+
+            if (!response.ok) continue;
+
+            const contentType = response.headers.get('content-type') || 'image/jpeg';
+            const buffer = await response.arrayBuffer();
+            
+            let ext = 'jpg';
+            if (contentType.includes('png')) ext = 'png';
+            else if (contentType.includes('webp')) ext = 'webp';
+
+            const fileName = `${product.id}_${timestamp}_${i}.${ext}`;
+            const filePath = `products/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('product-images')
+              .upload(filePath, buffer, { contentType, upsert: true });
+
+            if (!uploadError) {
+              const { data: urlData } = supabase.storage
+                .from('product-images')
+                .getPublicUrl(filePath);
+              if (urlData?.publicUrl) {
+                storedImages.push(urlData.publicUrl);
+                if (!primaryStoredImage) primaryStoredImage = urlData.publicUrl;
+              }
+            }
+          } catch (imgErr) {
+            console.log(`Image ${i} failed:`, imgErr);
+          }
+        }
+
+        // Update product with stored images
+        if (storedImages.length > 0) {
+          await supabase.from('products').update({
+            images: storedImages,
+            primary_image_url: primaryStoredImage,
+            main_image: primaryStoredImage
+          }).eq('id', product.id);
+        }
+      } catch (imgError) {
+        console.log('Image processing error:', imgError);
+      }
+    }
+
     // Log the import (ignore errors if table doesn't exist)
     try {
       await supabase.from('import_logs').insert({
@@ -190,7 +251,9 @@ export async function POST(request: NextRequest) {
       sellingPrice: sellingPrice,
       comparePrice: comparePrice,
       costPrice: costPriceZAR,
-      status: 'draft'
+      status: 'draft',
+      imagesUploaded: storedImages.length,
+      primaryImage: primaryStoredImage
     }, { headers: corsHeaders });
 
   } catch (error: any) {
