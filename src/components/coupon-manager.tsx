@@ -142,7 +142,7 @@ function CouponForm({ onSubmit, onCancel, loading }: {
 }) {
   const [formData, setFormData] = useState({
     code: '',
-    type: 'percentage' as const,
+    type: 'percentage' as 'percentage' | 'fixed' | 'free_shipping',
     value: 10,
     minOrderValue: 0,
     maxUses: 0,
@@ -185,7 +185,7 @@ function CouponForm({ onSubmit, onCancel, loading }: {
               <label className="block text-sm font-medium mb-1">Type</label>
               <select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'percentage' | 'fixed' | 'free_shipping' })}
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 <option value="percentage">Percentage</option>
