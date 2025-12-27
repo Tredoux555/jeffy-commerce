@@ -137,9 +137,10 @@ export default async function LabelPage({ params }: LabelPageProps) {
         `}</style>
       </head>
       <body>
-        <button className="print-btn no-print" onClick="window.print()">
+        <button className="print-btn no-print" id="printBtn">
           🖨️ Print Label
         </button>
+        <script dangerouslySetInnerHTML={{ __html: `document.getElementById('printBtn').onclick = function() { window.print(); }` }} />
 
         <div className="label">
           <div className="header">

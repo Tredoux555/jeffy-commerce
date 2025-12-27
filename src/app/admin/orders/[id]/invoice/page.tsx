@@ -51,7 +51,8 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
         `}</style>
       </head>
       <body>
-        <button className="print-btn" onClick="window.print()">Print Invoice</button>
+        <button className="print-btn" id="printBtn">Print Invoice</button>
+        <script dangerouslySetInnerHTML={{ __html: `document.getElementById('printBtn').onclick = function() { window.print(); }` }} />
         
         <div className="header">
           <div>
