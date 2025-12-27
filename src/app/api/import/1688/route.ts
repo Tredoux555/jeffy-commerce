@@ -30,8 +30,8 @@ function calculateSellingPrice(costCNY: number): number {
   const shippingZAR = DEFAULT_WEIGHT * SHIPPING_PER_KG;
   const totalCost = costZAR + shippingZAR;
   const sellingPrice = totalCost * MARKUP;
-  // Round to nearest R5
-  return Math.ceil(sellingPrice / 500) * 500;
+  // Round to nearest R5, return in CENTS
+  return Math.ceil(sellingPrice / 5) * 5 * 100;
 }
 
 function generateSKU(productId: string): string {
