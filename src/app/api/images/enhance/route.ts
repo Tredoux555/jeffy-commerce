@@ -3,21 +3,18 @@ import Anthropic from '@anthropic-ai/sdk';
 import sharp from 'sharp';
 import { createClient } from '@supabase/supabase-js';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 interface TextRegion {
-  chineseText: string;
-  englishText: string;
-  position: string; // 'top', 'bottom', 'center', 'top-left', etc.
-  color: string;
-  approximate_y_percent: number;
+  chinese: string;
+  english: string;
+  position: 'top' | 'bottom' | 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  bgColor: string;
+  textColor: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -28,143 +25,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No image URL provided' }, { status: 400 });
     }
 
-    // Step 1: Fetch the original image
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      return NextResponse.json({ error: 'Failed to fetch image' }, { status: 400 });
-    }
-    const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
-
-    // Step 2: Get image metadata
-    const metadata = await sharp(imageBuffer).metadata();
-    const width = metadata.width || 800;
-    const height = metadata.height || 800;
-
-    // Step 3: Ask Claude to identify text regions with positions
-    const base64Image = imageBuffer.toString('base64');
-    const mediaType = imageUrl.includes('.png') ? 'image/png' : 'image/jpeg';
-
-    const analysisResponse = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      messages: [{
-        role: 'user',
-        content: [
-          {
-            type: 'image',
-            source: { type: 'base64', media_type: mediaType, data: base64Image }
-          },
-          {
-            type: 'text',
-            text: `Analyze this product image. Find ALL Chinese/Asian text and provide:
-1. The Chinese text
-2. English translation
-3. Approximate vertical position as percentage from top (0-100)
-4. Text color (hex code or description)
-5. Whether it's on a solid background or over the product
-
-Return ONLY a JSON array (no markdown):
-[
-  {
-    "chineseText": "机械结构",
-    "englishText": "Mechanical Structure", 
-    "y_percent": 15,
-    "color": "#FFFFFF",
-    "background": "solid_dark" | "solid_light" | "over_product" | "transparent"
-  }
-]
-
-If no Chinese text found, return empty array: []`
-          }
-        ]
-      }]
-    });
-
-    let textRegions: any[] = [];
-    try {
-      const responseText = (analysisResponse.content[0] as any).text;
-      const jsonMatch = responseText.match(/\[[\s\S]*\]/);
-      textRegions = JSON.parse(jsonMatch ? jsonMatch[0] : '[]');
-    } catch {
-      textRegions = [];
-    }
-
-    // Step 4: Create text overlays using SVG
-    if (textRegions.length === 0) {
+    // Step 1: Analyze image with Claude Vision
+    const analysis = await analyzeImageForEnhancement(imageUrl);
+    
+    if (!analysis.textRegions || analysis.textRegions.length === 0) {
       return NextResponse.json({ 
         success: true, 
-        message: 'No Chinese text found to replace',
-        originalUrl: imageUrl,
-        enhancedUrl: imageUrl
+        message: 'No text to replace',
+        enhancedUrl: imageUrl 
       });
     }
 
-    // Build SVG overlays for each text region
-    const svgOverlays: { input: Buffer; top: number; left: number }[] = [];
-    
-    for (const region of textRegions) {
-      const yPos = Math.round((region.y_percent / 100) * height);
-      const fontSize = Math.round(height * 0.04); // 4% of image height
-      const padding = 10;
-      const textWidth = region.englishText.length * fontSize * 0.6;
-      const boxWidth = Math.min(textWidth + padding * 2, width - 20);
-      const boxHeight = fontSize + padding * 2;
-      
-      // Determine colors based on background
-      let bgColor = 'rgba(0,0,0,0.7)';
-      let textColor = '#FFFFFF';
-      if (region.background === 'solid_light' || region.color?.toLowerCase().includes('dark')) {
-        bgColor = 'rgba(255,255,255,0.85)';
-        textColor = '#000000';
-      }
+    // Step 2: Download and process image
+    const enhancedBuffer = await enhanceImage(imageUrl, analysis.textRegions);
 
-      const svg = `
-        <svg width="${boxWidth}" height="${boxHeight}">
-          <rect width="100%" height="100%" fill="${bgColor}" rx="4"/>
-          <text 
-            x="50%" 
-            y="50%" 
-            font-family="Arial, sans-serif" 
-            font-size="${fontSize}px" 
-            font-weight="bold"
-            fill="${textColor}" 
-            text-anchor="middle" 
-            dominant-baseline="middle"
-          >${escapeXml(region.englishText)}</text>
-        </svg>
-      `;
-
-      svgOverlays.push({
-        input: Buffer.from(svg),
-        top: Math.max(0, yPos - boxHeight / 2),
-        left: Math.round((width - boxWidth) / 2)
-      });
-    }
-
-    // Step 5: Composite overlays onto image
-    let enhancedImage = sharp(imageBuffer);
-    
-    if (svgOverlays.length > 0) {
-      enhancedImage = enhancedImage.composite(svgOverlays);
-    }
-
-    const outputBuffer = await enhancedImage.jpeg({ quality: 90 }).toBuffer();
-
-    // Step 6: Upload to Supabase Storage
+    // Step 3: Upload to Supabase
     const timestamp = Date.now();
-    const fileName = `enhanced_${productId || 'product'}_${timestamp}.jpg`;
-    const filePath = `products/enhanced/${fileName}`;
+    const fileName = `enhanced_${productId || 'img'}_${timestamp}.jpg`;
+    const filePath = `products/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('product-images')
-      .upload(filePath, outputBuffer, {
-        contentType: 'image/jpeg',
-        upsert: true
-      });
+      .upload(filePath, enhancedBuffer, { contentType: 'image/jpeg', upsert: true });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
-      return NextResponse.json({ error: 'Failed to upload enhanced image' }, { status: 500 });
+      throw new Error(`Upload failed: ${uploadError.message}`);
     }
 
     const { data: urlData } = supabase.storage
@@ -173,16 +58,166 @@ If no Chinese text found, return empty array: []`
 
     return NextResponse.json({
       success: true,
-      originalUrl: imageUrl,
       enhancedUrl: urlData?.publicUrl,
-      textRegions: textRegions,
-      message: `Enhanced image with ${textRegions.length} text translations`
+      textReplaced: analysis.textRegions.length,
+      translations: analysis.textRegions.map((r: TextRegion) => ({
+        chinese: r.chinese,
+        english: r.english
+      }))
     });
 
   } catch (error: any) {
-    console.error('Image enhance error:', error);
+    console.error('Image enhancement error:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+}
+
+async function analyzeImageForEnhancement(imageUrl: string): Promise<{ textRegions: TextRegion[] }> {
+  const message = await anthropic.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 2048,
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'url', url: imageUrl } },
+        {
+          type: 'text',
+          text: `Analyze this product image for Chinese/Asian text that should be translated to English.
+
+For EACH text region found, provide:
+1. The Chinese text exactly as shown
+2. English translation
+3. Position on image: "top", "bottom", "center", "top-left", "top-right", "bottom-left", "bottom-right"
+4. Background color behind text (hex code like #FFFFFF)
+5. Text color (hex code)
+
+Return ONLY a JSON object:
+{
+  "textRegions": [
+    {
+      "chinese": "原文",
+      "english": "Translation",
+      "position": "top",
+      "bgColor": "#000000",
+      "textColor": "#FFFFFF"
+    }
+  ]
+}
+
+If no Chinese text found, return: {"textRegions": []}`
+        }
+      ]
+    }]
+  });
+
+  const responseText = (message.content[0] as any).text;
+  try {
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch ? jsonMatch[0] : '{"textRegions": []}');
+  } catch {
+    return { textRegions: [] };
+  }
+}
+
+async function enhanceImage(imageUrl: string, textRegions: TextRegion[]): Promise<Buffer> {
+  // Download the image
+  const response = await fetch(imageUrl, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Accept': 'image/*'
+    }
+  });
+  
+  if (!response.ok) throw new Error('Failed to download image');
+  
+  const imageBuffer = Buffer.from(await response.arrayBuffer());
+  const image = sharp(imageBuffer);
+  const metadata = await image.metadata();
+  const width = metadata.width || 800;
+  const height = metadata.height || 800;
+
+  // Create SVG overlays for each text region
+  const svgOverlays: { input: Buffer; top: number; left: number }[] = [];
+
+  for (const region of textRegions) {
+    const overlay = createTextOverlay(region, width, height);
+    if (overlay) {
+      svgOverlays.push(overlay);
+    }
+  }
+
+  // Composite all overlays onto the image
+  let result = image;
+  if (svgOverlays.length > 0) {
+    result = image.composite(svgOverlays);
+  }
+
+  return result.jpeg({ quality: 90 }).toBuffer();
+}
+
+function createTextOverlay(
+  region: TextRegion, 
+  imgWidth: number, 
+  imgHeight: number
+): { input: Buffer; top: number; left: number } | null {
+  const padding = 10;
+  const fontSize = Math.min(24, Math.floor(imgWidth / 25));
+  const boxHeight = fontSize + padding * 2;
+  const boxWidth = Math.min(imgWidth - 40, region.english.length * fontSize * 0.6 + padding * 2);
+  
+  // Calculate position
+  let top = 0;
+  let left = Math.floor((imgWidth - boxWidth) / 2);
+  
+  switch (region.position) {
+    case 'top':
+    case 'top-left':
+    case 'top-right':
+      top = 20;
+      break;
+    case 'bottom':
+    case 'bottom-left':
+    case 'bottom-right':
+      top = imgHeight - boxHeight - 20;
+      break;
+    case 'center':
+    default:
+      top = Math.floor((imgHeight - boxHeight) / 2);
+  }
+
+  if (region.position.includes('left')) left = 20;
+  if (region.position.includes('right')) left = imgWidth - boxWidth - 20;
+
+  // Create SVG with background and text
+  const bgColor = region.bgColor || '#000000';
+  const textColor = getContrastColor(bgColor);
+  
+  const svg = `
+    <svg width="${boxWidth}" height="${boxHeight}">
+      <rect x="0" y="0" width="${boxWidth}" height="${boxHeight}" 
+            fill="${bgColor}" fill-opacity="0.85" rx="4"/>
+      <text x="${boxWidth/2}" y="${boxHeight/2 + fontSize/3}" 
+            font-family="Arial, sans-serif" font-size="${fontSize}" 
+            fill="${textColor}" text-anchor="middle" font-weight="bold">
+        ${escapeXml(region.english)}
+      </text>
+    </svg>
+  `;
+
+  return {
+    input: Buffer.from(svg),
+    top: Math.max(0, top),
+    left: Math.max(0, left)
+  };
+}
+
+function getContrastColor(hexColor: string): string {
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128 ? '#000000' : '#FFFFFF';
 }
 
 function escapeXml(text: string): string {
