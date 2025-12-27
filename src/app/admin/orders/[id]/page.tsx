@@ -90,7 +90,7 @@ export default function OrderDetailPage() {
       .single();
 
     if (data) {
-      setOrder(data as Order);
+      setOrder(data as unknown as Order);
       setNotes(data.notes || '');
     }
     setLoading(false);

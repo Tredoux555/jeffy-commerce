@@ -53,7 +53,7 @@ export default function DeliveryDetailPage() {
       .eq('id', orderId)
       .single();
 
-    if (data) setOrder(data as Order);
+    if (data) setOrder(data as unknown as Order);
     setLoading(false);
   };
 
