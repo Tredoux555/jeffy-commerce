@@ -122,8 +122,9 @@ export default function AgreementPage() {
         })
         .eq('zone_partner_id', partnerId);
 
+      localStorage.setItem('zonePartnerId', partnerId);
       setTimeout(() => {
-        router.push('/admin/partners/acceptances');
+        router.push('/partner/dashboard');
       }, 2000);
     } catch (err: any) {
       console.error('Error accepting agreement:', err);

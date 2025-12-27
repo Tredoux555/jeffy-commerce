@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Package, AlertTriangle, RefreshCw, CheckCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/client';
 
 interface StockItem {
   id: string;
@@ -18,22 +20,51 @@ interface StockItem {
 }
 
 export default function PartnerStockPage() {
+  const router = useRouter();
   const [stock, setStock] = useState<StockItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [partnerId, setPartnerId] = useState<string | null>(null);
 
   useEffect(() => {
-    const storedPartnerId = localStorage.getItem('zonePartnerId');
-    if (storedPartnerId) {
-      setPartnerId(storedPartnerId);
-      fetchStock(storedPartnerId);
-    } else {
-      setLoading(false);
-    }
+    loadPartner();
   }, []);
 
+  const loadPartner = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        router.push('/auth/login?redirect=/partner/stock');
+        return;
+      }
+
+      const { data: partner } = await supabase
+        .from('zone_partners')
+        .select('id, agreed_to_terms')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!partner) {
+        router.push('/partner/apply');
+        return;
+      }
+
+      if (!partner.agreed_to_terms) {
+        router.push(`/partner/agreement/${partner.id}`);
+        return;
+      }
+
+      setPartnerId(partner.id);
+      localStorage.setItem('zonePartnerId', partner.id);
+      await fetchStock(partner.id);
+    } catch (err) {
+      console.error('Error loading partner:', err);
+    }
+    setLoading(false);
+  };
+
   const fetchStock = async (pid: string) => {
-    setLoading(true);
     try {
       const res = await fetch(`/api/partner/stock?partnerId=${pid}`);
       const data = await res.json();
@@ -43,13 +74,12 @@ export default function PartnerStockPage() {
     } catch (err) {
       console.error('Failed to fetch stock:', err);
     }
-    setLoading(false);
   };
 
   const getStockStatus = (quantity: number) => {
-    if (quantity === 0) return { color: 'text-red-500', bg: 'bg-red-100', label: 'Out of Stock' };
-    if (quantity <= 3) return { color: 'text-orange-500', bg: 'bg-orange-100', label: 'Low Stock' };
-    return { color: 'text-green-500', bg: 'bg-green-100', label: 'In Stock' };
+    if (quantity === 0) return { color: 'text-red-500', bg: 'bg-red-500/20', label: 'Out of Stock' };
+    if (quantity <= 3) return { color: 'text-orange-500', bg: 'bg-orange-500/20', label: 'Low Stock' };
+    return { color: 'text-green-500', bg: 'bg-green-500/20', label: 'In Stock' };
   };
 
   if (loading) {
@@ -140,7 +170,6 @@ export default function PartnerStockPage() {
               const status = getStockStatus(item.quantity);
               return (
                 <div key={item.id} className="bg-gray-800 rounded-xl p-4 flex items-center gap-4">
-                  {/* Product Image */}
                   <div className="w-16 h-16 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
                     {item.product?.primary_image_url ? (
                       <img src={item.product.primary_image_url} alt="" className="w-full h-full object-cover" />
@@ -150,14 +179,10 @@ export default function PartnerStockPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Product Info */}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{item.product?.name || 'Product'}</p>
                     <p className="text-xs text-gray-400">SKU: {item.product?.sku || 'N/A'}</p>
                   </div>
-
-                  {/* Quantity */}
                   <div className="text-right">
                     <p className={`text-2xl font-bold ${status.color}`}>{item.quantity}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${status.bg} ${status.color}`}>

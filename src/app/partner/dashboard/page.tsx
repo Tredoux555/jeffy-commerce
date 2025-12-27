@@ -2,9 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, TrendingUp, Package, Truck, DollarSign, RefreshCw, MapPin } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, TrendingUp, Package, Truck, DollarSign, RefreshCw, MapPin, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
+
+interface PartnerData {
+  id: string;
+  full_legal_name: string;
+  email: string;
+  zone_name?: string;
+  application_status: string;
+  agreed_to_terms: boolean;
+}
 
 interface EarningsData {
   summary: {
@@ -30,26 +41,70 @@ interface EarningsData {
 }
 
 export default function PartnerDashboardPage() {
+  const router = useRouter();
+  const [partner, setPartner] = useState<PartnerData | null>(null);
   const [data, setData] = useState<EarningsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [partnerId, setPartnerId] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    // TODO: Get partnerId from auth session
-    // For now, check localStorage or URL
-    const storedPartnerId = localStorage.getItem('zonePartnerId');
-    if (storedPartnerId) {
-      setPartnerId(storedPartnerId);
-      fetchEarnings(storedPartnerId);
-    } else {
-      setLoading(false);
-    }
+    loadPartner();
   }, []);
 
-  const fetchEarnings = async (pid: string) => {
-    setLoading(true);
+  const loadPartner = async () => {
     try {
-      const res = await fetch(`/api/partner/earnings?partnerId=${pid}`);
+      const supabase = createClient();
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        router.push('/auth/login?redirect=/partner/dashboard');
+        return;
+      }
+
+      // Get their zone partner record
+      const { data: partnerData, error } = await supabase
+        .from('zone_partners')
+        .select('id, full_legal_name, email, zone_name, application_status, agreed_to_terms')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error || !partnerData) {
+        // Not a partner yet - redirect to apply
+        router.push('/partner/apply');
+        return;
+      }
+
+      // Check if they've agreed to terms
+      if (!partnerData.agreed_to_terms) {
+        router.push(`/partner/agreement/${partnerData.id}`);
+        return;
+      }
+
+      // Check if approved
+      if (partnerData.application_status !== 'approved' && partnerData.application_status !== 'pending') {
+        setLoading(false);
+        return;
+      }
+
+      setPartner(partnerData);
+      
+      // Store in localStorage for other pages
+      localStorage.setItem('zonePartnerId', partnerData.id);
+      
+      // Fetch earnings
+      await fetchEarnings(partnerData.id);
+    } catch (err) {
+      console.error('Error loading partner:', err);
+    }
+    setLoading(false);
+  };
+
+  const fetchEarnings = async (partnerId: string) => {
+    setRefreshing(true);
+    try {
+      const res = await fetch(`/api/partner/earnings?partnerId=${partnerId}`);
       const json = await res.json();
       if (json.success) {
         setData(json);
@@ -57,7 +112,14 @@ export default function PartnerDashboardPage() {
     } catch (err) {
       console.error('Failed to fetch earnings:', err);
     }
-    setLoading(false);
+    setRefreshing(false);
+  };
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    localStorage.removeItem('zonePartnerId');
+    router.push('/');
   };
 
   if (loading) {
@@ -68,14 +130,19 @@ export default function PartnerDashboardPage() {
     );
   }
 
-  if (!partnerId) {
+  if (!partner) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-8">
         <h1 className="text-2xl font-bold mb-4">Zone Partner Dashboard</h1>
-        <p className="text-gray-400 mb-6">Please log in to view your earnings</p>
-        <Link href="/partner/apply">
-          <Button className="bg-orange-500">Apply to be a Zone Partner</Button>
-        </Link>
+        <p className="text-gray-400 mb-6">You need to be an approved Zone Partner to access this page</p>
+        <div className="space-y-3">
+          <Link href="/partner/apply">
+            <Button className="w-full bg-orange-500">Apply to be a Zone Partner</Button>
+          </Link>
+          <Link href="/auth/login?redirect=/partner/dashboard">
+            <Button variant="outline" className="w-full">Login</Button>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -91,15 +158,36 @@ export default function PartnerDashboardPage() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <h1 className="font-bold text-xl">Partner Dashboard</h1>
+            <div>
+              <h1 className="font-bold text-xl">Partner Dashboard</h1>
+              <p className="text-sm text-gray-400">{partner.zone_name || 'Zone Partner'}</p>
+            </div>
           </div>
-          <Button onClick={() => fetchEarnings(partnerId!)} variant="outline" size="sm">
-            <RefreshCw className="h-4 w-4 mr-2" /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => fetchEarnings(partner.id)} variant="outline" size="sm" disabled={refreshing}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
+            </Button>
+            <Button onClick={handleLogout} variant="ghost" size="sm" className="text-gray-400">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Welcome Banner */}
+        <div className="bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+              <User className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <p className="text-white/80 text-sm">Welcome back,</p>
+              <h2 className="text-xl font-bold text-white">{partner.full_legal_name}</h2>
+            </div>
+          </div>
+        </div>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-gray-800 rounded-xl p-6">
@@ -169,7 +257,7 @@ export default function PartnerDashboardPage() {
                       <p className="font-mono font-bold">{order.order_number}</p>
                       <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
                         <MapPin className="h-3 w-3" />
-                        {order.delivery_address.substring(0, 50)}...
+                        {order.delivery_address?.substring(0, 50) || 'No address'}...
                       </p>
                     </div>
                     <span className="font-bold text-green-500">{formatCurrency(order.total_cents)}</span>
@@ -203,7 +291,11 @@ export default function PartnerDashboardPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-400 text-center py-8">No completed deliveries yet</p>
+            <div className="text-center py-8">
+              <Package className="h-12 w-12 mx-auto mb-4 text-gray-600" />
+              <p className="text-gray-400">No completed deliveries yet</p>
+              <p className="text-sm text-gray-500 mt-2">Complete your first delivery to see earnings here</p>
+            </div>
           )}
         </div>
       </div>
