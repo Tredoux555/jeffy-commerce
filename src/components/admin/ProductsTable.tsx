@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
@@ -59,7 +58,7 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
                   <div className="flex items-center gap-3">
                     <div className="relative w-12 h-12 bg-gray-100 rounded overflow-hidden">
                       {product.primary_image_url ? (
-                        <Image src={product.primary_image_url} alt={product.name} fill className="object-cover" />
+                        <img src={product.primary_image_url} alt={product.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="flex items-center justify-center h-full text-gray-400 text-xs">No img</div>
                       )}

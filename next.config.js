@@ -12,6 +12,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'cbu02.alicdn.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cbu03.alicdn.com',
+      },
+      {
+        protocol: 'https',
         hostname: '**.1688.com',
       },
       {
@@ -20,14 +28,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'img.alicdn.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'images.unsplash.com',
       },
     ],
-    // Image optimization settings
-    formats: ['image/avif', 'image/webp'],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    unoptimized: true, // Skip optimization for external images
   },
   // Performance optimizations
   poweredByHeader: false,
