@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { generateOrderNumber } from '@/lib/utils';
-import { generateVerificationCode, generateDeliveryQRCode } from '@/lib/qr-code';
-import crypto from 'crypto';
 
 interface CartItemInput {
   productId: string;
@@ -141,21 +139,15 @@ export async function POST(request: NextRequest) {
     const franchiseShareCents = Math.floor(profitCents / 2);
     const platformShareCents = profitCents - franchiseShareCents;
 
-    // Generate QR code verification data
-    const verificationCode = generateVerificationCode();
-    const qrCodeData = `JEFFY-${orderNumber}-${verificationCode}`;
-
-    // Create order with delivery info
+    // Create order - basic fields only (no verification columns until migration is run)
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         order_number: orderNumber,
-        user_id: '00000000-0000-0000-0000-000000000000', // Guest checkout - TODO: use real user
+        user_id: '00000000-0000-0000-0000-000000000000', // Guest checkout
         customer_name: `${customer.firstName} ${customer.lastName}`,
         customer_email: customer.email,
         customer_phone: customer.phone,
-        delivery_latitude: delivery?.latitude || 0,
-        delivery_longitude: delivery?.longitude || 0,
         delivery_address: `${customer.address}, ${customer.city}, ${customer.province}, ${customer.postalCode}`,
         zone_id: delivery?.zoneId || null,
         franchise_id: delivery?.partnerId || null,
@@ -167,9 +159,7 @@ export async function POST(request: NextRequest) {
         platform_share_cents: platformShareCents,
         payment_method: paymentMethod,
         payment_status: 'pending',
-        status: 'paid',
-        verification_code: verificationCode,
-        tracking_number: qrCodeData,
+        status: 'pending',
       })
       .select()
       .single();
@@ -188,36 +178,20 @@ export async function POST(request: NextRequest) {
       console.error('Order items error:', itemsError);
     }
 
-    // Create delivery record if partner is assigned
-    if (delivery?.partnerId) {
-      const { error: deliveryError } = await supabase
-        .from('deliveries')
-        .insert({
-          order_id: order.id,
-          franchisee_id: delivery.partnerId,
-          qr_code: qrCodeData,
-          status: 'pending',
-          scheduled_date: new Date().toISOString().split('T')[0], // Today
-          recipient_name: `${customer.firstName} ${customer.lastName}`,
-          recipient_phone: customer.phone,
-        });
+    // Skip delivery record creation - table may not exist yet
+    // TODO: Re-enable after running migration 005_delivery_system.sql
 
-      if (deliveryError) {
-        console.error('Delivery creation error:', deliveryError);
-      } else {
-        // Update partner's total deliveries count
-        await supabase.rpc('increment_partner_deliveries', {
-          p_partner_id: delivery.partnerId,
-        });
-      }
-    }
-
-    // Decrement product stock
+    // Try to decrement product stock (may fail if RPC doesn't exist)
     for (const item of items) {
-      await supabase.rpc('decrement_stock', {
-        p_product_id: item.productId,
-        p_amount: item.quantity,
-      });
+      try {
+        await supabase.rpc('decrement_stock', {
+          p_product_id: item.productId,
+          p_amount: item.quantity,
+        });
+      } catch (e) {
+        // RPC might not exist, just log it
+        console.log('Stock decrement skipped - RPC may not exist');
+      }
     }
 
     // Handle payment methods

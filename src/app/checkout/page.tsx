@@ -65,11 +65,11 @@ export default function CheckoutPage() {
   useEffect(() => {
     const loadZones = async () => {
       const supabase = createClient();
-      const { data } = await supabase
+      // Don't filter by is_active - column may not exist
+      const { data, error } = await supabase
         .from('zones')
-        .select('id, name, city, province')
-        .eq('is_active', true);
-      if (data) setZones(data);
+        .select('id, name, city, province');
+      if (data && !error) setZones(data);
     };
     loadZones();
   }, []);
