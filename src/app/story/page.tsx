@@ -90,11 +90,11 @@ export default function StoryPage() {
             </div>
 
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              I've lived and worked on every continent except America and Antarctica. I left South Africa months after graduating university because despite my qualifications, there was no infrastructure for me unless I was born into wealth.
+              I've lived and worked on every continent except America and Antarctica.
             </p>
 
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              I tried to go back. Several times. The politics, the systems, the decay—they pushed me away each time.
+              I tried to go back to South Africa. Several times. The politics, the systems, the decay—they pushed me away each time.
             </p>
 
             <p className="text-gray-300 text-lg leading-relaxed">
