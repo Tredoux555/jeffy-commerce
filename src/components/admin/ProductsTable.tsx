@@ -13,7 +13,7 @@ interface Product {
   selling_price_cents: number;
   quantity: number;
   status: string;
-  categories: { name: string } | null;
+  categories: { name: string }[] | { name: string } | null;
 }
 
 export function ProductsTable({ initialProducts }: { initialProducts: Product[] }) {
@@ -69,7 +69,7 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
                     </div>
                   </div>
                 </td>
-                <td className="py-3 px-4 text-gray-600">{product.categories?.name || '-'}</td>
+                <td className="py-3 px-4 text-gray-600">{Array.isArray(product.categories) ? product.categories[0]?.name : product.categories?.name || '-'}</td>
                 <td className="py-3 px-4 font-medium">{formatCurrency(product.selling_price_cents)}</td>
                 <td className="py-3 px-4">
                   <span className={product.quantity > 10 ? 'text-green-600' : product.quantity > 0 ? 'text-orange-600' : 'text-red-600'}>
