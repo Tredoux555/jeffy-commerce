@@ -1,124 +1,119 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { generateOrderNumber } from '@/lib/utils';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { createHash } from 'crypto';
 
-interface CartItemInput {
-  productId: string;
-  quantity: number;
-  variantId?: string;
-}
-
-interface CustomerInput {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  province: string;
-  postalCode: string;
-}
-
-interface DeliveryInput {
-  latitude: number;
-  longitude: number;
-  zoneId: string;
-  partnerId: string;
+function generateOrderNumber(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `JF-${timestamp}-${random}`;
 }
 
 export async function POST(request: NextRequest) {
-  console.log('=== CHECKOUT API STARTED ===');
+  const debugInfo: string[] = [];
+  debugInfo.push('Checkout started');
 
   try {
-    const body = await request.json();
-    const { items, customer, paymentMethod, delivery } = body as {
-      items: CartItemInput[];
-      customer: CustomerInput;
-      paymentMethod: 'payfast' | 'ozow' | 'eft';
-      delivery?: DeliveryInput;
-    };
-
-    if (!items?.length) {
-      return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
+    // Parse body
+    let body;
+    try {
+      body = await request.json();
+      debugInfo.push(`Body parsed: ${JSON.stringify(body).substring(0, 200)}`);
+    } catch (parseError) {
+      return NextResponse.json({ 
+        error: 'Invalid JSON body',
+        debug: debugInfo 
+      }, { status: 400 });
     }
 
-    let supabase;
-    try {
-      supabase = await createAdminClient();
-    } catch (clientError) {
-      return NextResponse.json({
-        error: 'Failed to create Supabase client',
-        details: clientError instanceof Error ? clientError.message : String(clientError)
+    const { items, customer, paymentMethod } = body;
+
+    // Validate items
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ 
+        error: 'Cart is empty',
+        debug: debugInfo 
+      }, { status: 400 });
+    }
+    debugInfo.push(`Items count: ${items.length}`);
+
+    // Validate customer
+    if (!customer?.firstName || !customer?.lastName || !customer?.email || !customer?.phone) {
+      return NextResponse.json({ 
+        error: 'Missing customer information',
+        received: { firstName: !!customer?.firstName, lastName: !!customer?.lastName, email: !!customer?.email, phone: !!customer?.phone },
+        debug: debugInfo 
+      }, { status: 400 });
+    }
+    debugInfo.push('Customer validated');
+
+    // Create Supabase client
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        hasUrl: !!supabaseUrl,
+        hasKey: !!supabaseKey,
+        debug: debugInfo 
       }, { status: 500 });
     }
+    
+    const supabase = createSupabaseClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+    debugInfo.push('Supabase client created');
 
-    // Fetch products and calculate totals
-    console.log('=== FETCHING PRODUCTS ===');
-    const productIds = items.map((item) => item.productId);
-    console.log('Product IDs to fetch:', productIds);
+    // Fetch products
+    const productIds = items.map((item: any) => item.productId).filter(Boolean);
+    debugInfo.push(`Product IDs: ${productIds.join(', ')}`);
 
-    let products;
-    let productsError;
-    try {
-      const result = await supabase
-        .from('products')
-        .select('*')
-        .in('id', productIds);
-      products = result.data;
-      productsError = result.error;
-    } catch (queryError) {
-      return NextResponse.json({
-        error: 'Product query threw exception',
-        details: queryError instanceof Error ? queryError.message : String(queryError)
-      }, { status: 500 });
+    if (productIds.length === 0) {
+      return NextResponse.json({ 
+        error: 'No valid product IDs in cart',
+        items: items,
+        debug: debugInfo 
+      }, { status: 400 });
     }
+
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('id, name, selling_price_cents, cost_price_cents, quantity')
+      .in('id', productIds);
 
     if (productsError) {
-      return NextResponse.json({
-        error: 'PRODUCTS_ERROR_TRIGGERED',
-        message: productsError.message || 'No message',
-        code: productsError.code || 'No code',
-        hint: productsError.hint || 'No hint',
-        details: 'This confirms the Supabase query returned an error object'
+      return NextResponse.json({ 
+        error: 'Failed to fetch products',
+        details: productsError.message,
+        code: productsError.code,
+        debug: debugInfo 
       }, { status: 500 });
     }
 
     if (!products || products.length === 0) {
-      return NextResponse.json({
+      return NextResponse.json({ 
         error: 'Products not found',
-        productIds: productIds
+        productIds: productIds,
+        debug: debugInfo 
       }, { status: 404 });
     }
+    debugInfo.push(`Products found: ${products.length}`);
 
-    // Calculate order totals
+    // Calculate totals
     let subtotalCents = 0;
-    let totalCostCents = 0;
-    const orderItems: {
-      product_id: string;
-      product_name: string;
-      variant_id: string | null;
-      variant_name: string | null;
-      quantity: number;
-      unit_price_cents: number;
-      unit_cost_cents: number;
-      total_cents: number;
-    }[] = [];
+    const orderItems: any[] = [];
 
     for (const item of items) {
-      const product = products.find((p) => p.id === item.productId);
+      const product = products.find((p: any) => p.id === item.productId);
       if (!product) {
-        return NextResponse.json({ error: `Product not found: ${item.productId}` }, { status: 400 });
-      }
-
-      if (product.quantity < item.quantity) {
-        return NextResponse.json({ error: `Insufficient stock for: ${product.name}` }, { status: 400 });
+        return NextResponse.json({ 
+          error: `Product not found: ${item.productId}`,
+          debug: debugInfo 
+        }, { status: 400 });
       }
 
       const itemTotal = product.selling_price_cents * item.quantity;
-      const itemCost = (product.cost_price_cents || 0) * item.quantity;
       subtotalCents += itemTotal;
-      totalCostCents += itemCost;
 
       orderItems.push({
         product_id: product.id,
@@ -131,61 +126,61 @@ export async function POST(request: NextRequest) {
         total_cents: itemTotal,
       });
     }
+    debugInfo.push(`Subtotal: ${subtotalCents}`);
 
     const orderNumber = generateOrderNumber();
     const totalCents = subtotalCents;
 
-    // Calculate profit split (50/50 between platform and partner)
-    const profitCents = totalCents - totalCostCents;
-    const franchiseShareCents = Math.floor(profitCents / 2);
-    const platformShareCents = profitCents - franchiseShareCents;
+    // Create order - minimal fields
+    const orderData = {
+      order_number: orderNumber,
+      customer_name: `${customer.firstName} ${customer.lastName}`,
+      customer_email: customer.email,
+      customer_phone: customer.phone,
+      delivery_address: `${customer.address || ''}, ${customer.city || ''}, ${customer.province || ''}, ${customer.postalCode || ''}`,
+      subtotal_cents: subtotalCents,
+      total_cents: totalCents,
+      payment_method: paymentMethod || 'eft',
+      payment_status: 'pending',
+      status: 'pending',
+    };
+    debugInfo.push(`Order data prepared: ${orderNumber}`);
 
-    // Create order - MINIMAL fields only for maximum compatibility
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert({
-        order_number: orderNumber,
-        customer_name: `${customer.firstName} ${customer.lastName}`,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        delivery_address: `${customer.address}, ${customer.city}, ${customer.province}, ${customer.postalCode}`,
-        subtotal_cents: subtotalCents,
-        total_cents: totalCents,
-        payment_method: paymentMethod,
-        payment_status: 'pending',
-        status: 'pending',
-      })
+      .insert(orderData)
       .select()
       .single();
 
-    if (orderError || !order) {
-      console.error('Order creation error:', orderError);
-      return NextResponse.json({ error: 'Failed to create order' }, { status: 500 });
+    if (orderError) {
+      return NextResponse.json({ 
+        error: 'Failed to create order',
+        details: orderError.message,
+        code: orderError.code,
+        hint: orderError.hint,
+        orderData: orderData,
+        debug: debugInfo 
+      }, { status: 500 });
     }
+
+    if (!order) {
+      return NextResponse.json({ 
+        error: 'Order created but not returned',
+        debug: debugInfo 
+      }, { status: 500 });
+    }
+    debugInfo.push(`Order created: ${order.id}`);
 
     // Create order items
+    const itemsToInsert = orderItems.map((item) => ({ ...item, order_id: order.id }));
     const { error: itemsError } = await supabase
       .from('order_items')
-      .insert(orderItems.map((item) => ({ ...item, order_id: order.id })));
+      .insert(itemsToInsert);
 
     if (itemsError) {
-      console.error('Order items error:', itemsError);
-    }
-
-    // Skip delivery record creation - table may not exist yet
-    // TODO: Re-enable after running migration 005_delivery_system.sql
-
-    // Try to decrement product stock (may fail if RPC doesn't exist)
-    for (const item of items) {
-      try {
-        await supabase.rpc('decrement_stock', {
-          p_product_id: item.productId,
-          p_amount: item.quantity,
-        });
-      } catch (e) {
-        // RPC might not exist, just log it
-        console.log('Stock decrement skipped - RPC may not exist');
-      }
+      debugInfo.push(`Order items error (non-fatal): ${itemsError.message}`);
+    } else {
+      debugInfo.push('Order items created');
     }
 
     // Handle payment methods
@@ -194,12 +189,14 @@ export async function POST(request: NextRequest) {
         ? 'https://sandbox.payfast.co.za/eng/process'
         : 'https://www.payfast.co.za/eng/process';
 
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
+
       const data: Record<string, string> = {
         merchant_id: process.env.PAYFAST_MERCHANT_ID || '',
         merchant_key: process.env.PAYFAST_MERCHANT_KEY || '',
-        return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success?order=${orderNumber}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout?cancelled=true`,
-        notify_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/webhooks/payfast`,
+        return_url: `${siteUrl}/checkout/success?order=${orderNumber}`,
+        cancel_url: `${siteUrl}/checkout?cancelled=true`,
+        notify_url: `${siteUrl}/api/webhooks/payfast`,
         name_first: customer.firstName,
         name_last: customer.lastName,
         email_address: customer.email,
@@ -208,7 +205,6 @@ export async function POST(request: NextRequest) {
         item_name: `Order ${orderNumber}`,
       };
 
-      // Generate signature
       const passphrase = process.env.PAYFAST_PASSPHRASE || '';
       let signatureString = Object.entries(data)
         .filter(([, value]) => value !== '')
@@ -224,37 +220,26 @@ export async function POST(request: NextRequest) {
 
       const params = new URLSearchParams(data);
       return NextResponse.json({
+        success: true,
         orderNumber,
         redirectUrl: `${payfastUrl}?${params.toString()}`,
       });
     }
 
-    if (paymentMethod === 'ozow') {
-      return NextResponse.json({
-        orderNumber,
-        redirectUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success?order=${orderNumber}`,
-      });
-    }
-
-    // EFT - no redirect
+    // EFT or other - no redirect needed
     return NextResponse.json({
+      success: true,
       orderNumber,
       redirectUrl: null,
     });
-  } catch (error) {
-    // Return comprehensive error details since console.log doesn't work
-    const errorDetails = {
-      error: 'Checkout failed',
-      errorType: typeof error,
-      isErrorInstance: error instanceof Error,
-      message: error instanceof Error ? error.message : String(error),
-      name: error instanceof Error ? error.name : 'Unknown',
-      stack: error instanceof Error ? error.stack : undefined,
-      fullError: error,
-      timestamp: new Date().toISOString(),
-      phase: 'unknown - exception thrown before detailed logging'
-    };
 
-    return NextResponse.json(errorDetails, { status: 500 });
+  } catch (error) {
+    debugInfo.push(`Exception: ${error instanceof Error ? error.message : String(error)}`);
+    return NextResponse.json({
+      error: 'Checkout failed',
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      debug: debugInfo,
+    }, { status: 500 });
   }
 }
