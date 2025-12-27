@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,8 @@ export default function EditProductPage() {
   const [images, setImages] = useState<string[]>([]);
   const [translating, setTranslating] = useState<string | null>(null);
   const [originalTitle, setOriginalTitle] = useState('');
+  const [analyzing, setAnalyzing] = useState(false);
+  const [imageAnalysis, setImageAnalysis] = useState<any>(null);
   
   const [form, setForm] = useState({
     name: '',
@@ -141,6 +143,34 @@ export default function EditProductPage() {
 
   const selectImage = (url: string) => {
     setForm({ ...form, imageUrl: url });
+  };
+
+  const analyzeImages = async () => {
+    if (images.length === 0) return;
+    setAnalyzing(true);
+    setImageAnalysis(null);
+    
+    try {
+      const res = await fetch('/api/images/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrls: images }),
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setImageAnalysis(data);
+        // Auto-select the best image
+        if (data.bestImageIndex !== undefined && images[data.bestImageIndex]) {
+          setForm({ ...form, imageUrl: images[data.bestImageIndex] });
+        }
+      } else {
+        alert(data.error || 'Analysis failed');
+      }
+    } catch (error) {
+      alert('Analysis failed');
+    }
+    setAnalyzing(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -363,30 +393,86 @@ export default function EditProductPage() {
         </div>
 
         <div className="bg-white rounded-xl border p-6 space-y-4">
-          <h2 className="font-semibold">Media</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Media</h2>
+            {images.length > 0 && (
+              <button
+                type="button"
+                onClick={analyzeImages}
+                disabled={analyzing}
+                className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50 flex items-center gap-2 text-sm"
+              >
+                {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scan className="h-4 w-4" />}
+                {analyzing ? 'Analyzing...' : 'AI Analyze Images'}
+              </button>
+            )}
+          </div>
+
+          {/* Analysis Results */}
+          {imageAnalysis && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+              <div className="flex items-center gap-2 text-blue-800 font-medium">
+                <Scan className="h-4 w-4" />
+                Analysis Complete
+              </div>
+              <div className="text-sm text-blue-700">
+                {imageAnalysis.summary.cleanImages} of {imageAnalysis.summary.totalAnalyzed} images are clean. 
+                {imageAnalysis.summary.imagesWithChineseText > 0 && 
+                  ` ${imageAnalysis.summary.imagesWithChineseText} have Chinese text.`}
+              </div>
+              {imageAnalysis.analyses.map((a: any, idx: number) => (
+                a.chineseTextFound?.length > 0 && (
+                  <div key={idx} className="text-xs bg-white rounded p-2">
+                    <span className="font-medium">Image {a.index + 1}:</span>
+                    {a.chineseTextFound.map((text: string, i: number) => (
+                      <div key={i} className="ml-2">
+                        "{text}" → <span className="text-green-700">{a.englishTranslations?.[i] || 'N/A'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ))}
+            </div>
+          )}
 
           {/* Image Gallery */}
           {images.length > 0 && (
             <div>
               <label className="block text-sm font-medium mb-2">Available Images (click to select)</label>
               <div className="grid grid-cols-5 gap-2">
-                {images.map((img, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => selectImage(img)}
-                    className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
-                      form.imageUrl === img ? 'border-jeffy-orange ring-2 ring-jeffy-orange' : 'border-gray-200 hover:border-gray-400'
-                    }`}
-                  >
-                    <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
-                    {form.imageUrl === img && (
-                      <div className="absolute top-1 right-1 bg-jeffy-orange text-white rounded-full p-0.5">
-                        <Check className="h-3 w-3" />
-                      </div>
-                    )}
-                  </button>
-                ))}
+                {images.map((img, idx) => {
+                  const analysis = imageAnalysis?.analyses?.find((a: any) => a.index === idx);
+                  const isBest = imageAnalysis?.bestImageIndex === idx;
+                  return (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => selectImage(img)}
+                      className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
+                        form.imageUrl === img ? 'border-jeffy-orange ring-2 ring-jeffy-orange' : 'border-gray-200 hover:border-gray-400'
+                      }`}
+                    >
+                      <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+                      {form.imageUrl === img && (
+                        <div className="absolute top-1 right-1 bg-jeffy-orange text-white rounded-full p-0.5">
+                          <Check className="h-3 w-3" />
+                        </div>
+                      )}
+                      {isBest && (
+                        <div className="absolute top-1 left-1 bg-green-500 text-white rounded-full p-0.5" title="Recommended">
+                          <Star className="h-3 w-3" />
+                        </div>
+                      )}
+                      {analysis && (
+                        <div className={`absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 text-center ${
+                          analysis.isClean ? 'bg-green-500/80 text-white' : 'bg-orange-500/80 text-white'
+                        }`}>
+                          {analysis.textAmount}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
