@@ -30,25 +30,29 @@
 
   // Extract product data from the page
   function scrapeProductData() {
+    // Extract product ID from URL
+    const urlMatch = window.location.href.match(/offer\/(\d+)\.html/) || 
+                     window.location.href.match(/offerId=(\d+)/);
+    const sourceProductId = urlMatch ? urlMatch[1] : Date.now().toString();
+
     const data = {
-      url: window.location.href,
+      source: '1688',
+      sourceProductId: sourceProductId,
+      sourceUrl: window.location.href,
       scrapedAt: new Date().toISOString(),
       title: '',
-      titleCn: '',
-      price: null,
-      priceRange: null,
+      titleOriginal: '',
+      costPriceCNY: 0,
       moq: null,
       images: [],
       mainImage: '',
       variants: [],
       specifications: {},
-      supplier: {
+      seller: {
         name: '',
         rating: null,
-        years: null,
         location: ''
       },
-      sales30d: null,
       description: ''
     };
 
@@ -58,8 +62,8 @@
                       document.querySelector('.d-title') ||
                       document.querySelector('[class*="title"]');
       if (titleEl) {
-        data.titleCn = titleEl.textContent.trim();
-        data.title = data.titleCn; // Will be translated by API
+        data.titleOriginal = titleEl.textContent.trim();
+        data.title = data.titleOriginal; // Will be translated by API
       }
 
       // Price
@@ -68,16 +72,14 @@
                       document.querySelector('.d-price');
       if (priceEl) {
         const priceText = priceEl.textContent.replace(/[^\d.]/g, '');
-        data.price = parseFloat(priceText) || null;
+        data.costPriceCNY = parseFloat(priceText) || 0;
       }
 
-      // Price range
+      // Price range - take minimum
       const priceRangeEls = document.querySelectorAll('[class*="price-range"] [class*="price"]');
-      if (priceRangeEls.length >= 2) {
-        data.priceRange = {
-          min: parseFloat(priceRangeEls[0].textContent.replace(/[^\d.]/g, '')),
-          max: parseFloat(priceRangeEls[1].textContent.replace(/[^\d.]/g, ''))
-        };
+      if (priceRangeEls.length >= 1 && data.costPriceCNY === 0) {
+        const priceText = priceRangeEls[0].textContent.replace(/[^\d.]/g, '');
+        data.costPriceCNY = parseFloat(priceText) || 0;
       }
 
       // MOQ (Minimum Order Quantity)
@@ -135,23 +137,16 @@
         }
       });
 
-      // Supplier info
+      // Seller info
       const supplierNameEl = document.querySelector('[class*="company-name"], [class*="shop-name"]');
       if (supplierNameEl) {
-        data.supplier.name = supplierNameEl.textContent.trim();
+        data.seller.name = supplierNameEl.textContent.trim();
       }
 
       const ratingEl = document.querySelector('[class*="score"], [class*="rating"]');
       if (ratingEl) {
         const ratingMatch = ratingEl.textContent.match(/[\d.]+/);
-        if (ratingMatch) data.supplier.rating = parseFloat(ratingMatch[0]);
-      }
-
-      // 30-day sales
-      const salesEl = document.querySelector('[class*="sale-count"], [class*="sold"]');
-      if (salesEl) {
-        const salesMatch = salesEl.textContent.match(/\d+/);
-        if (salesMatch) data.sales30d = parseInt(salesMatch[0]);
+        if (ratingMatch) data.seller.rating = parseFloat(ratingMatch[0]);
       }
 
       // Description (from detail section)
@@ -191,7 +186,7 @@
       // Scrape the product
       const productData = scrapeProductData();
       
-      if (!productData.titleCn && !productData.title) {
+      if (!productData.titleOriginal && !productData.title) {
         throw new Error('Could not find product title');
       }
 
