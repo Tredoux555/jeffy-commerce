@@ -189,7 +189,7 @@ export default function DeliveryDetailPage() {
 
       {/* Fixed Bottom Button */}
       {order.status === 'out_for_delivery' && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-800 border-t border-gray-700">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-800 border-t border-gray-700 space-y-2">
           <Button 
             onClick={markDelivered} 
             disabled={completing}
@@ -204,8 +204,13 @@ export default function DeliveryDetailPage() {
               </>
             )}
           </Button>
+          <Link href={`/partner/delivery/${order.id}/photo-proof`} className="block">
+            <Button variant="outline" className="w-full text-orange-500 border-orange-500">
+              Customer Unavailable? Use Photo Proof
+            </Button>
+          </Link>
         </div>
-      )}
+      )}}
     </div>
   );
 }
