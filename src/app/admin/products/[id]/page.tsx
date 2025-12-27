@@ -219,6 +219,34 @@ export default function EditProductPage() {
     setEnhancing(null);
   };
 
+  // NEW: Replace Chinese text with English directly on image
+  const replaceTextInImage = async (imageUrl: string, index: number) => {
+    setEnhancing(index); // Reuse enhancing state for loading
+    try {
+      const res = await fetch('/api/images/replace-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl, productId }),
+      });
+      const data = await res.json();
+      
+      if (data.success && data.enhancedUrl && data.wasEnhanced) {
+        const newImages = [...images];
+        newImages[index] = data.enhancedUrl;
+        setImages(newImages);
+        if (form.imageUrl === imageUrl) {
+          setForm({ ...form, imageUrl: data.enhancedUrl });
+        }
+        alert(`✅ Replaced ${data.regionsReplaced} text region(s) with English!`);
+      } else {
+        alert(data.message || 'No text to replace - image is clean!');
+      }
+    } catch (error) {
+      alert('Text replacement failed');
+    }
+    setEnhancing(null);
+  };
+
   const enhanceAllImages = async () => {
     if (!imageAnalysis?.analyses) return;
     const textImages = imageAnalysis.analyses.filter((a: any) => !a.isClean);
@@ -612,14 +640,17 @@ export default function EditProductPage() {
                         <Trash2 className="h-3 w-3" />
                       </button>
                       {hasText && (
-                        <button
-                          type="button"
-                          onClick={() => enhanceImage(img, idx)}
-                          disabled={enhancing === idx}
-                          className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-purple-600 text-white text-[10px] rounded-full hover:bg-purple-700 disabled:opacity-50 whitespace-nowrap z-10"
-                        >
-                          {enhancing === idx ? '...' : '✨ Enhance'}
-                        </button>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                          <button
+                            type="button"
+                            onClick={() => replaceTextInImage(img, idx)}
+                            disabled={enhancing === idx}
+                            className="px-2 py-0.5 bg-green-600 text-white text-[10px] rounded-full hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
+                            title="Replace Chinese text with English directly on image"
+                          >
+                            {enhancing === idx ? '...' : '🔄 Replace'}
+                          </button>
+                        </div>
                       )}
                     </div>
                   );

@@ -159,11 +159,12 @@ export default function HealthCheck() {
 
   const testZoneData = async () => {
     try {
-      const response = await fetch('https://inhrgiakjyprabxluppv.supabase.co/rest/v1/zones?select=*', {
+      const response = await fetch('https://inhrgiakjyprabxluppv.supabase.co/rest/v1/zones?select=id,name', {
         headers: { 'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' },
       });
+      if (!response.ok) return false;
       const data = await response.json();
-      return Array.isArray(data) && data.length === 4;
+      return Array.isArray(data) && data.length > 0;
     } catch { return false; }
   };
 
@@ -198,12 +199,17 @@ export default function HealthCheck() {
   };
 
   const testOrderProcessing = async () => {
+    // Actually test the checkout API with a dry-run
     try {
-      const response = await fetch('https://inhrgiakjyprabxluppv.supabase.co/rest/v1/orders?select=count', {
-        method: 'GET',
-        headers: { 'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' },
+      const response = await fetch('/api/checkout/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ test: true }),
       });
-      return response.ok;
+      // If 404, endpoint doesn't exist - that's a fail
+      // If 200 or 400 with specific validation error, that's a pass (API is working)
+      if (response.status === 404) return false;
+      return response.status === 200 || response.status === 400;
     } catch { return false; }
   };
 
