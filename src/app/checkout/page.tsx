@@ -61,24 +61,38 @@ export default function CheckoutPage() {
   const deliveryFee = zoneInfo?.deliveryType === 'partner' ? 0 : 0; // Can add fee for standard later
   const total = Math.max(0, subtotal - discountAmount + deliveryFee);
 
-  // Load zones on mount
+  // Load zones on mount - completely optional, won't break checkout if fails
   useEffect(() => {
     const loadZones = async () => {
-      const supabase = createClient();
-      // Don't filter by is_active - column may not exist
-      const { data, error } = await supabase
-        .from('zones')
-        .select('id, name, city, province');
-      if (data && !error) setZones(data);
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('zones')
+          .select('id, name');
+        if (data && !error) setZones(data);
+      } catch (e) {
+        // Zones table may not exist - that's fine, checkout still works
+        console.log('Zones not loaded - continuing without zone detection');
+      }
     };
     loadZones();
   }, []);
 
+  // Set default zone on mount so checkout always works
+  useEffect(() => {
+    setZoneInfo({
+      zoneId: '',
+      zoneName: 'Standard Delivery',
+      partnerId: '',
+      partnerName: 'Jeffy Direct',
+      deliveryType: 'standard',
+    });
+  }, []);
+
   // Auto-detect zone when city/province changes
   useEffect(() => {
-    if (form.city && form.province) {
+    if (form.city && form.province && zones.length > 0) {
       const matchedZone = zones.find(z => 
-        z.city?.toLowerCase() === form.city.toLowerCase() ||
         z.name?.toLowerCase().includes(form.city.toLowerCase())
       );
       
@@ -93,7 +107,7 @@ export default function CheckoutPage() {
       } else {
         setZoneInfo({
           zoneId: '',
-          zoneName: 'Standard Delivery Area',
+          zoneName: 'Standard Delivery',
           partnerId: '',
           partnerName: 'Jeffy Direct',
           deliveryType: 'standard',

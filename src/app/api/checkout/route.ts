@@ -140,24 +140,17 @@ export async function POST(request: NextRequest) {
     const franchiseShareCents = Math.floor(profitCents / 2);
     const platformShareCents = profitCents - franchiseShareCents;
 
-    // Create order - basic fields only (no verification columns until migration is run)
+    // Create order - MINIMAL fields only for maximum compatibility
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         order_number: orderNumber,
-        user_id: '00000000-0000-0000-0000-000000000000', // Guest checkout
         customer_name: `${customer.firstName} ${customer.lastName}`,
         customer_email: customer.email,
         customer_phone: customer.phone,
         delivery_address: `${customer.address}, ${customer.city}, ${customer.province}, ${customer.postalCode}`,
-        zone_id: delivery?.zoneId || null,
-        franchise_id: delivery?.partnerId || null,
-        is_franchise_delivery: !!delivery?.partnerId,
         subtotal_cents: subtotalCents,
         total_cents: totalCents,
-        profit_cents: profitCents,
-        franchise_share_cents: franchiseShareCents,
-        platform_share_cents: platformShareCents,
         payment_method: paymentMethod,
         payment_status: 'pending',
         status: 'pending',
