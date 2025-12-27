@@ -57,105 +57,85 @@
     };
 
     try {
-      // Title - from #productTitle h1 font
-      const titleEl = document.querySelector('#productTitle .title-content h1 font') ||
-                      document.querySelector('#productTitle h1 font') ||
-                      document.querySelector('#productTitle h1') ||
-                      document.querySelector('.title-content h1');
-      if (titleEl) {
-        data.titleOriginal = titleEl.textContent.trim();
+      // Title - get the actual product title from the h1
+      // The title is in nested font tags inside h1
+      const titleContainer = document.querySelector('#productTitle h1') ||
+                             document.querySelector('[data-module="od_title"] h1') ||
+                             document.querySelector('.module-od-title h1');
+      if (titleContainer) {
+        // Get innerText to get just the visible text
+        data.titleOriginal = titleContainer.innerText.trim();
         data.title = data.titleOriginal;
+        console.log('JEFFY: Found title:', data.title);
+      } else {
+        console.log('JEFFY: Title not found');
       }
 
-      // Price - from #mainPrice .price-info.currency font
-      const priceEl = document.querySelector('#mainPrice .price-info.currency font') ||
-                      document.querySelector('#mainPrice .price-info font') ||
-                      document.querySelector('.price-component .price-info font') ||
-                      document.querySelector('.price-comp font');
-      if (priceEl) {
-        const priceText = priceEl.textContent.replace(/[^\d.]/g, '');
-        data.costPriceCNY = parseFloat(priceText) || 0;
+      // Price - look for the price value in mainPrice section
+      const priceContainer = document.querySelector('#mainPrice');
+      if (priceContainer) {
+        // Find all font elements and get the one with just a number
+        const fonts = priceContainer.querySelectorAll('font');
+        for (const font of fonts) {
+          const text = font.innerText.trim();
+          if (/^\d+(\.\d+)?$/.test(text)) {
+            data.costPriceCNY = parseFloat(text);
+            console.log('JEFFY: Found price:', data.costPriceCNY);
+            break;
+          }
+        }
       }
-
-      // Fallback price - try other selectors
+      
+      // Fallback: look for any price-like number near ¥ symbol
       if (data.costPriceCNY === 0) {
-        const fallbackPrice = document.querySelector('[class*="price"] font') ||
-                              document.querySelector('.price-text');
-        if (fallbackPrice) {
-          const priceText = fallbackPrice.textContent.replace(/[^\d.]/g, '');
-          data.costPriceCNY = parseFloat(priceText) || 0;
+        const priceText = document.body.innerText.match(/¥\s*(\d+(?:\.\d+)?)/);
+        if (priceText) {
+          data.costPriceCNY = parseFloat(priceText[1]);
+          console.log('JEFFY: Found price via regex:', data.costPriceCNY);
         }
       }
 
       // MOQ (Minimum Order Quantity)
-      const moqEl = document.querySelector('[class*="moq"]') ||
-                    document.querySelector('[class*="起批"]');
-      if (moqEl) {
-        const moqMatch = moqEl.textContent.match(/\d+/);
-        if (moqMatch) data.moq = parseInt(moqMatch[0]);
+      const moqMatch = document.body.innerText.match(/Minimum order of (\d+)/i) ||
+                       document.body.innerText.match(/(\d+)\s*件起批/);
+      if (moqMatch) {
+        data.moq = parseInt(moqMatch[1]);
+        console.log('JEFFY: Found MOQ:', data.moq);
       }
 
-      // Images - from gallery thumbnails and preview images
-      const imageEls = document.querySelectorAll('.od-gallery-list img.preview-img, .od-gallery-list img.ant-image-img, #gallery img.preview-img, .od-gallery-turn-item-wrapper img, .module-od-picture-gallery img');
+      // Images - get all product images from gallery
+      const imageEls = document.querySelectorAll('img.preview-img, img.ant-image-img, .od-gallery-turn-item-wrapper img');
       const imageSet = new Set();
       imageEls.forEach(img => {
-        let src = img.src || img.dataset.src || img.getAttribute('data-lazy-src');
-        if (src && src.includes('alicdn.com')) {
-          // Clean up URL - remove size suffixes to get full resolution
-          src = src.split('?')[0]
-                   .replace(/_\d+x\d+\.[a-z]+$/i, '.jpg')
-                   .replace(/\.jpg_.*$/i, '.jpg')
-                   .replace(/\.(jpg|png|webp)_.*/i, '.$1');
+        let src = img.src || img.dataset.src;
+        if (src && src.includes('alicdn.com') && !src.includes('avatar')) {
+          // Clean up URL
+          src = src.split('?')[0];
           imageSet.add(src);
         }
       });
       data.images = Array.from(imageSet).slice(0, 10);
       data.mainImage = data.images[0] || '';
+      console.log('JEFFY: Found images:', data.images.length, data.images);
 
-      // Variants/SKUs
-      const skuItems = document.querySelectorAll('[class*="sku-item"], [class*="prop-item"], .sku-wrapper [class*="item"]');
-      const variants = [];
-      skuItems.forEach(item => {
-        const name = item.textContent.trim();
-        const img = item.querySelector('img');
-        if (name && name.length < 100) {
-          variants.push({
-            name: name,
-            image: img ? img.src : null
-          });
-        }
-      });
-      data.variants = variants.slice(0, 20);
-
-      // Specifications/Attributes
-      const specRows = document.querySelectorAll('[class*="attr"] tr, [class*="attributes"] li, .detail-attr tr');
-      specRows.forEach(row => {
-        const cells = row.querySelectorAll('td, span');
-        if (cells.length >= 2) {
-          const key = cells[0].textContent.trim();
-          const value = cells[1].textContent.trim();
-          if (key && value && key.length < 50) {
-            data.specifications[key] = value;
-          }
-        }
-      });
-
-      // Seller info - from shop-company-name
-      const supplierNameEl = document.querySelector('.shop-company-name h1') ||
-                              document.querySelector('[class*="company-name"]') ||
-                              document.querySelector('[class*="shop-name"]');
-      if (supplierNameEl) {
-        data.seller.name = supplierNameEl.textContent.trim();
+      // Seller info
+      const sellerEl = document.querySelector('.shop-company-name h1') ||
+                       document.querySelector('[class*="company-name"] h1') ||
+                       document.querySelector('.winport-title h1');
+      if (sellerEl) {
+        data.seller.name = sellerEl.innerText.trim();
+        console.log('JEFFY: Found seller:', data.seller.name);
       }
 
-      const ratingEl = document.querySelector('[class*="score"]') ||
-                       document.querySelector('[class*="rating"]');
-      if (ratingEl) {
-        const ratingMatch = ratingEl.textContent.match(/[\d.]+/);
-        if (ratingMatch) data.seller.rating = parseFloat(ratingMatch[0]);
-      }
+      // Description - from specifications or product details
+      const specText = [];
+      document.querySelectorAll('.detail-attr td, [class*="attribute"] span').forEach(el => {
+        const text = el.innerText.trim();
+        if (text && text.length < 100) specText.push(text);
+      });
+      data.description = specText.join(' ').slice(0, 2000);
 
-      // Description (from detail section)
+      console.log('JEFFY: Final scraped data:', JSON.stringify(data, null, 2));
       const descEl = document.querySelector('[class*="detail-desc"], [class*="description"]');
       if (descEl) {
         data.description = descEl.textContent.trim().slice(0, 2000);
