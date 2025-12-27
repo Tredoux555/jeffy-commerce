@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       message,
       status: 'pending',
       created_at: new Date().toISOString(),
-    }).catch(() => {}); // Ignore if table doesn't exist
+    });
 
     return NextResponse.json({
       success: true,
