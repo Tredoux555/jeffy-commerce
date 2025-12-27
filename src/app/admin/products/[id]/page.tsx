@@ -267,6 +267,15 @@ export default function EditProductPage() {
     setEnhancing(null);
   };
 
+  const enhanceAllImages = async () => {
+    if (!imageAnalysis?.analyses) return;
+    const textImages = imageAnalysis.analyses.filter((a: any) => !a.isClean);
+    
+    for (const analysis of textImages) {
+      await enhanceImage(images[analysis.index], analysis.index);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -436,6 +445,16 @@ export default function EditProductPage() {
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <h2 className="font-semibold">Pricing</h2>
 
+          {/* Price Calculator Helper */}
+          {form.source1688PriceCNY && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm">
+              <span className="font-medium">1688 Price:</span> ¥{form.source1688PriceCNY} CNY
+              <span className="mx-2">→</span>
+              <span className="font-medium">Suggested:</span> R{Math.ceil(((parseFloat(form.source1688PriceCNY) * 3.2 + 75) * 2.5) / 5) * 5}
+              <span className="text-gray-500 ml-2">(2.5x markup + R75 shipping)</span>
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Cost Price (R) *</label>
@@ -489,17 +508,30 @@ export default function EditProductPage() {
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Media</h2>
-            {images.length > 0 && (
-              <button
-                type="button"
-                onClick={analyzeImages}
-                disabled={analyzing}
-                className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50 flex items-center gap-2 text-sm"
-              >
-                {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scan className="h-4 w-4" />}
-                {analyzing ? 'Analyzing...' : 'AI Analyze Images'}
-              </button>
-            )}
+            <div className="flex gap-2">
+              {images.length > 0 && (
+                <button
+                  type="button"
+                  onClick={analyzeImages}
+                  disabled={analyzing}
+                  className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50 flex items-center gap-2 text-sm"
+                >
+                  {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scan className="h-4 w-4" />}
+                  {analyzing ? 'Analyzing...' : 'AI Analyze'}
+                </button>
+              )}
+              {imageAnalysis?.summary?.imagesWithChineseText > 0 && (
+                <button
+                  type="button"
+                  onClick={enhanceAllImages}
+                  disabled={enhancing !== null}
+                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 flex items-center gap-2 text-sm"
+                >
+                  {enhancing !== null ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                  Enhance All
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Analysis Results */}
