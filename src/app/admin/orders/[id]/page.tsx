@@ -133,6 +133,10 @@ export default function OrderDetailPage() {
     window.open(`/admin/orders/${orderId}/invoice`, '_blank');
   };
 
+  const printLabel = () => {
+    window.open(`/admin/orders/${orderId}/label`, '_blank');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -167,9 +171,14 @@ export default function OrderDetailPage() {
                 <p className="text-sm text-gray-500">{formatDateTime(order.created_at)}</p>
               </div>
             </div>
-            <Button onClick={printInvoice} variant="outline">
-              <FileText className="h-4 w-4 mr-2" /> Invoice
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={printLabel} variant="outline">
+                <Printer className="h-4 w-4 mr-2" /> Label
+              </Button>
+              <Button onClick={printInvoice} variant="outline">
+                <FileText className="h-4 w-4 mr-2" /> Invoice
+              </Button>
+            </div>
           </div>
         </div>
       </div>
