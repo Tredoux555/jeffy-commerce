@@ -170,13 +170,12 @@ export default async function HomePage() {
               <p className="text-gray-400">Get what you want for FREE. Seriously.</p>
             </div>
 
-            <div className="grid md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { num: '1', text: 'Tell us what you want' },
                 { num: '2', text: 'Get 10 people to agree' },
                 { num: '3', text: 'We add it to Jeffy' },
                 { num: '4', text: 'You get yours FREE' },
-                { num: '5', text: '+ 10 more to sell!' },
               ].map((step, i) => (
                 <div key={i} className="text-center">
                   <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-white">
