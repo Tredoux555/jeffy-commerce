@@ -45,10 +45,10 @@ export default function AgentPortal() {
 
   const fetchRestockReport = async () => {
     try {
-      const res = await fetch('/api/partner/stock?action=restock-report');
+      const res = await fetch('/api/agent/restock');
       const data = await res.json();
       if (data.success) {
-        setRestockItems(data.report || []);
+        setRestockItems(data.restockNeeded || []);
       }
     } catch (err) {
       console.error('Failed to fetch restock report:', err);
