@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Wand2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ export default function EditProductPage() {
   const [originalTitle, setOriginalTitle] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
+  const [enhancing, setEnhancing] = useState<number | null>(null);
   
   const [form, setForm] = useState({
     name: '',
@@ -171,6 +172,40 @@ export default function EditProductPage() {
       alert('Analysis failed');
     }
     setAnalyzing(false);
+  };
+
+  const enhanceImage = async (imageIndex: number) => {
+    const imageUrl = images[imageIndex];
+    if (!imageUrl) return;
+    
+    setEnhancing(imageIndex);
+    try {
+      const res = await fetch('/api/images/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl, productId }),
+      });
+      const data = await res.json();
+      
+      if (data.success && data.enhancedUrl) {
+        // Replace the image in the array
+        const newImages = [...images];
+        newImages[imageIndex] = data.enhancedUrl;
+        setImages(newImages);
+        
+        // If this was the selected image, update form
+        if (form.imageUrl === imageUrl) {
+          setForm({ ...form, imageUrl: data.enhancedUrl });
+        }
+        
+        alert(`✅ Enhanced! ${data.regionsModified} text regions replaced.`);
+      } else {
+        alert(data.error || data.message || 'Enhancement failed');
+      }
+    } catch (error) {
+      alert('Enhancement failed');
+    }
+    setEnhancing(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -443,34 +478,46 @@ export default function EditProductPage() {
                 {images.map((img, idx) => {
                   const analysis = imageAnalysis?.analyses?.find((a: any) => a.index === idx);
                   const isBest = imageAnalysis?.bestImageIndex === idx;
+                  const hasText = analysis && !analysis.isClean;
                   return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => selectImage(img)}
-                      className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
-                        form.imageUrl === img ? 'border-jeffy-orange ring-2 ring-jeffy-orange' : 'border-gray-200 hover:border-gray-400'
-                      }`}
-                    >
-                      <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
-                      {form.imageUrl === img && (
-                        <div className="absolute top-1 right-1 bg-jeffy-orange text-white rounded-full p-0.5">
-                          <Check className="h-3 w-3" />
-                        </div>
+                    <div key={idx} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => selectImage(img)}
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 w-full ${
+                          form.imageUrl === img ? 'border-jeffy-orange ring-2 ring-jeffy-orange' : 'border-gray-200 hover:border-gray-400'
+                        }`}
+                      >
+                        <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+                        {form.imageUrl === img && (
+                          <div className="absolute top-1 right-1 bg-jeffy-orange text-white rounded-full p-0.5">
+                            <Check className="h-3 w-3" />
+                          </div>
+                        )}
+                        {isBest && (
+                          <div className="absolute top-1 left-1 bg-green-500 text-white rounded-full p-0.5" title="Recommended">
+                            <Star className="h-3 w-3" />
+                          </div>
+                        )}
+                        {analysis && (
+                          <div className={`absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 text-center ${
+                            analysis.isClean ? 'bg-green-500/80 text-white' : 'bg-orange-500/80 text-white'
+                          }`}>
+                            {analysis.textAmount}
+                          </div>
+                        )}
+                      </button>
+                      {hasText && (
+                        <button
+                          type="button"
+                          onClick={() => enhanceImage(idx)}
+                          disabled={enhancing === idx}
+                          className="absolute -bottom-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-purple-600 text-white text-[10px] rounded-full hover:bg-purple-700 disabled:opacity-50 whitespace-nowrap z-10"
+                        >
+                          {enhancing === idx ? '...' : '✨ Enhance'}
+                        </button>
                       )}
-                      {isBest && (
-                        <div className="absolute top-1 left-1 bg-green-500 text-white rounded-full p-0.5" title="Recommended">
-                          <Star className="h-3 w-3" />
-                        </div>
-                      )}
-                      {analysis && (
-                        <div className={`absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 text-center ${
-                          analysis.isClean ? 'bg-green-500/80 text-white' : 'bg-orange-500/80 text-white'
-                        }`}>
-                          {analysis.textAmount}
-                        </div>
-                      )}
-                    </button>
+                    </div>
                   );
                 })}
               </div>
