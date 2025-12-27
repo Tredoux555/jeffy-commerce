@@ -94,8 +94,7 @@ export async function convertWantToProduct(wantId: string): Promise<{
         free_units_claimed: 0,
         resale_units_claimed: 0,
         status: 'pending',
-      })
-      .catch(() => {}); // Ignore if table doesn't exist yet
+      });
 
     // Generate WhatsApp notification for creator
     const productUrl = `https://jeffy.co.za/products/${slug}`;
