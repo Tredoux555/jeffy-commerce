@@ -185,7 +185,7 @@ export default function EditProductPage() {
       });
       const data = await res.json();
       
-      if (data.success && data.enhancedUrl) {
+      if (data.success && data.enhancedUrl && data.wasEnhanced) {
         // Replace the image in the array
         const newImages = [...images];
         newImages[index] = data.enhancedUrl;
@@ -194,72 +194,9 @@ export default function EditProductPage() {
         if (form.imageUrl === imageUrl) {
           setForm({ ...form, imageUrl: data.enhancedUrl });
         }
-        alert(`Enhanced! ${data.textReplaced} text regions translated.`);
+        alert(`✅ Enhanced! ${data.analysis?.featuresCount || 0} features translated.`);
       } else {
-        alert(data.error || data.message || 'Enhancement failed');
-      }
-    } catch (error) {
-      alert('Enhancement failed');
-    }
-    setEnhancing(null);
-  };
-
-  const enhanceImage = async (imageUrl: string, index: number) => {
-    setEnhancing(index);
-    try {
-      const res = await fetch('/api/images/replace-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, productId }),
-      });
-      const data = await res.json();
-      
-      if (data.success && data.newUrl && data.newUrl !== imageUrl) {
-        // Replace the image in the array
-        const newImages = [...images];
-        newImages[index] = data.newUrl;
-        setImages(newImages);
-        // Update selected if this was selected
-        if (form.imageUrl === imageUrl) {
-          setForm({ ...form, imageUrl: data.newUrl });
-        }
-        alert(`Enhanced! Replaced ${data.replacements?.length || 0} text regions.`);
-      } else {
-        alert(data.message || 'No text to replace');
-      }
-    } catch (error) {
-      alert('Enhancement failed');
-    }
-    setEnhancing(null);
-  };
-
-  const enhanceImage = async (imageIndex: number) => {
-    const imageUrl = images[imageIndex];
-    if (!imageUrl) return;
-    
-    setEnhancing(imageIndex);
-    try {
-      const res = await fetch('/api/images/enhance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, productId }),
-      });
-      const data = await res.json();
-      
-      if (data.success && data.enhancedUrl) {
-        // Replace the image in the array
-        const newImages = [...images];
-        newImages[imageIndex] = data.enhancedUrl;
-        setImages(newImages);
-        
-        // If this was the selected image, update form
-        if (form.imageUrl === imageUrl) {
-          setForm({ ...form, imageUrl: data.enhancedUrl });
-        }
-        
-        alert(`✅ Enhanced! ${data.regionsModified} text regions replaced.`);
-      } else {
-        alert(data.error || data.message || 'Enhancement failed');
+        alert(data.message || 'No text to enhance - image is clean!');
       }
     } catch (error) {
       alert('Enhancement failed');
