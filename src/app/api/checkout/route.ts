@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
       total_cents: totalCents,
       payment_method: paymentMethod || 'eft',
       payment_status: 'pending',
-      status: 'pending',
+      status: 'pending_payment',
     };
     debugInfo.push(`Order data prepared: ${orderNumber}`);
 
