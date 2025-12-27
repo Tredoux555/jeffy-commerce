@@ -23,7 +23,6 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
   const [bulkLoading, setBulkLoading] = useState(false);
   const [editingPrice, setEditingPrice] = useState<string | null>(null);
   const [priceValue, setPriceValue] = useState('');
-  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -42,18 +41,6 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
       if (res.ok) setProducts(products.filter(p => p.id !== product.id));
     } catch {}
     setLoadingId(null);
-  };
-
-  const handleBulkDelete = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`Delete ${selected.size} products?`)) return;
-    setBulkLoading(true);
-    for (const id of selected) {
-      await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
-    }
-    setProducts(products.filter(p => !selected.has(p.id)));
-    setSelected(new Set());
-    setBulkLoading(false);
   };
 
   const handleToggleStatus = async (product: Product) => {
@@ -82,4 +69,24 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
     }
     setProducts(products.map(p => p.status === 'draft' ? { ...p, status: 'active' } : p));
     setBulkLoading(false);
+  };
+
+  const startEditPrice = (product: Product) => {
+    setEditingPrice(product.id);
+    setPriceValue((product.selling_price_cents / 100).toFixed(2));
+  };
+
+  const savePrice = async (productId: string) => {
+    const newPriceCents = Math.round(parseFloat(priceValue) * 100);
+    try {
+      const res = await fetch(`/api/admin/products/${productId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ selling_price_cents: newPriceCents })
+      });
+      if (res.ok) {
+        setProducts(products.map(p => p.id === productId ? { ...p, selling_price_cents: newPriceCents } : p));
+      }
+    } catch {}
+    setEditingPrice(null);
   };
