@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
-import { CheckCircle, Package, AlertCircle, Loader2, Camera, MapPin } from 'lucide-react';
+import { CheckCircle, Package, AlertCircle, Loader2, MapPin, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 
@@ -13,6 +12,7 @@ interface Order {
   status: string;
   customer_name: string;
   delivery_address: string;
+  customer_phone: string;
   total_cents: number;
   delivered_at: string | null;
 }
@@ -22,91 +22,109 @@ export default function DeliveryConfirmPage() {
   const orderNumber = params.orderNumber as string;
   const code = params.code as string;
 
-  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
-    verifyAndFetch();
+    validateOrder();
   }, [orderNumber, code]);
 
-  const verifyAndFetch = async () => {
-    const supabase = createClient();
+  const validateOrder = async () => {
+    setLoading(true);
+    setError(null);
 
-    const { data, error: fetchError } = await supabase
-      .from('orders')
-      .select('id, order_number, status, customer_name, delivery_address, total_cents, delivered_at, verification_code')
-      .eq('order_number', orderNumber)
-      .single();
+    try {
+      const supabase = createClient();
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('id, order_number, status, customer_name, delivery_address, customer_phone, total_cents, delivered_at, verification_code')
+        .eq('order_number', orderNumber)
+        .single();
 
-    if (fetchError || !data) {
-      setError('Order not found');
-      setLoading(false);
-      return;
+      if (orderError || !orderData) {
+        setError('Order not found');
+        setLoading(false);
+        return;
+      }
+
+      // Verify code
+      if (orderData.verification_code && orderData.verification_code !== code) {
+        setError('Invalid verification code');
+        setLoading(false);
+        return;
+      }
+
+      // Check if already delivered
+      if (orderData.status === 'delivered') {
+        setConfirmed(true);
+      }
+
+      setOrder(orderData);
+    } catch (err: any) {
+      setError('Failed to load order: ' + err.message);
     }
 
-    // Verify code
-    if (data.verification_code !== code) {
-      setError('Invalid verification code');
-      setLoading(false);
-      return;
-    }
-
-    // Check if already delivered
-    if (data.status === 'delivered') {
-      setConfirmed(true);
-    }
-
-    setOrder(data);
     setLoading(false);
   };
 
   const confirmDelivery = async () => {
     if (!order) return;
+    
     setConfirming(true);
+    setError(null);
 
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
+      const now = new Date().toISOString();
 
-    const { error: updateError } = await supabase
-      .from('orders')
-      .update({
-        status: 'delivered',
-        delivered_at: new Date().toISOString(),
-      })
-      .eq('id', order.id);
+      const { error: updateError } = await supabase
+        .from('orders')
+        .update({
+          status: 'delivered',
+          delivered_at: now,
+        })
+        .eq('id', order.id);
 
-    if (updateError) {
-      setError('Failed to confirm delivery');
-      setConfirming(false);
-      return;
+      if (updateError) throw updateError;
+
+      setConfirmed(true);
+      setOrder({ ...order, status: 'delivered', delivered_at: now });
+
+      // TODO: Trigger partner earnings credit
+      // TODO: Send confirmation WhatsApp
+    } catch (err: any) {
+      setError('Failed to confirm: ' + err.message);
     }
 
-    setConfirmed(true);
     setConfirming(false);
+  };
+
+  const formatCurrency = (cents: number) => {
+    return `R${(cents / 100).toFixed(2)}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-orange-500" />
+          <p>Verifying delivery...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-          </div>
-          <h1 className="text-xl font-bold mb-2">Verification Failed</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <Link href="/">
-            <Button className="bg-orange-500">Go to Jeffy</Button>
-          </Link>
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-500" />
+          <h1 className="text-2xl font-bold mb-2">Verification Failed</h1>
+          <p className="text-gray-400 mb-6">{error}</p>
+          <a href="/" className="text-orange-500 underline">Go to Jeffy Homepage</a>
         </div>
       </div>
     );
@@ -114,83 +132,89 @@ export default function DeliveryConfirmPage() {
 
   if (confirmed) {
     return (
-      <div className="min-h-screen bg-green-50 flex flex-col items-center justify-center p-6">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-lg">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="h-10 w-10 text-green-500" />
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+        <div className="text-center max-w-sm">
+          <div className="w-24 h-24 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-14 w-14 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-green-700 mb-2">Delivery Confirmed!</h1>
-          <p className="text-gray-600 mb-2">Order {order?.order_number}</p>
-          <p className="text-sm text-gray-500 mb-6">
-            Thank you for confirming receipt of your package.
-          </p>
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <p className="text-sm text-gray-500">Delivered to</p>
-            <p className="font-medium">{order?.customer_name}</p>
+          <h1 className="text-2xl font-bold mb-2">Delivery Confirmed!</h1>
+          <p className="text-gray-400 mb-2">Order {order?.order_number}</p>
+          {order?.delivered_at && (
+            <p className="text-sm text-gray-500">
+              Delivered: {new Date(order.delivered_at).toLocaleString()}
+            </p>
+          )}
+          <div className="mt-8">
+            <a href="/" className="inline-block px-6 py-3 bg-orange-500 text-white rounded-lg font-medium">
+              Shop More on Jeffy
+            </a>
           </div>
-          <Link href="/wants">
-            <Button className="w-full bg-orange-500">Create a Want & Get FREE Stuff!</Button>
-          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-lg">
-        {/* Header */}
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Package className="h-8 w-8 text-orange-500" />
-          </div>
-          <h1 className="text-xl font-bold">Confirm Your Delivery</h1>
-          <p className="text-gray-500 text-sm mt-1">Order {order?.order_number}</p>
-        </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      {/* Header */}
+      <div className="bg-orange-500 py-6 text-center">
+        <h1 className="text-2xl font-bold">JEFFY</h1>
+        <p className="text-orange-100">Delivery Confirmation</p>
+      </div>
 
-        {/* Order Details */}
-        <div className="bg-gray-50 rounded-xl p-4 mb-6 space-y-3">
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Recipient</p>
-            <p className="font-medium">{order?.customer_name}</p>
+      <div className="p-6 max-w-md mx-auto space-y-6">
+        {/* Order Info */}
+        <div className="bg-gray-800 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Package className="h-6 w-6 text-orange-500" />
+            <span className="font-mono font-bold text-lg">{order?.order_number}</span>
           </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Delivery Address</p>
-            <p className="text-sm">{order?.delivery_address}</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 uppercase">Status</p>
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
-              {order?.status === 'out_for_delivery' ? '🚚 Out for Delivery' : order?.status}
-            </span>
+
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="text-gray-400">Recipient</p>
+              <p className="font-medium">{order?.customer_name}</p>
+            </div>
+            <div>
+              <p className="text-gray-400">Address</p>
+              <p className="flex items-start gap-1">
+                <MapPin className="h-4 w-4 mt-0.5 text-gray-500" />
+                {order?.delivery_address}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-400">Order Total</p>
+              <p className="text-xl font-bold text-green-500">{formatCurrency(order?.total_cents || 0)}</p>
+            </div>
           </div>
         </div>
 
         {/* Confirm Button */}
-        <Button
-          onClick={confirmDelivery}
-          disabled={confirming}
-          className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
-        >
-          {confirming ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <>
-              <CheckCircle className="h-5 w-5 mr-2" />
-              I Received My Package
-            </>
-          )}
-        </Button>
+        <div className="space-y-3">
+          <p className="text-center text-gray-400 text-sm">
+            By confirming, you acknowledge that you have received this delivery in good condition.
+          </p>
+          <Button
+            onClick={confirmDelivery}
+            disabled={confirming}
+            className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
+          >
+            {confirming ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                <CheckCircle className="h-5 w-5 mr-2" />
+                Confirm Delivery Received
+              </>
+            )}
+          </Button>
+        </div>
 
-        <p className="text-xs text-gray-400 text-center mt-4">
-          By confirming, you acknowledge receipt of your order in good condition.
-        </p>
-      </div>
-
-      {/* Jeffy Branding */}
-      <div className="mt-8 text-center">
-        <p className="text-2xl font-bold text-orange-500">JEFFY</p>
-        <p className="text-xs text-gray-400">Eish, These Prices!</p>
+        {/* Help */}
+        <div className="text-center text-sm text-gray-500">
+          <p>Problem with your delivery?</p>
+          <a href="https://wa.me/27000000000" className="text-orange-500">Contact Support</a>
+        </div>
       </div>
     </div>
   );
