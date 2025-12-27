@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { generateOrderNumber } from '@/lib/utils';
-import crypto from 'crypto';
+import { createHash } from 'crypto';
 
 interface CartItemInput {
   productId: string;
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         signatureString += `&passphrase=${encodeURIComponent(passphrase.trim()).replace(/%20/g, '+')}`;
       }
 
-      const signature = crypto.createHash('md5').update(signatureString).digest('hex');
+      const signature = createHash('md5').update(signatureString).digest('hex');
       data.signature = signature;
 
       const params = new URLSearchParams(data);
