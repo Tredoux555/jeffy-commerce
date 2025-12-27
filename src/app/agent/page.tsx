@@ -36,10 +36,24 @@ export default function AgentPortal() {
   const [loading, setLoading] = useState(true);
   const [orderFrequency, setOrderFrequency] = useState('weekly');
   const [lastOrderDate, setLastOrderDate] = useState<string | null>(null);
+  const [restockItems, setRestockItems] = useState<any[]>([]);
 
   useEffect(() => {
     fetchOrders();
+    fetchRestockReport();
   }, []);
+
+  const fetchRestockReport = async () => {
+    try {
+      const res = await fetch('/api/partner/stock?action=restock-report');
+      const data = await res.json();
+      if (data.success) {
+        setRestockItems(data.report || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch restock report:', err);
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
