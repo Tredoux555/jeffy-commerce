@@ -192,7 +192,7 @@ export default function AdminOrdersPage() {
           ) : (
             <div className="divide-y">
               {filteredOrders.map((order) => (
-                <div key={order.id} className="p-4 hover:bg-gray-50">
+                <Link key={order.id} href={`/admin/orders/${order.id}`} className="block p-4 hover:bg-gray-50">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
@@ -230,7 +230,7 @@ export default function AdminOrdersPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
