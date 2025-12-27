@@ -181,6 +181,7 @@
       }
 
       showStatus('Sending to Jeffy...', 'info');
+      console.log('JEFFY: Sending to API...');
 
       // Send directly to Jeffy API
       const response = await fetch('https://jeffy.co.za/api/import/1688', {
@@ -191,7 +192,9 @@
         body: JSON.stringify(productData)
       });
 
+      console.log('JEFFY: API response status:', response.status);
       const result = await response.json();
+      console.log('JEFFY: API response:', result);
 
       if (result.success) {
         showStatus(`✅ Product imported! ID: ${result.productId}`, 'success');

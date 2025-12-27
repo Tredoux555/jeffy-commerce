@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { DeleteProductButton } from '@/components/admin/DeleteProductButton';
 
 export default async function AdminProductsPage() {
   const supabase = await createClient();
@@ -100,6 +101,7 @@ export default async function AdminProductsPage() {
                     >
                       Edit
                     </Link>
+                    <DeleteProductButton productId={product.id} productName={product.name} />
                   </td>
                 </tr>
               ))
