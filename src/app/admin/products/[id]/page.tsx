@@ -25,7 +25,7 @@ export default function EditProductPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
   const [enhancing, setEnhancing] = useState<number | null>(null);
-  const [enhancing, setEnhancing] = useState<number | null>(null);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
   
   const [form, setForm] = useState({
     name: '',
@@ -208,9 +208,42 @@ export default function EditProductPage() {
     if (!imageAnalysis?.analyses) return;
     const textImages = imageAnalysis.analyses.filter((a: any) => !a.isClean);
     
-    for (const analysis of textImages) {
-      await enhanceImage(images[analysis.index], analysis.index);
+    if (textImages.length === 0) {
+      alert('All images are already clean!');
+      return;
     }
+
+    setBatchProgress({ current: 0, total: textImages.length });
+    
+    let successCount = 0;
+    for (let i = 0; i < textImages.length; i++) {
+      const analysis = textImages[i];
+      setBatchProgress({ current: i + 1, total: textImages.length });
+      
+      try {
+        const res = await fetch('/api/images/enhance', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: images[analysis.index], productId }),
+        });
+        const data = await res.json();
+        
+        if (data.success && data.enhancedUrl && data.wasEnhanced) {
+          const newImages = [...images];
+          newImages[analysis.index] = data.enhancedUrl;
+          setImages(newImages);
+          if (form.imageUrl === images[analysis.index]) {
+            setForm({ ...form, imageUrl: data.enhancedUrl });
+          }
+          successCount++;
+        }
+      } catch (error) {
+        console.error(`Failed to enhance image ${analysis.index}:`, error);
+      }
+    }
+    
+    setBatchProgress(null);
+    alert(`✅ Batch complete! Enhanced ${successCount} of ${textImages.length} images.`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -461,11 +494,20 @@ export default function EditProductPage() {
                 <button
                   type="button"
                   onClick={enhanceAllImages}
-                  disabled={enhancing !== null}
+                  disabled={enhancing !== null || batchProgress !== null}
                   className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 flex items-center gap-2 text-sm"
                 >
-                  {enhancing !== null ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                  Enhance All
+                  {batchProgress ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {batchProgress.current}/{batchProgress.total}
+                    </>
+                  ) : enhancing !== null ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-4 w-4" />
+                  )}
+                  {batchProgress ? 'Enhancing...' : 'Enhance All'}
                 </button>
               )}
             </div>
