@@ -9,7 +9,7 @@ export default async function AdminProductsPage() {
 
   const { data: products } = await supabase
     .from('products')
-    .select('id, name, slug, primary_image_url, selling_price_cents, quantity, status, categories(name)')
+    .select('id, name, slug, primary_image_url, selling_price_cents, quantity, status')
     .order('created_at', { ascending: false });
 
   return (
@@ -23,7 +23,7 @@ export default async function AdminProductsPage() {
           </Button>
         </Link>
       </div>
-      <ProductsTable initialProducts={products || []} />
+      <ProductsTable initialProducts={(products || []) as any} />
     </div>
   );
 }
