@@ -12,6 +12,16 @@ export default async function AdminDashboard() {
     .from('products')
     .select('*', { count: 'exact', head: true });
 
+  const { count: draftCount } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'draft');
+
+  const { count: activeCount } = await supabase
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'active');
+
   const { count: orderCount } = await supabase
     .from('orders')
     .select('*', { count: 'exact', head: true });
@@ -149,6 +159,10 @@ export default async function AdminDashboard() {
           </div>
           <p className="text-2xl font-bold mt-2">{productCount || 0}</p>
           <p className="text-sm text-gray-500">Products</p>
+          <div className="mt-1 flex gap-2 text-xs">
+            <span className="text-green-600">{activeCount || 0} live</span>
+            <span className="text-orange-600">{draftCount || 0} draft</span>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl p-4 border hover:shadow-md transition">
