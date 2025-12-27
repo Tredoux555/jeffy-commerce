@@ -201,19 +201,16 @@
 
       showStatus('Sending to Jeffy...', 'info');
 
-      // Send to background script (bypasses CORS)
-      const result = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          { type: 'IMPORT_PRODUCT', data: productData },
-          response => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else {
-              resolve(response);
-            }
-          }
-        );
+      // Send directly to Jeffy API
+      const response = await fetch('https://jeffy.co.za/api/import/1688', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(productData)
       });
+
+      const result = await response.json();
 
       if (result.success) {
         showStatus(`✅ Product imported! ID: ${result.productId}`, 'success');
