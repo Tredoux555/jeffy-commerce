@@ -25,6 +25,7 @@ export default function EditProductPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
   const [enhancing, setEnhancing] = useState<number | null>(null);
+  const [enhancing, setEnhancing] = useState<number | null>(null);
   
   const [form, setForm] = useState({
     name: '',
@@ -172,6 +173,35 @@ export default function EditProductPage() {
       alert('Analysis failed');
     }
     setAnalyzing(false);
+  };
+
+  const enhanceImage = async (imageUrl: string, index: number) => {
+    setEnhancing(index);
+    try {
+      const res = await fetch('/api/images/enhance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl, productId }),
+      });
+      const data = await res.json();
+      
+      if (data.success && data.enhancedUrl) {
+        // Replace the image in the array
+        const newImages = [...images];
+        newImages[index] = data.enhancedUrl;
+        setImages(newImages);
+        // If this was the selected image, update it
+        if (form.imageUrl === imageUrl) {
+          setForm({ ...form, imageUrl: data.enhancedUrl });
+        }
+        alert(`Enhanced! ${data.textReplaced} text regions translated.`);
+      } else {
+        alert(data.error || data.message || 'Enhancement failed');
+      }
+    } catch (error) {
+      alert('Enhancement failed');
+    }
+    setEnhancing(null);
   };
 
   const enhanceImage = async (imageUrl: string, index: number) => {
