@@ -6,4 +6,3 @@ healthcheckPath = "/api/health/env"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-// Build trigger 1766829490
