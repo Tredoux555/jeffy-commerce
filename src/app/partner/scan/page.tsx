@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Camera, Package, CheckCircle, AlertCircle, Loader2, QrCode } from 'lucide-react';
+import { ArrowLeft, Camera, CheckCircle, XCircle, Package, Loader2, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 
@@ -16,13 +15,11 @@ interface ScannedOrder {
 }
 
 export default function PartnerScanPage() {
-  const router = useRouter();
   const [scanning, setScanning] = useState(false);
-  const [manualCode, setManualCode] = useState('');
   const [scannedOrders, setScannedOrders] = useState<ScannedOrder[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
   const scannerRef = useRef<any>(null);
   const videoRef = useRef<HTMLDivElement>(null);
 
@@ -49,14 +46,25 @@ export default function PartnerScanPage() {
 
       await scanner.start(
         { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-          handleScan(decodedText);
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        async (decodedText) => {
+          // Pause scanning while processing
+          await scanner.pause();
+          await handleScan(decodedText);
+          // Resume after processing
+          setTimeout(() => {
+            if (scannerRef.current) {
+              scanner.resume();
+            }
+          }, 2000);
         },
         () => {} // Ignore errors during scanning
       );
     } catch (err: any) {
-      setError('Camera access denied or not available');
+      setError('Failed to start camera: ' + err.message);
       setScanning(false);
     }
   };
@@ -70,101 +78,113 @@ export default function PartnerScanPage() {
   };
 
   const handleScan = async (data: string) => {
-    // Parse QR code URL: /delivery/scan/ORDER_NUMBER/VERIFICATION_CODE
-    const match = data.match(/\/delivery\/scan\/([^\/]+)\/([^\/]+)/);
-    if (!match) {
-      // Try direct format: JEFFY-ORDER-CODE
-      const directMatch = data.match(/JEFFY-([^-]+)-([^-]+)/);
-      if (directMatch) {
-        await processOrder(directMatch[1], directMatch[2]);
+    setProcessing(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      // Parse QR code - could be URL or JSON
+      let orderNumber = '';
+      let verificationCode = '';
+
+      // Try URL format: /delivery/scan/ORDER_NUMBER/CODE
+      const urlMatch = data.match(/\/delivery\/scan\/([^\/]+)\/([^\/]+)/);
+      if (urlMatch) {
+        orderNumber = urlMatch[1];
+        verificationCode = urlMatch[2];
+      } else {
+        // Try JEFFY-ORDER-CODE format
+        const parts = data.split('-');
+        if (parts.length >= 3 && parts[0] === 'JEFFY') {
+          orderNumber = parts[1];
+          verificationCode = parts[2];
+        }
       }
-      return;
-    }
-    
-    await processOrder(match[1], match[2]);
-  };
 
-  const processOrder = async (orderNumber: string, verificationCode: string) => {
-    // Check if already scanned
-    if (scannedOrders.find(o => o.order_number === orderNumber)) {
-      return;
-    }
+      if (!orderNumber) {
+        setError('Invalid QR code format');
+        setProcessing(false);
+        return;
+      }
 
-    setProcessing(true);
-    const supabase = createClient();
-
-    const { data: order, error: fetchError } = await supabase
-      .from('orders')
-      .select('id, order_number, customer_name, delivery_address, status, verification_code')
-      .eq('order_number', orderNumber)
-      .single();
-
-    if (fetchError || !order) {
-      setError(`Order ${orderNumber} not found`);
-      setProcessing(false);
-      return;
-    }
-
-    // Verify code
-    if (order.verification_code !== verificationCode) {
-      setError('Invalid verification code');
-      setProcessing(false);
-      return;
-    }
-
-    // Add to scanned list
-    setScannedOrders(prev => [...prev, {
-      id: order.id,
-      order_number: order.order_number,
-      customer_name: order.customer_name || 'Customer',
-      delivery_address: order.delivery_address,
-      status: order.status,
-    }]);
-
-    setSuccess(`Order ${orderNumber} scanned!`);
-    setTimeout(() => setSuccess(null), 2000);
-    setProcessing(false);
-  };
-
-  const handleManualSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualCode.trim()) return;
-
-    // Parse manual code (format: ORDER_NUMBER or ORDER_NUMBER-VERIFICATION)
-    const parts = manualCode.trim().toUpperCase().split('-');
-    const orderNumber = parts[0].startsWith('JFY') ? parts.slice(0, 2).join('-') : parts[0];
-    const verificationCode = parts[parts.length - 1];
-
-    await processOrder(orderNumber, verificationCode);
-    setManualCode('');
-  };
-
-  const confirmAllDeliveries = async () => {
-    if (scannedOrders.length === 0) return;
-
-    setProcessing(true);
-    const supabase = createClient();
-    const partnerId = localStorage.getItem('zonePartnerId');
-
-    for (const order of scannedOrders) {
-      await supabase
+      // Look up order in database
+      const supabase = createClient();
+      const { data: order, error: orderError } = await supabase
         .from('orders')
-        .update({
-          status: 'out_for_delivery',
-          zone_partner_id: partnerId,
-          shipped_at: new Date().toISOString(),
-        })
-        .eq('id', order.id);
+        .select('id, order_number, customer_name, delivery_address, status, verification_code')
+        .eq('order_number', orderNumber)
+        .single();
 
-      // TODO: Trigger WhatsApp notification here
+      if (orderError || !order) {
+        setError(`Order ${orderNumber} not found`);
+        setProcessing(false);
+        return;
+      }
+
+      // Verify code if we have one stored
+      if (order.verification_code && verificationCode !== order.verification_code) {
+        setError('Verification code mismatch');
+        setProcessing(false);
+        return;
+      }
+
+      // Check if already scanned
+      if (scannedOrders.find(o => o.id === order.id)) {
+        setError('Order already scanned');
+        setProcessing(false);
+        return;
+      }
+
+      // Add to scanned list
+      setScannedOrders(prev => [...prev, order]);
+      setSuccess(`Order ${orderNumber} added!`);
+    } catch (err: any) {
+      setError('Scan error: ' + err.message);
     }
 
     setProcessing(false);
-    router.push('/partner/route');
   };
 
-  const removeOrder = (orderNumber: string) => {
-    setScannedOrders(prev => prev.filter(o => o.order_number !== orderNumber));
+  const dispatchOrders = async () => {
+    if (scannedOrders.length === 0) return;
+    
+    setProcessing(true);
+    setError(null);
+
+    try {
+      const supabase = createClient();
+      const now = new Date().toISOString();
+
+      // Update all scanned orders to "out_for_delivery"
+      for (const order of scannedOrders) {
+        await supabase
+          .from('orders')
+          .update({
+            status: 'out_for_delivery',
+            shipped_at: now,
+          })
+          .eq('id', order.id);
+
+        // TODO: Trigger WhatsApp notification here
+        // await sendWhatsAppNotification(order);
+      }
+
+      setSuccess(`${scannedOrders.length} orders dispatched!`);
+      
+      // Redirect to route page after short delay
+      setTimeout(() => {
+        window.location.href = '/partner/route';
+      }, 1500);
+
+    } catch (err: any) {
+      setError('Failed to dispatch: ' + err.message);
+    }
+
+    setProcessing(false);
+  };
+
+  const removeOrder = (orderId: string) => {
+    setScannedOrders(prev => prev.filter(o => o.id !== orderId));
   };
 
   return (
@@ -179,24 +199,27 @@ export default function PartnerScanPage() {
           </Link>
           <div>
             <h1 className="font-bold text-xl">Scan & Pack</h1>
-            <p className="text-sm text-gray-400">Scan orders for today's deliveries</p>
+            <p className="text-sm text-gray-400">Scan order labels before dispatch</p>
           </div>
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Scanner Section */}
+        {/* Scanner */}
         <div className="bg-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold flex items-center gap-2">
-              <QrCode className="h-5 w-5 text-orange-500" />
+              <QrCode className="h-5 w-5" />
               QR Scanner
             </h2>
-            {scanning ? (
-              <Button onClick={stopScanner} variant="outline" size="sm">Stop Scanner</Button>
+            {!scanning ? (
+              <Button onClick={startScanner} className="bg-orange-500 hover:bg-orange-600">
+                <Camera className="h-4 w-4 mr-2" />
+                Start Camera
+              </Button>
             ) : (
-              <Button onClick={startScanner} className="bg-orange-500" size="sm">
-                <Camera className="h-4 w-4 mr-2" /> Start Camera
+              <Button onClick={stopScanner} variant="outline">
+                Stop Camera
               </Button>
             )}
           </div>
@@ -205,93 +228,81 @@ export default function PartnerScanPage() {
           <div 
             id="qr-reader" 
             ref={videoRef}
-            className={`w-full max-w-md mx-auto rounded-xl overflow-hidden bg-black ${scanning ? '' : 'hidden'}`}
-            style={{ minHeight: scanning ? '300px' : '0' }}
+            className={`w-full max-w-md mx-auto rounded-lg overflow-hidden ${scanning ? '' : 'hidden'}`}
           />
 
           {!scanning && (
-            <div className="bg-gray-700 rounded-xl p-8 text-center">
-              <Camera className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400">Click "Start Camera" to scan QR codes</p>
+            <div className="w-full max-w-md mx-auto aspect-square bg-gray-700 rounded-lg flex items-center justify-center">
+              <div className="text-center text-gray-400">
+                <Camera className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>Camera off</p>
+              </div>
+            </div>
+          )}
+
+          {/* Status Messages */}
+          {processing && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-yellow-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </div>
+          )}
+          {error && (
+            <div className="mt-4 p-3 bg-red-500/20 border border-red-500 rounded-lg flex items-center gap-2 text-red-400">
+              <XCircle className="h-5 w-5" />
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="mt-4 p-3 bg-green-500/20 border border-green-500 rounded-lg flex items-center gap-2 text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              {success}
             </div>
           )}
         </div>
 
-        {/* Manual Entry */}
-        <div className="bg-gray-800 rounded-xl p-6">
-          <h2 className="font-semibold mb-4">Manual Entry</h2>
-          <form onSubmit={handleManualSubmit} className="flex gap-2">
-            <input
-              type="text"
-              value={manualCode}
-              onChange={(e) => setManualCode(e.target.value)}
-              placeholder="Enter order number or verification code"
-              className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400"
-            />
-            <Button type="submit" disabled={processing}>
-              {processing ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
-            </Button>
-          </form>
-        </div>
-
-        {/* Status Messages */}
-        {error && (
-          <div className="bg-red-500/20 border border-red-500 rounded-xl p-4 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-red-500" />
-            <span className="text-red-400">{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto text-red-400">×</button>
-          </div>
-        )}
-
-        {success && (
-          <div className="bg-green-500/20 border border-green-500 rounded-xl p-4 flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-green-500" />
-            <span className="text-green-400">{success}</span>
-          </div>
-        )}
-
-        {/* Scanned Orders */}
+        {/* Scanned Orders List */}
         <div className="bg-gray-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold flex items-center gap-2">
-              <Package className="h-5 w-5 text-blue-500" />
+              <Package className="h-5 w-5" />
               Scanned Orders ({scannedOrders.length})
             </h2>
           </div>
 
           {scannedOrders.length === 0 ? (
             <div className="text-center py-8 text-gray-400">
-              <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>No orders scanned yet</p>
-              <p className="text-sm">Scan QR codes on package labels to add orders</p>
+              <p className="text-sm">Scan QR codes on package labels</p>
             </div>
           ) : (
             <div className="space-y-3">
               {scannedOrders.map((order) => (
-                <div key={order.id} className="bg-gray-700 rounded-lg p-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-mono font-bold">{order.order_number}</p>
-                      <p className="text-sm text-gray-400">{order.customer_name}</p>
-                      <p className="text-xs text-gray-500 mt-1">{order.delivery_address.substring(0, 50)}...</p>
-                    </div>
-                    <button
-                      onClick={() => removeOrder(order.order_number)}
-                      className="text-gray-400 hover:text-red-400"
-                    >
-                      ×
-                    </button>
+                <div key={order.id} className="bg-gray-700 rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-mono font-bold">{order.order_number}</p>
+                    <p className="text-sm text-gray-400">{order.customer_name}</p>
+                    <p className="text-xs text-gray-500 truncate max-w-[200px]">
+                      {order.delivery_address}
+                    </p>
                   </div>
+                  <button 
+                    onClick={() => removeOrder(order.id)}
+                    className="p-2 text-red-400 hover:bg-red-500/20 rounded"
+                  >
+                    <XCircle className="h-5 w-5" />
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Confirm Button */}
+        {/* Dispatch Button */}
         {scannedOrders.length > 0 && (
           <Button
-            onClick={confirmAllDeliveries}
+            onClick={dispatchOrders}
             disabled={processing}
             className="w-full h-14 text-lg bg-green-600 hover:bg-green-700"
           >
@@ -300,7 +311,7 @@ export default function PartnerScanPage() {
             ) : (
               <>
                 <CheckCircle className="h-5 w-5 mr-2" />
-                Confirm {scannedOrders.length} Orders - Start Deliveries
+                Dispatch {scannedOrders.length} Order{scannedOrders.length > 1 ? 's' : ''}
               </>
             )}
           </Button>
