@@ -68,12 +68,12 @@ export default async function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Link href="/wants/create">
-                <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-lg h-14 px-8 w-full sm:w-auto">
+                <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg h-14 px-8 w-full sm:w-auto">
                   🎁 Get Something FREE
                 </Button>
               </Link>
               <Link href="/products">
-                <Button size="lg" variant="outline" className="border-gray-600 text-white text-lg h-14 px-8 w-full sm:w-auto">
+                <Button size="lg" className="bg-transparent border-2 border-gray-500 text-white hover:bg-gray-800 text-lg h-14 px-8 w-full sm:w-auto">
                   Browse Products →
                 </Button>
               </Link>
