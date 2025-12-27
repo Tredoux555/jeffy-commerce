@@ -46,62 +46,80 @@ export default function AgentPortal() {
     const supabase = createClient();
 
     try {
-      // Get all pending/processing orders with their items
+      // Step 1: Get all paid/processing orders
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select(`
-          id,
-          order_number,
-          status,
-          order_items (
-            product_id,
-            quantity,
-            products (
-              id,
-              name,
-              primary_image_url,
-              source_1688_url,
-              source_1688_data
-            )
-          )
-        `)
+        .select('id, order_number, status')
         .in('status', ['paid', 'processing'])
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
+      if (!orders || orders.length === 0) {
+        setOrderItems([]);
+        setLoading(false);
+        return;
+      }
+
+      const orderIds = orders.map(o => o.id);
+
+      // Step 2: Get order items for these orders
+      const { data: orderItems, error: itemsError } = await supabase
+        .from('order_items')
+        .select('order_id, product_id, quantity')
+        .in('order_id', orderIds);
+
+      if (itemsError) throw itemsError;
+      if (!orderItems || orderItems.length === 0) {
+        setOrderItems([]);
+        setLoading(false);
+        return;
+      }
+
+      // Step 3: Get unique product IDs and fetch products
+      const productIds = [...new Set(orderItems.map(item => item.product_id))];
+      
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, primary_image_url, source_1688_url, source_1688_data, cost_price_cents')
+        .in('id', productIds);
+
+      if (productsError) throw productsError;
+
+      // Create product lookup map
+      const productMap = new Map(products?.map(p => [p.id, p]) || []);
+      const orderMap = new Map(orders?.map(o => [o.id, o.order_number]) || []);
 
       // Aggregate by product
-      const productMap = new Map<string, OrderItem>();
+      const aggregatedMap = new Map<string, OrderItem>();
 
-      orders?.forEach(order => {
-        order.order_items?.forEach((item: any) => {
-          const product = item.products;
-          if (!product) return;
+      orderItems.forEach(item => {
+        const product = productMap.get(item.product_id);
+        if (!product) return;
 
-          const source1688Data = product.source_1688_data || {};
+        const source1688Data = product.source_1688_data || {};
+        const orderNumber = orderMap.get(item.order_id) || 'Unknown';
 
-          const existing = productMap.get(product.id);
-          if (existing) {
-            existing.quantity += item.quantity;
-            if (!existing.orderNumbers.includes(order.order_number)) {
-              existing.orderNumbers.push(order.order_number);
-            }
-          } else {
-            productMap.set(product.id, {
-              productId: product.id,
-              productName: product.name,
-              productImage: product.primary_image_url || '/placeholder-product.png',
-              supplierUrl: product.source_1688_url || '',
-              supplierName: source1688Data.supplierName || 'Unknown',
-              unitCostCNY: source1688Data.priceCNY || 0,
-              quantity: item.quantity,
-              orderNumbers: [order.order_number],
-            });
+        const existing = aggregatedMap.get(product.id);
+        if (existing) {
+          existing.quantity += item.quantity;
+          if (!existing.orderNumbers.includes(orderNumber)) {
+            existing.orderNumbers.push(orderNumber);
           }
-        });
+        } else {
+          aggregatedMap.set(product.id, {
+            productId: product.id,
+            productName: product.name,
+            productImage: product.primary_image_url || '/placeholder-product.png',
+            supplierUrl: product.source_1688_url || '',
+            supplierName: source1688Data.seller?.name || source1688Data.supplierName || 'Unknown',
+            unitCostCNY: source1688Data.costPriceCNY || source1688Data.priceCNY || 0,
+            quantity: item.quantity,
+            orderNumbers: [orderNumber],
+          });
+        }
       });
 
-      setOrderItems(Array.from(productMap.values()));
+      setOrderItems(Array.from(aggregatedMap.values()));
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
