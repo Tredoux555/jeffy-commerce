@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, Gift, Users, Truck, Shield, Star, Sparkles } from 'lucide-react';
+import { ArrowRight, Gift, Users, Truck, Shield, Star, Sparkles, CheckCircle, Zap, MapPin, TrendingUp } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { ProductCard } from '@/components/product-card';
 import { Button } from '@/components/ui/button';
@@ -15,14 +15,6 @@ export default async function HomePage() {
     .order('created_at', { ascending: false })
     .limit(8);
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true })
-    .limit(6);
-
-  // Get wants stats
   const { count: totalWants } = await supabase
     .from('wants')
     .select('*', { count: 'exact', head: true });
@@ -33,239 +25,318 @@ export default async function HomePage() {
     .gte('current_agrees', 10);
 
   return (
-    <div>
+    <div className="bg-gray-950">
       <FloatingWantsPromo />
 
-      {/* HERO SECTION */}
-      <section className="relative bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a] text-white overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[#ff6b35] rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-500 rounded-full blur-3xl"></div>
-        </div>
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-600/20 via-gray-950 to-gray-950" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl" />
         
-        <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-[#ff6b35]/20 text-[#ff6b35] px-4 py-2 rounded-full text-sm font-medium mb-6">
-                <Sparkles className="h-4 w-4" />
-                New: Get Products FREE!
-              </div>
-              
-              <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-                Eish, These<br/>
-                <span className="text-[#ff6b35]">Prices!</span> 🔥
-              </h1>
-              
-              <p className="text-xl text-gray-300 mb-8 max-w-lg">
-                Quality products sourced directly from manufacturers. 
-                No middlemen, no markup — just lekker savings for South Africa.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/products">
-                  <Button size="lg" className="bg-[#ff6b35] hover:bg-orange-600 text-white px-8 w-full sm:w-auto">
-                    Start Shopping
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/wants/create">
-                  <Button size="lg" className="bg-white/10 hover:bg-white/20 text-white border-2 border-white/50 px-8 w-full sm:w-auto">
-                    <Gift className="mr-2 h-5 w-5" />
-                    Get Something FREE
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            {/* Hero Right - FREE STUFF Card */}
-            <div className="hidden lg:block">
-              <div className="bg-gradient-to-br from-[#ff6b35] to-orange-600 rounded-3xl p-8 shadow-2xl transform rotate-2 hover:rotate-0 transition-transform">
-                <div className="bg-white/20 rounded-2xl p-6 backdrop-blur">
-                  <Gift className="h-16 w-16 text-white mb-4" />
-                  <h3 className="text-2xl font-bold text-white mb-2">Jeffy Wants</h3>
-                  <p className="text-white/90 mb-4">
-                    Create a want, share with 10 friends who agree, and get your product completely FREE!
-                  </p>
-                  <div className="flex items-center gap-4 text-white/80 text-sm">
-                    <span>✓ No purchase required</span>
-                    <span>✓ 7 days to collect</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS BAR */}
-      <section className="bg-[#ff6b35] py-6">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-white text-center">
-            <div>
-              <p className="text-3xl font-bold">{totalWants || 0}+</p>
-              <p className="text-white/80 text-sm">Wants Created</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold">{successfulWants || 0}</p>
-              <p className="text-white/80 text-sm">Free Products Given</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold">50%+</p>
-              <p className="text-white/80 text-sm">Average Savings</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold">24hr</p>
-              <p className="text-white/80 text-sm">Fast Dispatch</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS - Wants */}
-      <section className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Get Products FREE 🎁</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              It's simple: Create a want, share with friends, and if 10 people agree — you get it FREE!
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35] text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">1</div>
-              <h3 className="font-bold text-lg mb-2">Create a Want</h3>
-              <p className="text-gray-600 text-sm">Tell us what product you want (under R1,000 guaranteed)</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35] text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">2</div>
-              <h3 className="font-bold text-lg mb-2">Share Your Link</h3>
-              <p className="text-gray-600 text-sm">Send to friends on WhatsApp — they just need to agree</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35] text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">3</div>
-              <h3 className="font-bold text-lg mb-2">Get It FREE!</h3>
-              <p className="text-gray-600 text-sm">Once 10 friends agree, we source and deliver your product</p>
-            </div>
-          </div>
-          
-          <div className="text-center mt-10">
-            <Link href="/wants/create">
-              <Button size="lg" className="bg-[#ff6b35] hover:bg-orange-600 text-white">
-                Create Your Want Now
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CATEGORIES */}
-      {categories && categories.length > 0 && (
-        <section className="container mx-auto px-4 py-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold">Shop by Category</h2>
-            <Link href="/categories" className="text-[#ff6b35] hover:underline flex items-center">
-              View All <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <Link key={category.id} href={`/products?category=${category.slug}`} className="group">
-                <div className="bg-gray-100 rounded-xl p-6 text-center hover:bg-orange-50 hover:shadow-lg transition-all">
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-orange-200 transition-colors">
-                    <span className="text-2xl">📦</span>
-                  </div>
-                  <h3 className="font-medium text-gray-900">{category.name}</h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* PRODUCTS */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <h2 className="text-2xl font-bold">Hot Right Now 🔥</h2>
-          <Link href="/products" className="text-[#ff6b35] hover:underline flex items-center">
-            View All <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
-        </div>
-        
-        {products && products.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 bg-gray-50 rounded-xl">
-            <p className="text-gray-500 mb-4">No products available yet.</p>
-            <p className="text-sm text-gray-400">Check back soon for amazing deals!</p>
-          </div>
-        )}
-      </section>
-
-      {/* TRUST BADGES */}
-      <section className="bg-[#0f172a] py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Truck className="h-8 w-8 text-[#ff6b35]" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2 text-white">Fast Delivery</h3>
-              <p className="text-gray-400 text-sm">Quick delivery across Mzansi via Zone Partners</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-8 w-8 text-[#ff6b35]" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2 text-white">Quality Guaranteed</h3>
-              <p className="text-gray-400 text-sm">Every product checked before shipping</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-8 w-8 text-[#ff6b35]" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2 text-white">Zone Partners</h3>
-              <p className="text-gray-400 text-sm">Local delivery partners in your area</p>
-            </div>
-            <div className="text-center">
-              <div className="w-16 h-16 bg-[#ff6b35]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="h-8 w-8 text-[#ff6b35]" />
-              </div>
-              <h3 className="font-semibold text-lg mb-2 text-white">Best Prices</h3>
-              <p className="text-gray-400 text-sm">Direct sourcing, no middlemen</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA BANNER */}
-      <section className="bg-gradient-to-r from-[#ff6b35] to-orange-500 py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">Ready to Save?</h2>
-          <p className="text-white/90 mb-6 max-w-xl mx-auto">
-            Join thousands of South Africans who are getting amazing products at unbeatable prices.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/products">
-              <Button size="lg" className="bg-white text-[#ff6b35] hover:bg-gray-100 px-8">
-                Shop Now
-              </Button>
-            </Link>
-            <Link href="/zone-partner/apply">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8">
+        {/* Nav */}
+        <nav className="relative z-10 container mx-auto px-4 py-6 flex items-center justify-between">
+          <span className="text-3xl font-black text-orange-500">JEFFY</span>
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/wants" className="text-gray-300 hover:text-white transition">Wants</Link>
+            <Link href="/products" className="text-gray-300 hover:text-white transition">Shop</Link>
+            <Link href="/partner/apply">
+              <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
                 Become a Zone Partner
               </Button>
             </Link>
           </div>
+        </nav>
+
+        <div className="relative z-10 container mx-auto px-4 pt-12 pb-24">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 px-4 py-2 rounded-full text-sm mb-8">
+              <Sparkles className="h-4 w-4" />
+              South Africa's First Community-Powered Commerce Platform
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-black mb-6 leading-tight text-white">
+              <span className="text-orange-500">"Eish,</span> These Prices!"
+            </h1>
+            
+            <p className="text-xl md:text-2xl text-gray-300 mb-4 max-w-2xl mx-auto">
+              You tell us what you want. We make it happen.
+            </p>
+            <p className="text-lg text-orange-400 mb-8">
+              No middlemen. No markup madness.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Link href="/wants/create">
+                <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-lg h-14 px-8 w-full sm:w-auto">
+                  <Gift className="mr-2 h-5 w-5" />
+                  Get Something FREE
+                </Button>
+              </Link>
+              <Link href="/products">
+                <Button size="lg" variant="outline" className="border-gray-600 text-white text-lg h-14 px-8 w-full sm:w-auto">
+                  Browse Products
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-orange-500">{totalWants || 0}+</p>
+                <p className="text-sm text-gray-400">Wants Created</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-green-500">{successfulWants || 0}</p>
+                <p className="text-sm text-gray-400">Products Added</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-blue-500">50%</p>
+                <p className="text-sm text-gray-400">Partner Profit</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* THE PROBLEM */}
+      <section className="py-20 bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              You know what's broken about online shopping in SA?
+            </h2>
+            <p className="text-xl text-orange-500 font-bold mb-8">Everything.</p>
+            <p className="text-lg text-gray-300 leading-relaxed">
+              The prices are inflated because someone's paying for a warehouse in Midrand, 
+              a fleet of branded trucks, call centres, and executives in glass offices. 
+              <span className="text-orange-400"> You're paying for all of that.</span> 
+              And then you wait a week for delivery anyway.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* WE FLIPPED IT */}
+      <section className="py-20 bg-gray-950">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white text-center mb-4">
+            We Flipped It.
+          </h2>
+          <p className="text-center text-gray-400 mb-12 max-w-xl mx-auto">
+            The Jeffy model eliminates the overhead that inflates every price you see online.
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
+                <MapPin className="h-6 w-6 text-orange-500" />
+              </div>
+              <h3 className="font-bold text-white mb-2">No Warehouse</h3>
+              <p className="text-gray-400 text-sm">Zone Partners keep stock at home</p>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
+                <Truck className="h-6 w-6 text-orange-500" />
+              </div>
+              <h3 className="font-bold text-white mb-2">No Fleet</h3>
+              <p className="text-gray-400 text-sm">Partners use their own vehicles, one run per day</p>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
+                <Users className="h-6 w-6 text-orange-500" />
+              </div>
+              <h3 className="font-bold text-white mb-2">No Employees</h3>
+              <p className="text-gray-400 text-sm">Zone Partners are independent entrepreneurs</p>
+            </div>
+            <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center mb-4">
+                <Zap className="h-6 w-6 text-orange-500" />
+              </div>
+              <h3 className="font-bold text-white mb-2">No Guessing</h3>
+              <p className="text-gray-400 text-sm">Our community tells us exactly what they want</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW WANTS WORK */}
+      <section className="py-20 bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                How <span className="text-orange-500">"Wants"</span> Work
+              </h2>
+              <p className="text-gray-400">Get what you want for FREE. Seriously.</p>
+            </div>
+
+            <div className="grid md:grid-cols-5 gap-4">
+              {[
+                { num: '1', text: 'Tell us what you want' },
+                { num: '2', text: 'Get 10 people to agree' },
+                { num: '3', text: 'We add it to Jeffy' },
+                { num: '4', text: 'You get yours FREE' },
+                { num: '5', text: '+ 10 more to sell!' },
+              ].map((step, i) => (
+                <div key={i} className="text-center">
+                  <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-white">
+                    {step.num}
+                  </div>
+                  <p className="text-white font-medium text-sm">{step.text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <p className="text-lg text-gray-300 mb-6">
+                You're not just a customer. <span className="text-orange-400">You're building the catalogue with us.</span>
+              </p>
+              <Link href="/wants/create">
+                <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
+                  Create Your First Want
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* QUALITY GUARANTEE */}
+      <section className="py-20 bg-gray-950">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 rounded-3xl p-8 md:p-12 border border-orange-500/20">
+              <div className="flex items-center gap-3 mb-6">
+                <Shield className="h-8 w-8 text-orange-500" />
+                <h2 className="text-2xl md:text-3xl font-bold text-white">The Jeffy Quality Guarantee</h2>
+              </div>
+              
+              <div className="space-y-4 mb-8">
+                {[
+                  'Every product personally tested by our founder in China',
+                  'We find 3 variants, test them all, choose the best',
+                  'Direct from factory — no middlemen',
+                  'Only then does it go on Jeffy'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-gray-300">{item}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-green-500/10 rounded-xl p-6 border border-green-500/30">
+                <h3 className="font-bold text-green-400 mb-2">100% No-Reason Returns</h3>
+                <p className="text-gray-300">
+                  Don't like it? Return it. No questions asked. Full refund. 
+                  <span className="text-green-400"> This is our promise to every customer.</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ZONE PARTNER CTA */}
+      <section className="py-20 bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                  Become a <span className="text-orange-500">Zone Partner</span>
+                </h2>
+                <p className="text-gray-300 mb-6">
+                  Keep 50% of every sale. Own your zone. Build passive income.
+                </p>
+                
+                <div className="space-y-3 mb-8">
+                  {[
+                    'No boss. No schedule. No ceiling.',
+                    'System handles orders, labels, routes',
+                    'One delivery run per day',
+                    'Early adopters lock in their zones'
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-orange-500" />
+                      <p className="text-white">{item}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <Link href="/partner/apply">
+                  <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
+                    Apply Now
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="bg-gray-800 rounded-2xl p-6">
+                <h3 className="font-bold text-white mb-4 text-center">Why 50% Beats the Gig Economy</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                    <span className="text-gray-400">Uber/Bolt</span>
+                    <span className="text-red-400 font-bold">23-25%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 border-b border-gray-700">
+                    <span className="text-gray-400">Mr D/UberEats</span>
+                    <span className="text-red-400 font-bold">~25%</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 bg-orange-500/20 rounded-lg px-3">
+                    <span className="text-orange-400 font-medium">Jeffy Zone Partner</span>
+                    <span className="text-orange-500 font-bold text-xl">50%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRODUCTS */}
+      {products && products.length > 0 && (
+        <section className="py-20 bg-gray-950">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-white">Latest Products</h2>
+              <Link href="/products" className="text-orange-500 hover:text-orange-400 flex items-center gap-1">
+                View All <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* FOOTER */}
+      <footer className="bg-gray-900 border-t border-gray-800 py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <span className="text-2xl font-black text-orange-500">JEFFY</span>
+              <p className="text-gray-400 text-sm mt-1">"Eish, These Prices!"</p>
+            </div>
+            <div className="flex gap-6 text-sm text-gray-400">
+              <Link href="/products" className="hover:text-white">Shop</Link>
+              <Link href="/wants" className="hover:text-white">Wants</Link>
+              <Link href="/partner/apply" className="hover:text-white">Zone Partners</Link>
+              <Link href="/admin" className="hover:text-white">Admin</Link>
+            </div>
+            <p className="text-gray-500 text-sm">
+              © 2025 Jeffy Commerce. South Africa.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
-// Rebuild trigger: 1735216800
