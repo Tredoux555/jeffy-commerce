@@ -179,7 +179,7 @@ export function UpdateAvailableBanner() {
           <p className="font-medium">Update Available</p>
           <p className="text-sm opacity-90">A new version is ready</p>
         </div>
-        <Button onClick={handleRefresh} variant="secondary" size="sm">
+        <Button onClick={handleRefresh} variant="outline" size="sm">
           Refresh
         </Button>
       </div>

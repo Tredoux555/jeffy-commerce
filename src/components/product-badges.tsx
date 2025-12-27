@@ -152,20 +152,28 @@ export function RatingBadge({ rating, reviews }: { rating: number; reviews?: num
 
 // Multiple badges container
 interface ProductBadgesProps {
-  badges: Array<{ type: BadgeType; text?: string }>;
+  badges?: Array<{ type: BadgeType; text?: string }>;
   discount?: number;
+  discountPercent?: number;
   rating?: number;
   reviews?: number;
   stock?: number;
+  quantity?: number;
+  isNew?: boolean;
+  isHot?: boolean;
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 }
 
 export function ProductBadges({ 
-  badges, 
-  discount, 
+  badges = [], 
+  discount,
+  discountPercent,
   rating, 
   reviews, 
   stock,
+  quantity,
+  isNew,
+  isHot,
   position = 'top-left' 
 }: ProductBadgesProps) {
   const positionClasses = {
@@ -175,13 +183,18 @@ export function ProductBadges({
     'bottom-right': 'bottom-2 right-2'
   };
 
+  const actualDiscount = discount || discountPercent;
+  const actualStock = stock ?? quantity;
+
   return (
     <div className={`absolute ${positionClasses[position]} z-10 flex flex-col gap-1`}>
-      {discount && discount > 0 && <DiscountBadge percentage={discount} />}
+      {actualDiscount && actualDiscount > 0 && <DiscountBadge percentage={actualDiscount} />}
+      {isNew && <ProductBadge type="new" size="sm" />}
+      {isHot && <ProductBadge type="popular" size="sm" />}
       {badges.map((badge, i) => (
         <ProductBadge key={i} type={badge.type} text={badge.text} size="sm" />
       ))}
-      {stock !== undefined && stock <= 5 && <StockBadge quantity={stock} />}
+      {actualStock !== undefined && actualStock <= 5 && actualStock > 0 && <StockBadge quantity={actualStock} />}
     </div>
   );
 }
@@ -207,4 +220,19 @@ export function ShippingBadge({ days }: { days: number }) {
       Delivery in {days} day{days !== 1 ? 's' : ''}
     </span>
   );
+}
+
+// Helper functions to determine product badges
+export function isProductNew(createdAt: string | Date): boolean {
+  const created = new Date(createdAt);
+  const now = new Date();
+  const daysDiff = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+  return daysDiff <= 14; // Product is "new" if created within 14 days
+}
+
+export function isProductHot(salesCount: number, viewCount?: number): boolean {
+  // Product is "hot" if it has 10+ sales or 100+ views
+  if (salesCount >= 10) return true;
+  if (viewCount && viewCount >= 100) return true;
+  return false;
 }
