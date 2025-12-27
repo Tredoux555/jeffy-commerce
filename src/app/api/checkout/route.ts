@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { generateOrderNumber } from '@/lib/utils';
+import crypto from 'crypto';
 
 interface CartItemInput {
   productId: string;
