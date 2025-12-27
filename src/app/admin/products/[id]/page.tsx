@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Wand2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Wand2, Trash2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -147,6 +147,20 @@ export default function EditProductPage() {
     setForm({ ...form, imageUrl: url });
   };
 
+  const deleteImage = (index: number) => {
+    const imageToDelete = images[index];
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+    
+    // If the deleted image was selected, clear selection or select first available
+    if (form.imageUrl === imageToDelete) {
+      setForm({ ...form, imageUrl: newImages[0] || '' });
+    }
+    
+    // Clear analysis since indices changed
+    setImageAnalysis(null);
+  };
+
   const analyzeImages = async () => {
     if (images.length === 0) return;
     setAnalyzing(true);
@@ -276,6 +290,7 @@ export default function EditProductPage() {
             : null,
           quantity: parseInt(form.quantity || '0', 10),
           primary_image_url: form.imageUrl || null,
+          images: images, // Save the updated images array
           status: form.status,
           source_1688_url: form.source1688Url || null,
           source_1688_item_id: form.source1688ItemId || null,
@@ -550,7 +565,7 @@ export default function EditProductPage() {
                   const isBest = imageAnalysis?.bestImageIndex === idx;
                   const hasText = analysis && !analysis.isClean;
                   return (
-                    <div key={idx} className="relative">
+                    <div key={idx} className="relative group">
                       <button
                         type="button"
                         onClick={() => selectImage(img)}
@@ -576,6 +591,15 @@ export default function EditProductPage() {
                             {analysis.textAmount}
                           </div>
                         )}
+                      </button>
+                      {/* Delete button - shows on hover */}
+                      <button
+                        type="button"
+                        onClick={() => deleteImage(idx)}
+                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-20"
+                        title="Remove image"
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </button>
                       {hasText && (
                         <button
