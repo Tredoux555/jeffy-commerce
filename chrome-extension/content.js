@@ -57,29 +57,34 @@
     };
 
     try {
-      // Title (Chinese)
-      const titleEl = document.querySelector('h1.title-text') || 
-                      document.querySelector('.d-title') ||
-                      document.querySelector('[class*="title"]');
+      // Title - from #productTitle h1 font
+      const titleEl = document.querySelector('#productTitle .title-content h1 font') ||
+                      document.querySelector('#productTitle h1 font') ||
+                      document.querySelector('#productTitle h1') ||
+                      document.querySelector('.title-content h1');
       if (titleEl) {
         data.titleOriginal = titleEl.textContent.trim();
-        data.title = data.titleOriginal; // Will be translated by API
+        data.title = data.titleOriginal;
       }
 
-      // Price
-      const priceEl = document.querySelector('.price-text') ||
-                      document.querySelector('[class*="price"] [class*="num"]') ||
-                      document.querySelector('.d-price');
+      // Price - from #mainPrice .price-info.currency font
+      const priceEl = document.querySelector('#mainPrice .price-info.currency font') ||
+                      document.querySelector('#mainPrice .price-info font') ||
+                      document.querySelector('.price-component .price-info font') ||
+                      document.querySelector('.price-comp font');
       if (priceEl) {
         const priceText = priceEl.textContent.replace(/[^\d.]/g, '');
         data.costPriceCNY = parseFloat(priceText) || 0;
       }
 
-      // Price range - take minimum
-      const priceRangeEls = document.querySelectorAll('[class*="price-range"] [class*="price"]');
-      if (priceRangeEls.length >= 1 && data.costPriceCNY === 0) {
-        const priceText = priceRangeEls[0].textContent.replace(/[^\d.]/g, '');
-        data.costPriceCNY = parseFloat(priceText) || 0;
+      // Fallback price - try other selectors
+      if (data.costPriceCNY === 0) {
+        const fallbackPrice = document.querySelector('[class*="price"] font') ||
+                              document.querySelector('.price-text');
+        if (fallbackPrice) {
+          const priceText = fallbackPrice.textContent.replace(/[^\d.]/g, '');
+          data.costPriceCNY = parseFloat(priceText) || 0;
+        }
       }
 
       // MOQ (Minimum Order Quantity)
@@ -90,60 +95,61 @@
         if (moqMatch) data.moq = parseInt(moqMatch[0]);
       }
 
-      // Images - Get all product images
-      const imageEls = document.querySelectorAll('[class*="main-image"] img, [class*="detail-gallery"] img, .tab-content img, .vertical-img img');
+      // Images - from gallery thumbnails and preview images
+      const imageEls = document.querySelectorAll('.od-gallery-list img.preview-img, .od-gallery-list img.ant-image-img, #gallery img.preview-img, .od-gallery-turn-item-wrapper img, .module-od-picture-gallery img');
       const imageSet = new Set();
       imageEls.forEach(img => {
         let src = img.src || img.dataset.src || img.getAttribute('data-lazy-src');
-        if (src) {
-          // Get high-res version
-          src = src.replace(/_.+\.jpg/, '.jpg')
-                   .replace(/_\d+x\d+/, '')
-                   .replace(/\.jpg.*/, '.jpg')
-                   .split('?')[0];
-          if (src.includes('1688') || src.includes('alicdn')) {
-            imageSet.add(src);
-          }
+        if (src && src.includes('alicdn.com')) {
+          // Clean up URL - remove size suffixes to get full resolution
+          src = src.split('?')[0]
+                   .replace(/_\d+x\d+\.[a-z]+$/i, '.jpg')
+                   .replace(/\.jpg_.*$/i, '.jpg')
+                   .replace(/\.(jpg|png|webp)_.*/i, '.$1');
+          imageSet.add(src);
         }
       });
       data.images = Array.from(imageSet).slice(0, 10);
       data.mainImage = data.images[0] || '';
 
       // Variants/SKUs
-      const skuItems = document.querySelectorAll('[class*="sku-item"], [class*="prop-item"]');
+      const skuItems = document.querySelectorAll('[class*="sku-item"], [class*="prop-item"], .sku-wrapper [class*="item"]');
       const variants = [];
       skuItems.forEach(item => {
         const name = item.textContent.trim();
         const img = item.querySelector('img');
-        if (name) {
+        if (name && name.length < 100) {
           variants.push({
             name: name,
             image: img ? img.src : null
           });
         }
       });
-      data.variants = variants;
+      data.variants = variants.slice(0, 20);
 
       // Specifications/Attributes
-      const specRows = document.querySelectorAll('[class*="attr"] tr, [class*="attributes"] li');
+      const specRows = document.querySelectorAll('[class*="attr"] tr, [class*="attributes"] li, .detail-attr tr');
       specRows.forEach(row => {
         const cells = row.querySelectorAll('td, span');
         if (cells.length >= 2) {
           const key = cells[0].textContent.trim();
           const value = cells[1].textContent.trim();
-          if (key && value) {
+          if (key && value && key.length < 50) {
             data.specifications[key] = value;
           }
         }
       });
 
-      // Seller info
-      const supplierNameEl = document.querySelector('[class*="company-name"], [class*="shop-name"]');
+      // Seller info - from shop-company-name
+      const supplierNameEl = document.querySelector('.shop-company-name h1') ||
+                              document.querySelector('[class*="company-name"]') ||
+                              document.querySelector('[class*="shop-name"]');
       if (supplierNameEl) {
         data.seller.name = supplierNameEl.textContent.trim();
       }
 
-      const ratingEl = document.querySelector('[class*="score"], [class*="rating"]');
+      const ratingEl = document.querySelector('[class*="score"]') ||
+                       document.querySelector('[class*="rating"]');
       if (ratingEl) {
         const ratingMatch = ratingEl.textContent.match(/[\d.]+/);
         if (ratingMatch) data.seller.rating = parseFloat(ratingMatch[0]);
