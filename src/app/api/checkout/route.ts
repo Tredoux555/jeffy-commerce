@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { generateOrderNumber } from '@/lib/utils';
+import { generateVerificationCode, generateDeliveryQRCode } from '@/lib/qr-code';
 import crypto from 'crypto';
 
 interface CartItemInput {
@@ -140,8 +141,9 @@ export async function POST(request: NextRequest) {
     const franchiseShareCents = Math.floor(profitCents / 2);
     const platformShareCents = profitCents - franchiseShareCents;
 
-    // Generate QR code data (unique identifier for delivery)
-    const qrCodeData = `JEFFY-${orderNumber}-${Date.now()}`;
+    // Generate QR code verification data
+    const verificationCode = generateVerificationCode();
+    const qrCodeData = `JEFFY-${orderNumber}-${verificationCode}`;
 
     // Create order with delivery info
     const { data: order, error: orderError } = await supabase
@@ -149,6 +151,9 @@ export async function POST(request: NextRequest) {
       .insert({
         order_number: orderNumber,
         user_id: '00000000-0000-0000-0000-000000000000', // Guest checkout - TODO: use real user
+        customer_name: `${customer.firstName} ${customer.lastName}`,
+        customer_email: customer.email,
+        customer_phone: customer.phone,
         delivery_latitude: delivery?.latitude || 0,
         delivery_longitude: delivery?.longitude || 0,
         delivery_address: `${customer.address}, ${customer.city}, ${customer.province}, ${customer.postalCode}`,
@@ -163,6 +168,7 @@ export async function POST(request: NextRequest) {
         payment_method: paymentMethod,
         payment_status: 'pending',
         status: 'paid',
+        verification_code: verificationCode,
         tracking_number: qrCodeData,
       })
       .select()
