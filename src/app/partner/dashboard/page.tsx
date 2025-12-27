@@ -134,6 +134,22 @@ export default function PartnerDashboardPage() {
           </div>
         </div>
 
+        {/* Quick Actions */}
+        <div className="grid grid-cols-3 gap-3">
+          <Link href="/partner/scan" className="bg-blue-600 hover:bg-blue-700 rounded-xl p-4 text-center transition">
+            <Package className="h-6 w-6 mx-auto mb-2" />
+            <p className="text-sm font-medium">Scan Orders</p>
+          </Link>
+          <Link href="/partner/route" className="bg-green-600 hover:bg-green-700 rounded-xl p-4 text-center transition">
+            <MapPin className="h-6 w-6 mx-auto mb-2" />
+            <p className="text-sm font-medium">Today's Route</p>
+          </Link>
+          <Link href="/partner/stock" className="bg-purple-600 hover:bg-purple-700 rounded-xl p-4 text-center transition">
+            <TrendingUp className="h-6 w-6 mx-auto mb-2" />
+            <p className="text-sm font-medium">My Stock</p>
+          </Link>
+        </div>
+
         {/* Pending Deliveries */}
         {data?.pendingOrders && data.pendingOrders.length > 0 && (
           <div className="bg-gray-800 rounded-xl p-6">
