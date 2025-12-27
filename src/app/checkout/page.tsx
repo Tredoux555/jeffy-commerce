@@ -1,17 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CreditCard, Building2, Loader2, MapPin, AlertCircle, Tag, X, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CreditCard, Building2, Loader2, Tag, X, CheckCircle, Truck } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LocationPicker } from '@/components/location-picker';
 import { createClient } from '@/lib/supabase/client';
-import { findZoneForLocation, findPartnerForZone } from '@/lib/geo-utils';
 
 type PaymentMethod = 'payfast' | 'ozow' | 'eft';
 
@@ -24,15 +22,22 @@ interface AppliedDiscount {
   discountAmountCents: number;
 }
 
+interface ZoneInfo {
+  zoneId: string;
+  zoneName: string;
+  partnerId: string;
+  partnerName: string;
+  deliveryType: 'partner' | 'standard';
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getSubtotal, clearCart } = useCartStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('payfast');
-  const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [zoneInfo, setZoneInfo] = useState<{ zoneId: string; zoneName: string; partnerId: string; partnerName: string } | null>(null);
-  const [zoneError, setZoneError] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('eft');
+  const [zoneInfo, setZoneInfo] = useState<ZoneInfo | null>(null);
+  const [zones, setZones] = useState<any[]>([]);
   
   // Discount code state
   const [discountCode, setDiscountCode] = useState('');
@@ -47,13 +52,55 @@ export default function CheckoutPage() {
     phone: '',
     address: '',
     city: '',
-    province: '',
+    province: 'GP',
     postalCode: '',
   });
 
   const subtotal = getSubtotal();
   const discountAmount = appliedDiscount?.discountAmountCents || 0;
-  const total = Math.max(0, subtotal - discountAmount);
+  const deliveryFee = zoneInfo?.deliveryType === 'partner' ? 0 : 0; // Can add fee for standard later
+  const total = Math.max(0, subtotal - discountAmount + deliveryFee);
+
+  // Load zones on mount
+  useEffect(() => {
+    const loadZones = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('zones')
+        .select('id, name, city, province')
+        .eq('is_active', true);
+      if (data) setZones(data);
+    };
+    loadZones();
+  }, []);
+
+  // Auto-detect zone when city/province changes
+  useEffect(() => {
+    if (form.city && form.province) {
+      const matchedZone = zones.find(z => 
+        z.city?.toLowerCase() === form.city.toLowerCase() ||
+        z.name?.toLowerCase().includes(form.city.toLowerCase())
+      );
+      
+      if (matchedZone) {
+        setZoneInfo({
+          zoneId: matchedZone.id,
+          zoneName: matchedZone.name,
+          partnerId: '',
+          partnerName: 'Zone Partner',
+          deliveryType: 'partner',
+        });
+      } else {
+        setZoneInfo({
+          zoneId: '',
+          zoneName: 'Standard Delivery Area',
+          partnerId: '',
+          partnerName: 'Jeffy Direct',
+          deliveryType: 'standard',
+        });
+      }
+    }
+  }, [form.city, form.province, zones]);
 
   const handleApplyDiscount = async () => {
     if (!discountCode.trim()) return;
@@ -89,59 +136,9 @@ export default function CheckoutPage() {
     setDiscountError('');
   };
 
-  const handleLocationSelect = async (location: { lat: number; lng: number; address?: string }) => {
-    setDeliveryLocation(location);
-    setZoneError(null);
-    setZoneInfo(null);
-
-    const supabase = createClient();
-    const zone = await findZoneForLocation(supabase, location.lat, location.lng);
-    
-    if (!zone) {
-      // Allow checkout without zone - standard delivery
-      setZoneInfo({
-        zoneId: '',
-        zoneName: 'Standard Delivery Area',
-        partnerId: '',
-        partnerName: 'Jeffy Direct',
-      });
-      return;
-    }
-
-    const partner = await findPartnerForZone(supabase, zone.zoneId);
-    
-    if (!partner) {
-      // Zone exists but no partner - still allow checkout
-      setZoneInfo({
-        zoneId: zone.zoneId,
-        zoneName: zone.zoneName,
-        partnerId: '',
-        partnerName: 'Jeffy Direct',
-      });
-      return;
-    }
-
-    setZoneInfo({
-      zoneId: zone.zoneId,
-      zoneName: zone.zoneName,
-      partnerId: partner.partnerId,
-      partnerName: partner.partnerName,
-    });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!deliveryLocation) {
-      setError('Please select a delivery location on the map');
-      return;
-    }
-
-    if (!zoneInfo) {
-      setError('Please select a valid delivery location');
-      return;
-    }
-
     setLoading(true);
     setError('');
 
@@ -158,12 +155,12 @@ export default function CheckoutPage() {
           customer: form,
           paymentMethod,
           discountCodeId: appliedDiscount?.id,
-          delivery: deliveryLocation ? {
-            latitude: deliveryLocation.lat,
-            longitude: deliveryLocation.lng,
+          delivery: {
+            latitude: 0,
+            longitude: 0,
             zoneId: zoneInfo?.zoneId || null,
             partnerId: zoneInfo?.partnerId || null,
-          } : null,
+          },
         }),
       });
 
@@ -188,240 +185,303 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
-        <Link href="/products"><Button>Continue Shopping</Button></Link>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center text-white">
+          <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
+          <Link href="/products"><Button className="bg-orange-500 hover:bg-orange-600">Continue Shopping</Button></Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Link href="/cart" className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-6">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Cart
-      </Link>
+    <div className="min-h-screen bg-gray-950 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <Link href="/cart" className="inline-flex items-center text-gray-400 hover:text-white mb-6">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Cart
+        </Link>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Checkout Form */}
-        <div>
-          <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-          
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Delivery Location */}
-            <div className="bg-white rounded-xl border p-6">
-              <h2 className="font-semibold mb-4 flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-orange-500" />
-                Delivery Location
-              </h2>
-              
-              <LocationPicker onLocationSelect={handleLocationSelect} initialLocation={deliveryLocation || undefined} />
-
-              {zoneInfo && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-sm text-green-800"><strong>Delivery Zone:</strong> {zoneInfo.zoneName}</p>
-                  <p className="text-sm text-green-600">Delivered by a local Jeffy Partner</p>
-                </div>
-              )}
-
-              {zoneError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                  <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-                  <p className="text-sm text-red-700">{zoneError}</p>
-                </div>
-              )}
-            </div>
-
-            {/* Contact Info */}
-            <div className="bg-white rounded-xl border p-6">
-              <h2 className="font-semibold mb-4">Contact Information</h2>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">First Name *</label>
-                  <Input required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Last Name *</label>
-                  <Input required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} />
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <label className="block text-sm font-medium mb-1">Email *</label>
-                <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-
-              <div className="mt-4">
-                <label className="block text-sm font-medium mb-1">Phone *</label>
-                <Input type="tel" required placeholder="082 123 4567" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              </div>
-
-              <div className="mt-4">
-                <label className="block text-sm font-medium mb-1">Street Address *</label>
-                <Input required placeholder="House number and street" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">City *</label>
-                  <Input required value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Province *</label>
-                  <select required className="w-full h-10 border border-gray-300 rounded-lg px-3" value={form.province} onChange={(e) => setForm({ ...form, province: e.target.value })}>
-                    <option value="">Select</option>
-                    <option value="GP">Gauteng</option>
-                    <option value="WC">Western Cape</option>
-                    <option value="KZN">KwaZulu-Natal</option>
-                    <option value="EC">Eastern Cape</option>
-                    <option value="FS">Free State</option>
-                    <option value="LP">Limpopo</option>
-                    <option value="MP">Mpumalanga</option>
-                    <option value="NC">Northern Cape</option>
-                    <option value="NW">North West</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Postal Code *</label>
-                  <Input required value={form.postalCode} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
-                </div>
-              </div>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-white rounded-xl border p-6">
-              <h2 className="font-semibold mb-4">Payment Method</h2>
-              
-              <div className="space-y-3">
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'payfast' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                  <input type="radio" name="payment" checked={paymentMethod === 'payfast'} onChange={() => setPaymentMethod('payfast')} className="sr-only" />
-                  <CreditCard className="h-6 w-6 text-gray-600" />
-                  <div>
-                    <p className="font-medium">Card Payment</p>
-                    <p className="text-sm text-gray-500">Visa, Mastercard, AMEX</p>
-                  </div>
-                </label>
-
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'ozow' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                  <input type="radio" name="payment" checked={paymentMethod === 'ozow'} onChange={() => setPaymentMethod('ozow')} className="sr-only" />
-                  <Building2 className="h-6 w-6 text-gray-600" />
-                  <div>
-                    <p className="font-medium">Instant EFT</p>
-                    <p className="text-sm text-gray-500">Pay from your bank</p>
-                  </div>
-                </label>
-
-                <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer ${paymentMethod === 'eft' ? 'border-orange-500 bg-orange-50' : ''}`}>
-                  <input type="radio" name="payment" checked={paymentMethod === 'eft'} onChange={() => setPaymentMethod('eft')} className="sr-only" />
-                  <Building2 className="h-6 w-6 text-gray-600" />
-                  <div>
-                    <p className="font-medium">Manual EFT</p>
-                    <p className="text-sm text-gray-500">Bank transfer (24-48h)</p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>}
-
-            <Button type="submit" size="lg" className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600" disabled={loading || !zoneInfo}>
-              {loading ? <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Processing...</> : `Pay ${formatCurrency(total)}`}
-            </Button>
-          </form>
-        </div>
-
-        {/* Order Summary */}
-        <div>
-          <div className="bg-white rounded-xl border p-6 sticky top-20">
-            <h2 className="font-semibold mb-4">Order Summary</h2>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Checkout Form */}
+          <div>
+            <h1 className="text-2xl font-bold mb-6">Checkout</h1>
             
-            <div className="space-y-4 mb-6">
-              {items.map((item) => (
-                <div key={item.id} className="flex gap-3">
-                  <div className="relative w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                    {item.image ? (
-                      <Image src={item.image} alt={item.name} fill className="object-cover" />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400 text-xs">No img</div>
-                    )}
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">{item.quantity}</span>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Contact Info */}
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+                <h2 className="font-semibold mb-4">Contact Information</h2>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">First Name *</label>
+                    <Input 
+                      required 
+                      value={form.firstName} 
+                      onChange={(e) => setForm({ ...form, firstName: e.target.value })} 
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{item.name}</p>
-                    {item.variantName && <p className="text-xs text-gray-500">{item.variantName}</p>}
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Last Name *</label>
+                    <Input 
+                      required 
+                      value={form.lastName} 
+                      onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
                   </div>
-                  <p className="font-medium text-sm">{formatCurrency(item.price * item.quantity)}</p>
                 </div>
-              ))}
-            </div>
 
-            {/* Discount Code Input */}
-            <div className="border-t pt-4 mb-4">
-              <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                <Tag className="h-4 w-4 text-orange-500" />
-                Discount Code
-              </label>
-              
-              {appliedDiscount ? (
-                <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <div>
-                      <p className="font-medium text-green-800">{appliedDiscount.code}</p>
-                      <p className="text-xs text-green-600">{appliedDiscount.description}</p>
-                    </div>
-                  </div>
-                  <button onClick={handleRemoveDiscount} className="text-gray-500 hover:text-red-500">
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-2">
+                <div className="mt-4">
+                  <label className="block text-sm font-medium mb-1 text-gray-300">Email *</label>
                   <Input 
-                    placeholder="Enter code" 
-                    value={discountCode} 
-                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                    className="flex-1"
+                    type="email" 
+                    required 
+                    value={form.email} 
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white"
                   />
-                  <Button type="button" variant="outline" onClick={handleApplyDiscount} disabled={discountLoading || !discountCode.trim()}>
-                    {discountLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
-                  </Button>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium mb-1 text-gray-300">Phone *</label>
+                  <Input 
+                    type="tel" 
+                    required 
+                    placeholder="082 123 4567" 
+                    value={form.phone} 
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Delivery Address */}
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+                <h2 className="font-semibold mb-4 flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-orange-500" />
+                  Delivery Address
+                </h2>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-gray-300">Street Address *</label>
+                  <Input 
+                    required 
+                    placeholder="House number and street" 
+                    value={form.address} 
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    className="bg-gray-800 border-gray-700 text-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">City *</label>
+                    <Input 
+                      required 
+                      value={form.city} 
+                      onChange={(e) => setForm({ ...form, city: e.target.value })}
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Province *</label>
+                    <select 
+                      required 
+                      className="w-full h-10 bg-gray-800 border border-gray-700 rounded-lg px-3 text-white" 
+                      value={form.province} 
+                      onChange={(e) => setForm({ ...form, province: e.target.value })}
+                    >
+                      <option value="GP">Gauteng</option>
+                      <option value="WC">Western Cape</option>
+                      <option value="KZN">KwaZulu-Natal</option>
+                      <option value="EC">Eastern Cape</option>
+                      <option value="FS">Free State</option>
+                      <option value="LP">Limpopo</option>
+                      <option value="MP">Mpumalanga</option>
+                      <option value="NC">Northern Cape</option>
+                      <option value="NW">North West</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-300">Postal Code *</label>
+                    <Input 
+                      required 
+                      value={form.postalCode} 
+                      onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                      className="bg-gray-800 border-gray-700 text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Zone Status */}
+                {zoneInfo && (
+                  <div className={`mt-4 p-3 rounded-lg ${zoneInfo.deliveryType === 'partner' ? 'bg-green-900/30 border border-green-700' : 'bg-blue-900/30 border border-blue-700'}`}>
+                    <p className={`text-sm font-medium ${zoneInfo.deliveryType === 'partner' ? 'text-green-400' : 'text-blue-400'}`}>
+                      {zoneInfo.deliveryType === 'partner' ? '✓ Zone Partner Delivery' : '📦 Standard Delivery'}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {zoneInfo.deliveryType === 'partner' 
+                        ? 'A local Jeffy partner will deliver to you' 
+                        : 'We\'ll ship directly to your address'}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Method */}
+              <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
+                <h2 className="font-semibold mb-4">Payment Method</h2>
+                
+                <div className="space-y-3">
+                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'payfast' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
+                    <input type="radio" name="payment" checked={paymentMethod === 'payfast'} onChange={() => setPaymentMethod('payfast')} className="sr-only" />
+                    <CreditCard className="h-6 w-6 text-gray-400" />
+                    <div>
+                      <p className="font-medium">Card Payment</p>
+                      <p className="text-sm text-gray-500">Visa, Mastercard, AMEX</p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'ozow' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
+                    <input type="radio" name="payment" checked={paymentMethod === 'ozow'} onChange={() => setPaymentMethod('ozow')} className="sr-only" />
+                    <Building2 className="h-6 w-6 text-gray-400" />
+                    <div>
+                      <p className="font-medium">Instant EFT</p>
+                      <p className="text-sm text-gray-500">Pay from your bank</p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'eft' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
+                    <input type="radio" name="payment" checked={paymentMethod === 'eft'} onChange={() => setPaymentMethod('eft')} className="sr-only" />
+                    <Building2 className="h-6 w-6 text-gray-400" />
+                    <div>
+                      <p className="font-medium">Manual EFT</p>
+                      <p className="text-sm text-gray-500">Bank transfer (24-48h)</p>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {error && (
+                <div className="bg-red-900/30 border border-red-700 text-red-400 p-4 rounded-lg">
+                  {error}
                 </div>
               )}
-              
-              {discountError && <p className="text-red-500 text-sm mt-2">{discountError}</p>}
-            </div>
 
-            <div className="border-t pt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Subtotal</span>
-                <span>{formatCurrency(subtotal)}</span>
-              </div>
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg h-14" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  `Pay ${formatCurrency(total)}`
+                )}
+              </Button>
+            </form>
+          </div>
+
+          {/* Order Summary */}
+          <div>
+            <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 sticky top-20">
+              <h2 className="font-semibold mb-4">Order Summary</h2>
               
-              {appliedDiscount && (
-                <div className="flex justify-between text-sm text-green-600">
-                  <span>Discount ({appliedDiscount.code})</span>
-                  <span>-{formatCurrency(discountAmount)}</span>
+              <div className="space-y-4 mb-6">
+                {items.map((item) => (
+                  <div key={item.id} className="flex gap-3">
+                    <div className="relative w-16 h-16 bg-gray-800 rounded-lg overflow-hidden flex-shrink-0">
+                      {item.image ? (
+                        <Image src={item.image} alt={item.name} fill className="object-cover" />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-xs">No img</div>
+                      )}
+                      <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                        {item.quantity}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{item.name}</p>
+                      {item.variantName && <p className="text-xs text-gray-500">{item.variantName}</p>}
+                    </div>
+                    <p className="font-medium text-sm">{formatCurrency(item.price * item.quantity)}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Discount Code Input */}
+              <div className="border-t border-gray-800 pt-4 mb-4">
+                <label className="block text-sm font-medium mb-2 flex items-center gap-2 text-gray-300">
+                  <Tag className="h-4 w-4 text-orange-500" />
+                  Discount Code
+                </label>
+                
+                {appliedDiscount ? (
+                  <div className="flex items-center justify-between bg-green-900/30 border border-green-700 rounded-lg p-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <div>
+                        <p className="font-medium text-green-400">{appliedDiscount.code}</p>
+                        <p className="text-xs text-green-500">{appliedDiscount.description}</p>
+                      </div>
+                    </div>
+                    <button onClick={handleRemoveDiscount} className="text-gray-400 hover:text-red-400">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input 
+                      placeholder="Enter code" 
+                      value={discountCode} 
+                      onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                      className="flex-1 bg-gray-800 border-gray-700 text-white"
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={handleApplyDiscount} 
+                      disabled={discountLoading || !discountCode.trim()}
+                      className="border-gray-700 text-white hover:bg-gray-800"
+                    >
+                      {discountLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Apply'}
+                    </Button>
+                  </div>
+                )}
+                
+                {discountError && <p className="text-red-400 text-sm mt-2">{discountError}</p>}
+              </div>
+
+              <div className="border-t border-gray-800 pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Subtotal</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
-              )}
-              
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Delivery</span>
-                <span className="text-green-600">Free</span>
-              </div>
-              
-              <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                <span>Total</span>
-                <span>{formatCurrency(total)}</span>
+                
+                {appliedDiscount && (
+                  <div className="flex justify-between text-sm text-green-400">
+                    <span>Discount ({appliedDiscount.code})</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
+                  </div>
+                )}
+                
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Delivery</span>
+                  <span className="text-green-400">Free</span>
+                </div>
+                
+                <div className="flex justify-between text-xl font-bold pt-2 border-t border-gray-800">
+                  <span>Total</span>
+                  <span className="text-orange-500">{formatCurrency(total)}</span>
+                </div>
               </div>
             </div>
-
-            {zoneInfo && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-sm text-gray-600"><strong>Delivering to:</strong> {zoneInfo.zoneName}</p>
-              </div>
-            )}
           </div>
         </div>
       </div>

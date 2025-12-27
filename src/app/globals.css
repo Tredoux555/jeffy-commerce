@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Default dark theme for store */
 html {
   background-color: #0f172a;
 }
@@ -9,6 +10,8 @@ html {
 body {
   background-color: #0f172a;
 }
+
+/* Override for admin pages - handled by layout bg-gray-100 */
 
 :root {
   --foreground-rgb: 0, 0, 0;

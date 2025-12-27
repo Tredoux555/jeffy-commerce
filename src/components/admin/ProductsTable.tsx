@@ -102,25 +102,25 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
             placeholder="Search products..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
+            className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-900"
           />
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => setStatusFilter('all')}
-            className={`px-3 py-1 rounded ${statusFilter === 'all' ? 'bg-orange-500' : 'bg-gray-700'}`}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${statusFilter === 'all' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
           >
             All ({products.length})
           </button>
           <button
             onClick={() => setStatusFilter('draft')}
-            className={`px-3 py-1 rounded ${statusFilter === 'draft' ? 'bg-orange-500' : 'bg-gray-700'}`}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${statusFilter === 'draft' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
           >
             Draft ({draftCount})
           </button>
           <button
             onClick={() => setStatusFilter('active')}
-            className={`px-3 py-1 rounded ${statusFilter === 'active' ? 'bg-orange-500' : 'bg-gray-700'}`}
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${statusFilter === 'active' ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
           >
             Live ({liveCount})
           </button>
@@ -129,7 +129,7 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
           <button
             onClick={handlePublishAllDrafts}
             disabled={bulkLoading}
-            className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-2"
+            className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 text-sm font-medium"
           >
             {bulkLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eye className="h-4 w-4" />}
             Publish All Drafts
@@ -138,65 +138,65 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
       </div>
 
       {/* Products Table */}
-      <div className="bg-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
         <table className="w-full">
-          <thead className="bg-gray-700">
+          <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium">Product</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Price</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Stock</th>
-              <th className="px-4 py-3 text-left text-sm font-medium">Status</th>
-              <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Product</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Price</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Stock</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+              <th className="px-4 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-700">
+          <tbody className="divide-y divide-gray-200">
             {filteredProducts.map((product) => (
-              <tr key={product.id} className="hover:bg-gray-750">
+              <tr key={product.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gray-700 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {product.primary_image_url ? (
                         <img src={product.primary_image_url} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500">?</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">?</div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <Link href={`/admin/products/${product.id}`} className="font-medium hover:text-orange-400 truncate block">
+                      <Link href={`/admin/products/${product.id}`} className="font-medium text-gray-900 hover:text-orange-500 truncate block">
                         {product.name}
                       </Link>
-                      <p className="text-xs text-gray-400 truncate">{product.slug}</p>
+                      <p className="text-xs text-gray-500 truncate">{product.slug}</p>
                     </div>
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   {editingPrice === product.id ? (
                     <div className="flex items-center gap-1">
-                      <span className="text-gray-400">R</span>
+                      <span className="text-gray-500">R</span>
                       <input
                         type="number"
                         value={priceValue}
                         onChange={(e) => setPriceValue(e.target.value)}
-                        className="w-20 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-sm"
+                        className="w-20 px-2 py-1 bg-white border border-gray-300 rounded text-sm"
                         autoFocus
                       />
-                      <button onClick={() => savePrice(product.id)} className="p-1 text-green-500 hover:bg-gray-700 rounded">
+                      <button onClick={() => savePrice(product.id)} className="p-1 text-green-600 hover:bg-gray-100 rounded">
                         <Check className="h-4 w-4" />
                       </button>
-                      <button onClick={() => setEditingPrice(null)} className="p-1 text-red-500 hover:bg-gray-700 rounded">
+                      <button onClick={() => setEditingPrice(null)} className="p-1 text-red-600 hover:bg-gray-100 rounded">
                         <X className="h-4 w-4" />
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => startEditPrice(product)} className="flex items-center gap-1 hover:text-orange-400">
+                    <button onClick={() => startEditPrice(product)} className="flex items-center gap-1 text-gray-900 hover:text-orange-500">
                       {formatCurrency(product.selling_price_cents)}
                       <Pencil className="h-3 w-3 opacity-50" />
                     </button>
                   )}
                 </td>
-                <td className="px-4 py-3">{product.quantity}</td>
+                <td className="px-4 py-3 text-gray-900">{product.quantity}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded text-xs ${product.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-600 text-gray-300'}`}>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${product.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                     {product.status}
                   </span>
                 </td>
@@ -205,21 +205,21 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
                     <button
                       onClick={() => handleToggleStatus(product)}
                       disabled={loadingId === product.id}
-                      className="p-2 hover:bg-gray-700 rounded-lg"
+                      className="p-2 hover:bg-gray-100 rounded-lg"
                       title={product.status === 'active' ? 'Unpublish' : 'Publish'}
                     >
                       {loadingId === product.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
                       ) : product.status === 'active' ? (
-                        <EyeOff className="h-4 w-4 text-yellow-500" />
+                        <EyeOff className="h-4 w-4 text-yellow-600" />
                       ) : (
-                        <Eye className="h-4 w-4 text-green-500" />
+                        <Eye className="h-4 w-4 text-green-600" />
                       )}
                     </button>
                     <button
                       onClick={() => handleDelete(product)}
                       disabled={loadingId === product.id}
-                      className="p-2 hover:bg-gray-700 rounded-lg text-red-500"
+                      className="p-2 hover:bg-gray-100 rounded-lg text-red-600"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -230,7 +230,7 @@ export function ProductsTable({ initialProducts }: { initialProducts: Product[] 
           </tbody>
         </table>
         {filteredProducts.length === 0 && (
-          <div className="py-12 text-center text-gray-400">
+          <div className="py-12 text-center text-gray-500">
             No products found
           </div>
         )}
