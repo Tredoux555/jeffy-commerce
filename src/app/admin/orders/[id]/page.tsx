@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Package, Truck, CheckCircle, Clock, XCircle, FileText, Printer } from 'lucide-react';
+import { ArrowLeft, Loader2, Package, Truck, CheckCircle, Clock, XCircle, FileText, Printer, UserCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
@@ -39,7 +39,14 @@ interface Order {
   shipped_at: string;
   delivered_at: string;
   notes: string;
+  assigned_partner_id: string | null;
   order_items: OrderItem[];
+}
+
+interface ZonePartner {
+  id: string;
+  full_name: string;
+  zone_name: string;
 }
 
 const STATUS_FLOW = [
