@@ -318,16 +318,25 @@ export default async function HomePage() {
       {/* FOOTER */}
       <footer className="bg-gray-900 border-t border-gray-800 py-12">
         <div className="container mx-auto px-4">
+          {/* The deeper story teaser */}
+          <div className="text-center mb-10 pb-10 border-b border-gray-800">
+            <p className="text-gray-500 mb-2">There's more to Jeffy than meets the eye.</p>
+            <Link href="/story" className="text-orange-500 hover:text-orange-400 font-medium">
+              Discover the real mission →
+            </Link>
+          </div>
+          
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
               <span className="text-2xl font-black text-orange-500">JEFFY</span>
               <p className="text-gray-400 text-sm mt-1">"Eish, These Prices!"</p>
             </div>
-            <div className="flex gap-6 text-sm text-gray-400">
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
               <Link href="/products" className="hover:text-white">Shop</Link>
               <Link href="/wants" className="hover:text-white">Wants</Link>
               <Link href="/partner/apply" className="hover:text-white">Zone Partners</Link>
-              <Link href="/admin" className="hover:text-white">Admin</Link>
+              <Link href="/story" className="hover:text-white">Our Story</Link>
+              <Link href="/vision" className="hover:text-white">The Vision</Link>
             </div>
             <p className="text-gray-500 text-sm">
               © 2025 Jeffy Commerce. South Africa.
