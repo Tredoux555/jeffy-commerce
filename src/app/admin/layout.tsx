@@ -57,6 +57,13 @@ export default function AdminLayout({
               Products
             </Link>
             <Link
+              href="/admin/categories"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg pl-8"
+            >
+              <Tag className="h-4 w-4" />
+              Categories
+            </Link>
+            <Link
               href="/admin/orders"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
@@ -73,13 +80,6 @@ export default function AdminLayout({
             >
               <Tag className="h-5 w-5" />
               Discounts
-            </Link>
-            <Link
-              href="/admin/categories"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <Users className="h-5 w-5" />
-              Categories
             </Link>
             
             {/* Wants Section */}
