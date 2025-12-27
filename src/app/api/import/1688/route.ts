@@ -115,14 +115,22 @@ export async function POST(request: NextRequest) {
         short_description: description?.substring(0, 160) || '',
         sku: sku,
         price: sellingPrice,
+        selling_price_cents: sellingPrice,
         compare_at_price: comparePrice,
+        compare_at_price_cents: comparePrice,
         cost_price: costPriceZAR,
-        stock: 100, // Default stock
+        cost_price_cents: costPriceZAR,
+        stock: 100,
+        quantity: 100,
+        stock_quantity: 100,
         images: images || [],
         main_image: mainImage || images?.[0] || null,
+        primary_image_url: mainImage || images?.[0] || null,
         source: source || '1688',
         source_product_id: sourceProductId,
         source_url: sourceUrl,
+        source_1688_url: sourceUrl,
+        source_1688_item_id: sourceProductId,
         source_data: {
           titleOriginal,
           descriptionOriginal,
@@ -133,7 +141,17 @@ export async function POST(request: NextRequest) {
           capturedAt,
           importedAt: new Date().toISOString()
         },
-        status: 'draft', // Start as draft for review
+        source_1688_data: {
+          titleOriginal,
+          descriptionOriginal,
+          costPriceCNY,
+          moq,
+          seller,
+          variants,
+          capturedAt,
+          importedAt: new Date().toISOString()
+        },
+        status: 'draft',
         is_active: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
