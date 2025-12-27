@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Wand2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Wand2, Trash2, ZoomIn } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ export default function EditProductPage() {
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
   const [enhancing, setEnhancing] = useState<number | null>(null);
   const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
+  const [zoomImage, setZoomImage] = useState<string | null>(null);
   
   const [form, setForm] = useState({
     name: '',
@@ -592,6 +593,15 @@ export default function EditProductPage() {
                           </div>
                         )}
                       </button>
+                      {/* Zoom button - shows on hover */}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setZoomImage(img); }}
+                        className="absolute top-1 left-1 p-1 bg-blue-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-600 z-20"
+                        title="Zoom image"
+                      >
+                        <ZoomIn className="h-3 w-3" />
+                      </button>
                       {/* Delete button - shows on hover */}
                       <button
                         type="button"
@@ -735,6 +745,27 @@ export default function EditProductPage() {
           </Link>
         </div>
       </form>
+
+      {/* Zoom Modal */}
+      {zoomImage && (
+        <div 
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setZoomImage(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-gray-300 z-50"
+            onClick={() => setZoomImage(null)}
+          >
+            <X className="h-8 w-8" />
+          </button>
+          <img 
+            src={zoomImage} 
+            alt="Zoomed" 
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }
