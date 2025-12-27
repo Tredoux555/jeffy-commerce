@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { ShoppingCart, Eye } from 'lucide-react';
 import type { Product } from '@/types/database';
@@ -51,11 +50,10 @@ export function ProductCard({ product }: ProductCardProps) {
         {/* Image */}
         <div className="relative aspect-square bg-gray-100">
           {product.primary_image_url ? (
-            <Image
+            <img
               src={product.primary_image_url}
               alt={product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">
