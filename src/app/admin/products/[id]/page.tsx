@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,9 @@ export default function EditProductPage() {
   const [submitting, setSubmitting] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [images, setImages] = useState<string[]>([]);
+  const [translating, setTranslating] = useState<string | null>(null);
+  const [originalTitle, setOriginalTitle] = useState('');
   
   const [form, setForm] = useState({
     name: '',
@@ -63,6 +66,16 @@ export default function EditProductPage() {
 
         const source1688Data = product.source_1688_data || {};
 
+        // Load images array
+        if (product.images && Array.isArray(product.images)) {
+          setImages(product.images);
+        } else if (product.primary_image_url) {
+          setImages([product.primary_image_url]);
+        }
+
+        // Save original title for translation reference
+        setOriginalTitle(source1688Data?.titleOriginal || product.name || '');
+
         setForm({
           name: product.name || '',
           slug: product.slug || '',
@@ -97,6 +110,37 @@ export default function EditProductPage() {
       name,
       slug: slugify(name),
     });
+  };
+
+  const handleTranslate = async (field: 'title' | 'description') => {
+    const text = field === 'title' ? (originalTitle || form.name) : form.description;
+    if (!text) return;
+    
+    setTranslating(field);
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, type: field }),
+      });
+      const data = await res.json();
+      if (data.success && data.translation) {
+        if (field === 'title') {
+          handleNameChange(data.translation);
+        } else {
+          setForm({ ...form, description: data.translation });
+        }
+      } else {
+        alert(data.error || 'Translation failed');
+      }
+    } catch (error) {
+      alert('Translation failed');
+    }
+    setTranslating(null);
+  };
+
+  const selectImage = (url: string) => {
+    setForm({ ...form, imageUrl: url });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -188,12 +232,25 @@ export default function EditProductPage() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Product Name *</label>
-            <Input
-              required
-              value={form.name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g., Wireless Bluetooth Earbuds"
-            />
+            <div className="flex gap-2">
+              <Input
+                required
+                value={form.name}
+                onChange={(e) => handleNameChange(e.target.value)}
+                placeholder="e.g., Wireless Bluetooth Earbuds"
+                className="flex-1"
+              />
+              <button
+                type="button"
+                onClick={() => handleTranslate('title')}
+                disabled={translating === 'title'}
+                className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 flex items-center gap-1"
+                title="AI Translate to English"
+              >
+                {translating === 'title' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                Translate
+              </button>
+            </div>
           </div>
 
           <div>
@@ -216,6 +273,17 @@ export default function EditProductPage() {
 
           <div>
             <label className="block text-sm font-medium mb-1">Full Description</label>
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => handleTranslate('description')}
+                disabled={translating === 'description'}
+                className="px-3 py-1 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 flex items-center gap-1 text-sm"
+              >
+                {translating === 'description' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                AI Translate & Beautify
+              </button>
+            </div>
             <textarea
               className="w-full border rounded-lg px-3 py-2 min-h-[100px]"
               value={form.description}
@@ -297,6 +365,42 @@ export default function EditProductPage() {
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <h2 className="font-semibold">Media</h2>
 
+          {/* Image Gallery */}
+          {images.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Available Images (click to select)</label>
+              <div className="grid grid-cols-5 gap-2">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => selectImage(img)}
+                    className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
+                      form.imageUrl === img ? 'border-jeffy-orange ring-2 ring-jeffy-orange' : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                  >
+                    <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+                    {form.imageUrl === img && (
+                      <div className="absolute top-1 right-1 bg-jeffy-orange text-white rounded-full p-0.5">
+                        <Check className="h-3 w-3" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Selected Image Preview */}
+          {form.imageUrl && (
+            <div>
+              <label className="block text-sm font-medium mb-2">Selected Image</label>
+              <div className="w-48 h-48 rounded-lg overflow-hidden border bg-gray-100">
+                <img src={form.imageUrl} alt="Selected" className="w-full h-full object-cover" />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium mb-1">Image URL</label>
             <Input
@@ -306,7 +410,7 @@ export default function EditProductPage() {
               placeholder="https://example.com/image.jpg"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Enter a direct URL to the product image
+              Select from gallery above or enter a direct URL
             </p>
           </div>
         </div>
