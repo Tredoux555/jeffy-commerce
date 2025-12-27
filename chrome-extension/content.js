@@ -3,8 +3,6 @@
 
 (function() {
   'use strict';
-
-  const JEFFY_API_URL = 'https://jeffy.co.za/api/import/1688';
   
   // Check if we're on a product detail page
   function isProductPage() {
@@ -203,16 +201,19 @@
 
       showStatus('Sending to Jeffy...', 'info');
 
-      // Send to Jeffy API
-      const response = await fetch(JEFFY_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productData)
+      // Send to background script (bypasses CORS)
+      const result = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          { type: 'IMPORT_PRODUCT', data: productData },
+          response => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+            } else {
+              resolve(response);
+            }
+          }
+        );
       });
-
-      const result = await response.json();
 
       if (result.success) {
         showStatus(`✅ Product imported! ID: ${result.productId}`, 'success');

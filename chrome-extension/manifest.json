@@ -13,7 +13,8 @@
     "https://detail.1688.com/*",
     "https://www.jeffy.co.za/*",
     "https://jeffy.co.za/*",
-    "https://*.vercel.app/*"
+    "https://*.vercel.app/*",
+    "https://jeffy-commerce.vercel.app/*"
   ],
   "action": {
     "default_popup": "popup.html",

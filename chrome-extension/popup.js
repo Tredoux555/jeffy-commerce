@@ -26,7 +26,7 @@ async function checkConnection() {
     const response = await fetch('https://jeffy.co.za/api/import/1688');
     const data = await response.json();
     
-    if (data.success) {
+    if (data.success !== undefined) {
       statusDot.classList.remove('offline');
       statusText.textContent = 'Connected to Jeffy';
     } else {

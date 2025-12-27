@@ -149,15 +149,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Log the import
-    await supabase.from('import_logs').insert({
-      source: '1688',
-      source_product_id: sourceProductId,
-      product_id: product.id,
-      status: 'success',
-      data: body,
-      created_at: new Date().toISOString()
-    }).catch(() => {}); // Ignore if table doesn't exist
+    // Log the import (ignore errors if table doesn't exist)
+    try {
+      await supabase.from('import_logs').insert({
+        source: '1688',
+        source_product_id: sourceProductId,
+        product_id: product.id,
+        status: 'success',
+        data: body,
+        created_at: new Date().toISOString()
+      });
+    } catch {
+      // Ignore - table may not exist yet
+    }
 
     return NextResponse.json({
       success: true,
