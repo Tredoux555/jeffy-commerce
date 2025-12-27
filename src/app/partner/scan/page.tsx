@@ -1,228 +1,198 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, QrCode, CheckCircle, AlertCircle, Loader2, Package } from 'lucide-react';
+import { ArrowLeft, Camera, Package, Check, AlertCircle, Truck, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { QRScanner } from '@/components/qr-scanner';
-import { createClient } from '@/lib/supabase/client';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
-export default function ScanPage() {
-  const router = useRouter();
-  const [showScanner, setShowScanner] = useState(false);
-  const [result, setResult] = useState<{
-    success: boolean;
-    message: string;
-    delivery?: any;
-    previousStatus?: string;
-    newStatus?: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [partnerId, setPartnerId] = useState<string | null>(null);
+interface ScannedOrder {
+  orderId: string;
+  orderNumber: string;
+  customerName: string;
+  address: string;
+  status: 'pending' | 'scanned' | 'error';
+  message?: string;
+}
+
+export default function PartnerScanPage() {
+  const [scanning, setScanning] = useState(false);
+  const [scannedOrders, setScannedOrders] = useState<ScannedOrder[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
-    getPartnerId();
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.clear();
+      }
+    };
   }, []);
 
-  const getPartnerId = async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      router.push('/auth/login');
-      return;
-    }
+  const startScanner = () => {
+    setScanning(true);
+    setError(null);
 
-    const { data: partner } = await supabase
-      .from('zone_partners')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
+    setTimeout(() => {
+      scannerRef.current = new Html5QrcodeScanner(
+        'qr-reader',
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1,
+        },
+        false
+      );
 
-    if (partner) {
-      setPartnerId(partner.id);
-    }
+      scannerRef.current.render(onScanSuccess, onScanError);
+    }, 100);
   };
 
-  const handleScan = async (qrCode: string) => {
-    setShowScanner(false);
-    setLoading(true);
-    setResult(null);
+  const stopScanner = () => {
+    if (scannerRef.current) {
+      scannerRef.current.clear();
+      scannerRef.current = null;
+    }
+    setScanning(false);
+  };
+
+  const onScanSuccess = async (decodedText: string) => {
+    // Prevent duplicate scans
+    if (processing) return;
+    setProcessing(true);
 
     try {
-      const response = await fetch('/api/delivery/scan', {
+      // Parse the QR code - expecting URL format: /delivery/scan/ORDER_NUMBER/VERIFICATION_CODE
+      const urlMatch = decodedText.match(/\/delivery\/scan\/([^\/]+)\/([^\/]+)/);
+      
+      let orderNumber: string;
+      let verificationCode: string;
+
+      if (urlMatch) {
+        orderNumber = urlMatch[1];
+        verificationCode = urlMatch[2];
+      } else if (decodedText.startsWith('JEFFY-')) {
+        // Legacy format: JEFFY-ORDER_NUMBER-CODE
+        const parts = decodedText.split('-');
+        orderNumber = parts[1];
+        verificationCode = parts[2];
+      } else {
+        throw new Error('Invalid QR code format');
+      }
+
+      // Check if already scanned
+      if (scannedOrders.some(o => o.orderNumber === orderNumber)) {
+        setError('This order has already been scanned');
+        setProcessing(false);
+        return;
+      }
+
+      // Call API to mark as out for delivery
+      const res = await fetch('/api/partner/scan-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ qrCode, partnerId }),
+        body: JSON.stringify({ orderNumber, verificationCode }),
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
-      if (response.ok) {
-        setResult({
-          success: true,
-          message: data.message,
-          delivery: data.delivery,
-          previousStatus: data.previousStatus,
-          newStatus: data.newStatus,
-        });
+      if (data.success) {
+        setScannedOrders(prev => [...prev, {
+          orderId: data.orderId,
+          orderNumber: data.orderNumber,
+          customerName: data.customerName,
+          address: data.address,
+          status: 'scanned',
+        }]);
+        
+        // Play success sound/vibrate
+        if (navigator.vibrate) navigator.vibrate(200);
+        
       } else {
-        setResult({
-          success: false,
-          message: data.error || 'Failed to process scan',
-        });
+        setScannedOrders(prev => [...prev, {
+          orderId: '',
+          orderNumber,
+          customerName: 'Unknown',
+          address: '',
+          status: 'error',
+          message: data.error,
+        }]);
       }
-    } catch (error) {
-      setResult({
-        success: false,
-        message: 'Network error. Please try again.',
-      });
+    } catch (err: any) {
+      setError(err.message || 'Scan failed');
     }
 
-    setLoading(false);
+    setProcessing(false);
   };
 
-  const STATUS_LABELS: Record<string, string> = {
-    pending: 'Pending Pickup',
-    loaded: 'Loaded',
-    in_transit: 'In Transit',
-    arrived: 'Arrived',
-    delivered: 'Delivered',
+  const onScanError = (error: string) => {
+    // Ignore frequent scan errors
+    console.log('Scan error:', error);
+  };
+
+  const startDeliveries = () => {
+    const successfulOrders = scannedOrders.filter(o => o.status === 'scanned');
+    if (successfulOrders.length === 0) return;
+    
+    // Navigate to route page with scanned orders
+    const orderIds = successfulOrders.map(o => o.orderId).join(',');
+    window.location.href = `/partner/route?orders=${orderIds}`;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/partner/dashboard">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            </Link>
-            <div>
-              <h1 className="font-bold">Scan Delivery</h1>
-              <p className="text-sm text-gray-500">Scan QR code to update status</p>
-            </div>
+      <div className="bg-gray-800 border-b border-gray-700">
+        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
+          <Link href="/partner/dashboard">
+            <Button variant="ghost" size="sm" className="text-gray-400">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div>
+            <h1 className="font-bold text-xl">Scan & Pack</h1>
+            <p className="text-sm text-gray-400">Scan order QR codes to start delivery</p>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-md">
-        {/* Scanner Button */}
-        {!showScanner && !result && !loading && (
-          <div className="text-center">
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <div className="w-24 h-24 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <QrCode className="h-12 w-12 text-orange-600" />
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Scanner Section */}
+        <div className="bg-gray-800 rounded-xl p-6">
+          {!scanning ? (
+            <div className="text-center py-8">
+              <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Camera className="h-10 w-10 text-orange-500" />
               </div>
-              <h2 className="text-xl font-bold mb-2">Ready to Scan</h2>
-              <p className="text-gray-600 mb-6">
-                Scan the QR code on the package to update delivery status
-              </p>
-              <Button
-                onClick={() => setShowScanner(true)}
-                className="w-full h-14 text-lg bg-gradient-to-r from-orange-500 to-yellow-500"
-              >
-                <QrCode className="h-5 w-5 mr-2" />
-                Open Scanner
+              <h2 className="text-xl font-semibold mb-2">Ready to Scan</h2>
+              <p className="text-gray-400 mb-6">Scan each package's QR code before loading into your vehicle</p>
+              <Button onClick={startScanner} className="bg-orange-500 hover:bg-orange-600">
+                <Camera className="h-4 w-4 mr-2" /> Start Scanner
               </Button>
             </div>
-
-            <p className="text-sm text-gray-500 mt-6">
-              Each scan advances the delivery to the next status
-            </p>
-          </div>
-        )}
-
-        {/* Loading */}
-        {loading && (
-          <div className="text-center py-12">
-            <Loader2 className="h-12 w-12 animate-spin text-orange-500 mx-auto mb-4" />
-            <p className="text-gray-600">Processing scan...</p>
-          </div>
-        )}
-
-        {/* Result */}
-        {result && (
-          <div className="text-center">
-            <div className={`rounded-2xl p-8 shadow-lg ${
-              result.success ? 'bg-green-50' : 'bg-red-50'
-            }`}>
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ${
-                result.success ? 'bg-green-100' : 'bg-red-100'
-              }`}>
-                {result.success ? (
-                  <CheckCircle className="h-10 w-10 text-green-600" />
-                ) : (
-                  <AlertCircle className="h-10 w-10 text-red-600" />
-                )}
-              </div>
-              
-              <h2 className={`text-xl font-bold mb-2 ${
-                result.success ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {result.success ? 'Success!' : 'Error'}
-              </h2>
-              
-              <p className={result.success ? 'text-green-700' : 'text-red-700'}>
-                {result.message}
-              </p>
-
-              {result.success && result.delivery && (
-                <div className="mt-6 p-4 bg-white rounded-xl text-left">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Package className="h-5 w-5 text-gray-400" />
-                    <span className="font-medium">{result.delivery.orders?.order_number}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Status changed:</span>
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-gray-100 rounded text-gray-600">
-                        {STATUS_LABELS[result.previousStatus || ''] || result.previousStatus}
-                      </span>
-                      <span>→</span>
-                      <span className="px-2 py-1 bg-orange-100 rounded text-orange-700 font-medium">
-                        {STATUS_LABELS[result.newStatus || ''] || result.newStatus}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3 mt-6">
-                <Button
-                  onClick={() => setResult(null)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Scan Another
+          ) : (
+            <div>
+              <div id="qr-reader" className="mx-auto max-w-sm rounded-lg overflow-hidden"></div>
+              <div className="flex justify-center mt-4">
+                <Button onClick={stopScanner} variant="outline">
+                  Stop Scanner
                 </Button>
-                {result.success && result.delivery && (
-                  <Link href={`/partner/delivery/${result.delivery.id}`} className="flex-1">
-                    <Button className="w-full bg-orange-500">
-                      View Details
-                    </Button>
-                  </Link>
-                )}
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      {/* QR Scanner Modal */}
-      {showScanner && (
-        <QRScanner
-          onScan={handleScan}
-          onClose={() => setShowScanner(false)}
-        />
-      )}
-    </div>
-  );
-}
+          {error && (
+            <div className="mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-red-500" />
+              <span className="text-red-200">{error}</span>
+            </div>
+          )}
 
-
-
+          {processing && (
+            <div className="mt-4 flex items-center justify-center gap-2 text-orange-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Processing...
+            </div>
+          )}
+        </div>
