@@ -1,64 +1,43 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
 import Link from 'next/link';
+import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-interface ErrorProps {
+export default function Error({
+  error,
+  reset,
+}: {
   error: Error & { digest?: string };
   reset: () => void;
-}
-
-export default function Error({ error, reset }: ErrorProps) {
+}) {
   useEffect(() => {
-    // Log error to console (could send to error tracking service)
-    console.error('Application Error:', error);
+    console.error('Application error:', error);
   }, [error]);
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-[50vh] flex items-center justify-center p-8">
       <div className="text-center max-w-md">
-        <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <AlertTriangle className="h-10 w-10 text-red-500" />
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <AlertTriangle className="h-8 w-8 text-red-600" />
         </div>
-        
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          Eish! Something went wrong
-        </h1>
-        
+        <h2 className="text-2xl font-bold mb-2">Eish! Something went wrong</h2>
         <p className="text-gray-600 mb-6">
-          We're sorry, but something unexpected happened. Don't worry, our team has been notified.
+          We hit a snag. Don't worry, our team has been notified.
         </p>
-
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={reset}
-            className="inline-flex items-center justify-center gap-2 bg-[#ff6b35] text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition"
-          >
-            <RefreshCw className="h-5 w-5" />
+        <div className="flex gap-3 justify-center">
+          <Button onClick={reset} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
             Try Again
-          </button>
-          
+          </Button>
           <Link href="/">
-            <button className="inline-flex items-center justify-center gap-2 bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-bold hover:bg-gray-300 transition w-full sm:w-auto">
-              <Home className="h-5 w-5" />
+            <Button>
+              <Home className="h-4 w-4 mr-2" />
               Go Home
-            </button>
+            </Button>
           </Link>
         </div>
-
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 text-left bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="font-mono text-sm text-red-800 break-all">
-              {error.message}
-            </p>
-            {error.digest && (
-              <p className="font-mono text-xs text-red-600 mt-2">
-                Error ID: {error.digest}
-              </p>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
