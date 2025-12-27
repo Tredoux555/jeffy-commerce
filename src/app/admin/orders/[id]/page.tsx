@@ -98,28 +98,33 @@ export default function OrderDetailPage() {
 
   const updateStatus = async (newStatus: string) => {
     setUpdating(true);
-    const supabase = createClient();
     
     const updates: any = { status: newStatus };
     
     if (newStatus === 'paid' || newStatus === 'processing') {
-      updates.payment_status = 'paid';
-      if (!order?.paid_at) updates.paid_at = new Date().toISOString();
-    }
-    if (newStatus === 'out_for_delivery') {
-      updates.shipped_at = new Date().toISOString();
-    }
-    if (newStatus === 'delivered') {
-      updates.delivered_at = new Date().toISOString();
+      updates.paymentStatus = 'paid';
     }
 
-    const { error } = await supabase
-      .from('orders')
-      .update(updates)
-      .eq('id', orderId);
+    try {
+      const res = await fetch('/api/admin/orders/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          status: newStatus,
+          paymentStatus: updates.paymentStatus,
+        }),
+      });
 
-    if (!error) {
-      setOrder({ ...order!, ...updates });
+      const data = await res.json();
+      
+      if (data.success) {
+        await fetchOrder(); // Refresh order data
+      } else {
+        alert('Failed to update: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      alert('Failed to update status');
     }
     setUpdating(false);
   };
