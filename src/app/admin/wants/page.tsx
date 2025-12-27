@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Eye, Users, CheckCircle, Clock, Bell, AlertTriangle, Package, ExternalLink, Image as ImageIcon, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ConvertToProductButton } from '@/components/convert-to-product-button';
 
 function getExpiryInfo(createdAt: string) {
   const created = new Date(createdAt);
@@ -264,6 +265,15 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
                 <Package className="h-4 w-4 mr-1" /> Source
               </Button>
             </Link>
+          )}
+
+          {/* Convert to Product Button - Only for READY wants */}
+          {type === 'ready' && !want.converted_product_id && (
+            <ConvertToProductButton wantId={want.id} wantTitle={want.title} />
+          )}
+          
+          {want.converted_product_id && (
+            <span className="text-sm text-green-600 font-medium">✓ Converted to Product</span>
           )}
         </div>
       </div>
