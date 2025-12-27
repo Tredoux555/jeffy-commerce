@@ -93,8 +93,26 @@ export default function DeliveryConfirmPage() {
       setConfirmed(true);
       setOrder({ ...order, status: 'delivered', delivered_at: now });
 
-      // TODO: Trigger partner earnings credit
-      // TODO: Send confirmation WhatsApp
+      // Send confirmation WhatsApp
+      if (order.customer_phone) {
+        try {
+          await fetch('/api/notify/whatsapp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'delivered',
+              orderId: order.id,
+              phone: order.customer_phone,
+              data: {
+                orderNumber: order.order_number,
+                customerName: order.customer_name || 'Customer',
+              }
+            })
+          });
+        } catch (e) {
+          console.error('WhatsApp notification failed:', e);
+        }
+      }
     } catch (err: any) {
       setError('Failed to confirm: ' + err.message);
     }

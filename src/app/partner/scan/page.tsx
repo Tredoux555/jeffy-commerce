@@ -157,6 +157,13 @@ export default function PartnerScanPage() {
 
       // Update all scanned orders to "out_for_delivery"
       for (const order of scannedOrders) {
+        // Get full order details including phone
+        const { data: fullOrder } = await supabase
+          .from('orders')
+          .select('customer_phone, customer_name')
+          .eq('id', order.id)
+          .single();
+
         await supabase
           .from('orders')
           .update({
@@ -165,8 +172,31 @@ export default function PartnerScanPage() {
           })
           .eq('id', order.id);
 
-        // TODO: Trigger WhatsApp notification here
-        // await sendWhatsAppNotification(order);
+        // Send WhatsApp notification
+        if (fullOrder?.customer_phone) {
+          try {
+            const res = await fetch('/api/notify/whatsapp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                type: 'out_for_delivery',
+                orderId: order.id,
+                phone: fullOrder.customer_phone,
+                data: {
+                  orderNumber: order.order_number,
+                  customerName: fullOrder.customer_name || 'Customer',
+                }
+              })
+            });
+            const notifyData = await res.json();
+            // Open WhatsApp in new tab
+            if (notifyData.whatsappUrl) {
+              window.open(notifyData.whatsappUrl, '_blank');
+            }
+          } catch (e) {
+            console.error('WhatsApp notification failed:', e);
+          }
+        }
       }
 
       setSuccess(`${scannedOrders.length} orders dispatched!`);
