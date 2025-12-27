@@ -192,7 +192,24 @@ export default function CheckoutPage() {
         router.push(`/checkout/success?order=${data.orderNumber}&method=eft`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      const errorMsg = err instanceof Error ? err.message : 'Something went wrong';
+      setError(errorMsg);
+      
+      // Report error to admin
+      try {
+        await fetch('/api/errors/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            errorType: 'checkout_failed',
+            errorMessage: errorMsg,
+            errorDetails: { items: items.length, paymentMethod },
+            pageUrl: '/checkout',
+            customerEmail: form.email,
+            customerPhone: form.phone,
+          }),
+        });
+      } catch (e) { /* ignore */ }
       setLoading(false);
     }
   };
