@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Tag, Bell, BookOpen, Scale } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Tag, Bell, BookOpen, Scale, Send } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
 export default function AdminLayout({
@@ -179,6 +179,22 @@ export default function AdminLayout({
             >
               <Scale className="h-5 w-5" />
               Legal Documents
+            </Link>
+            
+            {/* Growth Section */}
+            <div className="my-2 border-t border-gray-200 pt-2">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Growth</p>
+            </div>
+            <Link
+              href="/admin/outreach"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/outreach' 
+                  ? 'bg-pink-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Send className="h-5 w-5" />
+              Influencer Outreach
             </Link>
             
             {/* Divider */}
