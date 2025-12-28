@@ -279,9 +279,13 @@ export async function runCompleteTestSuite(baseUrl: string): Promise<TestSuiteRe
     const now = new Date();
     const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
     
+    // Generate a test UUID for user_id (not a real auth user, just for testing)
+    const testUserId = crypto.randomUUID();
+    
     const { data, error } = await supabaseAdmin
       .from('zone_partners')
       .insert({
+        user_id: testUserId,
         full_name: 'E2E Test Partner',
         email: generateEmail(),
         phone: '+27123456789',
