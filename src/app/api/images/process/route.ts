@@ -7,16 +7,15 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { processProductImage, processProductImages } from '@/lib/image-processor';
-import { createClient } from '@/lib/supabase/server';
+import { isAdminLoggedIn } from '@/lib/auth';
 
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
+    // Check admin auth
+    const isAdmin = await isAdminLoggedIn();
+    if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
