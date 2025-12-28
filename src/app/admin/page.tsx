@@ -124,8 +124,11 @@ export default async function AdminDashboard() {
 
       {/* Quick Links */}
       <div className="mb-8 flex flex-wrap gap-3">
-        <Link href="/health" target="_blank" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#ff6b35] text-white hover:bg-orange-600 transition font-medium text-sm">
-          🏥 Health Check
+        <Link href="/admin/roadmap" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition font-medium text-sm">
+          🚀 Launch Roadmap
+        </Link>
+        <Link href="/admin/outreach" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition font-medium text-sm">
+          📧 Outreach CRM
         </Link>
         <Link href="/admin/products/new" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-medium text-sm">
           + Add Product
