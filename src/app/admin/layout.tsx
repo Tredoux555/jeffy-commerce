@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Tag, Bell, BookOpen, Scale, Send } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Tag, Bell, BookOpen, Scale, Send, Rocket } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
 export default function AdminLayout({
@@ -195,6 +195,17 @@ export default function AdminLayout({
             >
               <Send className="h-5 w-5" />
               Influencer Outreach
+            </Link>
+            <Link
+              href="/admin/roadmap"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/roadmap' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Rocket className="h-5 w-5" />
+              Launch Roadmap
             </Link>
             
             {/* Divider */}
