@@ -1,15 +1,17 @@
+'use client';
+
 import Link from 'next/link';
-import { 
-  LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, 
-  FlaskConical, MapPin, UserCheck, RotateCcw, FileText,
-  Megaphone, Rocket, BarChart3, Tag, Bell, Activity
-} from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Tag, Bell, BookOpen, Scale, Send, Rocket, FlaskConical } from 'lucide-react';
+import { AdminNotifications } from '@/components/admin-notifications';
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white border-b sticky top-0 z-50">
@@ -17,14 +19,17 @@ export default function AdminLayout({
           <Link href="/admin" className="text-xl font-bold text-jeffy-orange">
             Jeffy Admin
           </Link>
-          <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
-            ← Back to Store
-          </Link>
+          <div className="flex items-center gap-4">
+            <AdminNotifications />
+            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
+              ← Back to Store
+            </Link>
+          </div>
         </div>
       </header>
 
       <div className="flex">
-        <aside className="w-64 bg-white border-r min-h-[calc(100vh-65px)] p-4 overflow-y-auto">
+        <aside className="w-64 bg-white border-r min-h-[calc(100vh-65px)] p-4">
           <nav className="space-y-1">
             <Link
               href="/admin"
@@ -34,11 +39,29 @@ export default function AdminLayout({
               Dashboard
             </Link>
             <Link
+              href="/admin/analytics"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/analytics' 
+                  ? 'bg-green-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <TrendingUp className="h-5 w-5" />
+              Analytics
+            </Link>
+            <Link
               href="/admin/products"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <Package className="h-5 w-5" />
               Products
+            </Link>
+            <Link
+              href="/admin/categories"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg pl-8"
+            >
+              <Tag className="h-4 w-4" />
+              Categories
             </Link>
             <Link
               href="/admin/orders"
@@ -48,49 +71,58 @@ export default function AdminLayout({
               Orders
             </Link>
             <Link
-              href="/admin/categories"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <Users className="h-5 w-5" />
-              Categories
-            </Link>
-            <Link
               href="/admin/discounts"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/discounts' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <Tag className="h-5 w-5" />
               Discounts
             </Link>
             
             {/* Wants Section */}
-            <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Wants</div>
+            <div className="my-2 border-t border-gray-200 pt-2">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Wants</p>
             </div>
             <Link
               href="/admin/wants"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/wants' 
+                  ? 'bg-[#ff6b35] text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <Gift className="h-5 w-5" />
               Wants
             </Link>
             <Link
               href="/admin/notifications"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/notifications' 
+                  ? 'bg-[#25D366] text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <Bell className="h-5 w-5" />
-              Notifications
+              WhatsApp Queue
             </Link>
             <Link
-              href="/admin/analytics"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              href="/admin/survey"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/survey' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <BarChart3 className="h-5 w-5" />
-              Analytics
+              Wants Stats
             </Link>
             
             {/* Operations Section */}
-            <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Operations</div>
+            <div className="my-2 border-t border-gray-200 pt-2">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Operations</p>
             </div>
             <Link
               href="/admin/procurement"
@@ -100,74 +132,115 @@ export default function AdminLayout({
               Procurement
             </Link>
             <Link
-              href="/admin/procurement/smart-finder"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg ml-4"
-            >
-              <span className="text-jeffy-orange">🤖</span>
-              Smart Finder
-            </Link>
-            <Link
               href="/admin/partners"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/partners' 
+                  ? 'bg-jeffy-orange text-white' 
+                  : 'hover:bg-gray-100'
+              }`}
             >
-              <UserCheck className="h-5 w-5" />
+              <Users className="h-5 w-5" />
               Zone Partners
             </Link>
             <Link
               href="/admin/zones"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/zones' 
+                  ? 'bg-jeffy-orange text-white' 
+                  : 'hover:bg-gray-100'
+              }`}
             >
               <MapPin className="h-5 w-5" />
               Zones
             </Link>
             
             {/* Documentation Section */}
-            <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Documentation</div>
+            <div className="my-2 border-t border-gray-200 pt-2">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Documentation</p>
             </div>
             <Link
               href="/admin/documentation"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/documentation' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <FileText className="h-5 w-5" />
+              <BookOpen className="h-5 w-5" />
               Documentation
+            </Link>
+            <Link
+              href="/legal"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/legal' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Scale className="h-5 w-5" />
+              Legal Documents
             </Link>
             
             {/* Growth Section */}
-            <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Growth</div>
+            <div className="my-2 border-t border-gray-200 pt-2">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Growth</p>
             </div>
             <Link
               href="/admin/outreach"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/outreach' 
+                  ? 'bg-pink-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <Megaphone className="h-5 w-5" />
+              <Send className="h-5 w-5" />
               Influencer Outreach
             </Link>
             <Link
               href="/admin/roadmap"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/roadmap' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <Rocket className="h-5 w-5" />
-              Build Progress
+              Launch Roadmap
             </Link>
+            
+            {/* Divider */}
+            <div className="my-2 border-t border-gray-200"></div>
+            
             <Link
-              href="/admin/activity"
+              href="/agent"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <Activity className="h-5 w-5" />
-              Activity Log
+              Agent Portal
+            </Link>
+            
+            <Link
+              href="/health"
+              target="_blank"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#ff6b35] text-white hover:bg-orange-600 transition font-semibold"
+            >
+              <span className="text-lg">🏥</span>
+              Health Check
             </Link>
             
             {/* Dev Tools Section */}
-            <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Dev Tools</div>
+            <div className="my-2 border-t border-gray-200 pt-2">
+              <p className="px-4 text-xs font-semibold text-gray-400 uppercase mb-2">Dev Tools</p>
             </div>
             <Link
               href="/admin/e2e-test"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/e2e-test' 
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <FlaskConical className="h-5 w-5 text-purple-600" />
+              <FlaskConical className="h-5 w-5" />
               E2E Tests
             </Link>
           </nav>
