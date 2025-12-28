@@ -1,0 +1,9 @@
+# Force Node.js 20 for Railway builds
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.build]
+cmds = ["npm ci", "npm run build"]
+
+[start]
+cmd = "npm start"
