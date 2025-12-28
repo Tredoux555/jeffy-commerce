@@ -287,6 +287,7 @@ export async function runCompleteTestSuite(baseUrl: string): Promise<TestSuiteRe
       .insert({
         user_id: testUserId,
         full_name: 'E2E Test Partner',
+        full_legal_name: 'E2E Test Partner (Pty) Ltd',
         email: generateEmail(),
         phone: '+27123456789',
         business_name: 'Test Deliveries PTY',
