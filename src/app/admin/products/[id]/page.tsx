@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Wand2, Trash2, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Trash2, ZoomIn, Languages } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -24,8 +24,6 @@ export default function EditProductPage() {
   const [originalTitle, setOriginalTitle] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
-  const [enhancing, setEnhancing] = useState<number | null>(null);
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number } | null>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
   
   const [form, setForm] = useState({
@@ -188,105 +186,6 @@ export default function EditProductPage() {
       alert('Analysis failed');
     }
     setAnalyzing(false);
-  };
-
-  const enhanceImage = async (imageUrl: string, index: number) => {
-    setEnhancing(index);
-    try {
-      const res = await fetch('/api/images/enhance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, productId }),
-      });
-      const data = await res.json();
-      
-      if (data.success && data.enhancedUrl && data.wasEnhanced) {
-        // Replace the image in the array
-        const newImages = [...images];
-        newImages[index] = data.enhancedUrl;
-        setImages(newImages);
-        // If this was the selected image, update it
-        if (form.imageUrl === imageUrl) {
-          setForm({ ...form, imageUrl: data.enhancedUrl });
-        }
-        alert(`✅ Enhanced! ${data.analysis?.featuresCount || 0} features translated.`);
-      } else {
-        alert(data.message || 'No text to enhance - image is clean!');
-      }
-    } catch (error) {
-      alert('Enhancement failed');
-    }
-    setEnhancing(null);
-  };
-
-  // NEW: Replace Chinese text with English directly on image
-  const replaceTextInImage = async (imageUrl: string, index: number) => {
-    setEnhancing(index); // Reuse enhancing state for loading
-    try {
-      const res = await fetch('/api/images/replace-text', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl, productId }),
-      });
-      const data = await res.json();
-      
-      if (data.success && data.enhancedUrl && data.wasEnhanced) {
-        const newImages = [...images];
-        newImages[index] = data.enhancedUrl;
-        setImages(newImages);
-        if (form.imageUrl === imageUrl) {
-          setForm({ ...form, imageUrl: data.enhancedUrl });
-        }
-        alert(`✅ Replaced ${data.regionsReplaced} text region(s) with English!`);
-      } else {
-        alert(data.message || 'No text to replace - image is clean!');
-      }
-    } catch (error) {
-      alert('Text replacement failed');
-    }
-    setEnhancing(null);
-  };
-
-  const enhanceAllImages = async () => {
-    if (!imageAnalysis?.analyses) return;
-    const textImages = imageAnalysis.analyses.filter((a: any) => !a.isClean);
-    
-    if (textImages.length === 0) {
-      alert('All images are already clean!');
-      return;
-    }
-
-    setBatchProgress({ current: 0, total: textImages.length });
-    
-    let successCount = 0;
-    for (let i = 0; i < textImages.length; i++) {
-      const analysis = textImages[i];
-      setBatchProgress({ current: i + 1, total: textImages.length });
-      
-      try {
-        const res = await fetch('/api/images/enhance', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: images[analysis.index], productId }),
-        });
-        const data = await res.json();
-        
-        if (data.success && data.enhancedUrl && data.wasEnhanced) {
-          const newImages = [...images];
-          newImages[analysis.index] = data.enhancedUrl;
-          setImages(newImages);
-          if (form.imageUrl === images[analysis.index]) {
-            setForm({ ...form, imageUrl: data.enhancedUrl });
-          }
-          successCount++;
-        }
-      } catch (error) {
-        console.error(`Failed to enhance image ${analysis.index}:`, error);
-      }
-    }
-    
-    setBatchProgress(null);
-    alert(`✅ Batch complete! Enhanced ${successCount} of ${textImages.length} images.`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -535,24 +434,13 @@ export default function EditProductPage() {
                 </button>
               )}
               {imageAnalysis?.summary?.imagesWithChineseText > 0 && (
-                <button
-                  type="button"
-                  onClick={enhanceAllImages}
-                  disabled={enhancing !== null || batchProgress !== null}
-                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 flex items-center gap-2 text-sm"
+                <Link
+                  href="/admin/image-processor"
+                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 flex items-center gap-2 text-sm"
                 >
-                  {batchProgress ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {batchProgress.current}/{batchProgress.total}
-                    </>
-                  ) : enhancing !== null ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="h-4 w-4" />
-                  )}
-                  {batchProgress ? 'Enhancing...' : 'Enhance All'}
-                </button>
+                  <Languages className="h-4 w-4" />
+                  Translate Tool
+                </Link>
               )}
             </div>
           </div>
@@ -592,7 +480,6 @@ export default function EditProductPage() {
                 {images.map((img, idx) => {
                   const analysis = imageAnalysis?.analyses?.find((a: any) => a.index === idx);
                   const isBest = imageAnalysis?.bestImageIndex === idx;
-                  const hasText = analysis && !analysis.isClean;
                   return (
                     <div key={idx} className="relative group">
                       <button
@@ -639,19 +526,6 @@ export default function EditProductPage() {
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
-                      {hasText && (
-                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
-                          <button
-                            type="button"
-                            onClick={() => replaceTextInImage(img, idx)}
-                            disabled={enhancing === idx}
-                            className="px-2 py-0.5 bg-green-600 text-white text-[10px] rounded-full hover:bg-green-700 disabled:opacity-50 whitespace-nowrap"
-                            title="Replace Chinese text with English directly on image"
-                          >
-                            {enhancing === idx ? '...' : '🔄 Replace'}
-                          </button>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
