@@ -243,9 +243,13 @@ USE: addDays, differenceInDays, isSaturday, isSunday from date-fns`
         estimatedHours: 1,
         dependencies: ['db-partners', 'legal-lib'],
         codeLocation: '/src/app/admin/partners/page.tsx',
-        aiContext: `MODIFY /src/app/admin/partners/page.tsx - updatePartnerStatus function:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Modify /src/app/admin/partners/page.tsx
 
-When status === 'approved':
+WHAT TO BUILD:
+When admin approves a partner, start the 14-day disclosure wait period.
+
+In updatePartnerStatus function, when status === 'approved':
 1. const now = new Date();
 2. const canSignAfter = addDays(now, 14);
 3. updateData.disclosure_sent_at = now.toISOString();
@@ -253,7 +257,6 @@ When status === 'approved':
 
 ALSO: Send WhatsApp notification that disclosure was sent.
 
-CONTEXT: The 14-day clock starts when admin clicks approve. Partner cannot sign agreement until 14 days pass.
 TEST: Approve partner, verify disclosure_sent_at is set, verify can_sign_after is 14 days later.`
       },
       {
@@ -264,7 +267,11 @@ TEST: Approve partner, verify disclosure_sent_at is set, verify can_sign_after i
         estimatedHours: 3,
         dependencies: ['legal-lib'],
         codeLocation: '/src/app/partner/onboarding/page.tsx',
-        aiContext: `CREATE /src/app/partner/onboarding/page.tsx:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Create /src/app/partner/onboarding/page.tsx
+
+WHAT TO BUILD:
+A checklist page showing partner's progress through onboarding.
 
 CHECKLIST STEPS (in order):
 1. Disclosure Document Sent ✓ (auto, show days remaining)
@@ -278,7 +285,6 @@ CHECKLIST STEPS (in order):
 EACH STEP SHOWS: ✓ Complete | ⏳ Current | ○ Upcoming
 Load partner data from Supabase, calculate status using legal-compliance.ts
 
-CONTEXT: Partners follow this flow over ~25 days. Most is waiting time.
 UI: Dark theme like partner dashboard, mobile-friendly.`
       }
     ]
@@ -297,7 +303,11 @@ UI: Dark theme like partner dashboard, mobile-friendly.`
         priority: 'high',
         estimatedHours: 1,
         codeLocation: '/src/app/api/notify/whatsapp/route.ts',
-        aiContext: `MODIFY /src/app/api/notify/whatsapp/route.ts:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Modify /src/app/api/notify/whatsapp/route.ts
+
+WHAT TO BUILD:
+Add new notification templates.
 
 ADD TEMPLATES:
 - new_order: "🛒 New Jeffy Order! #{orderNumber}. Deliver to: {address}. Earn R{earnings}."
@@ -305,7 +315,7 @@ ADD TEMPLATES:
 - low_stock: "⚠️ Low stock: {product} ({remaining} left)"
 - payout_sent: "💰 R{amount} sent for {count} deliveries!"
 
-EXISTING: Check current templates in file, add new ones to TEMPLATES object.
+Add new ones to TEMPLATES object.
 TEST: Call API with each type, verify message format.`
       },
       {
@@ -315,9 +325,13 @@ TEST: Call API with each type, verify message format.`
         priority: 'high',
         estimatedHours: 2,
         codeLocation: '/src/app/api/email/send/route.ts',
-        aiContext: `CREATE /src/app/api/email/send/route.ts:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Create /src/app/api/email/send/route.ts
 
-INSTALL: npm install resend
+WHAT TO BUILD:
+Email sending API using Resend.
+
+SETUP: npm install resend
 ENV: RESEND_API_KEY
 
 TEMPLATES:
@@ -326,7 +340,6 @@ TEMPLATES:
 
 HTML TEMPLATE: Use Jeffy orange branding, include logo, footer.
 
-CONTEXT: Customer gets email when they pay. Provides confidence.
 TEST: Send test email to yourself.`
       }
     ]
@@ -344,13 +357,19 @@ TEST: Send test email to yourself.`
         description: 'Customer rates 1-5 stars after delivery',
         priority: 'medium',
         estimatedHours: 4,
-        aiContext: `CREATE:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Build rating system
+
+CREATE FILES:
 1. /src/app/rate/[orderId]/page.tsx - Star selection + tags + comment
 2. /src/app/api/ratings/submit/route.ts - Save rating, update partner average
-3. DB: CREATE TABLE order_ratings (id, order_id, zone_partner_id, stars, tags[], comment)
-4. Trigger: Update zone_partners.average_rating on new rating
 
-CONTEXT: Ratings drive partner accountability. Below 4.0 triggers warnings.`
+SQL (run in Supabase):
+CREATE TABLE order_ratings (id UUID PRIMARY KEY, order_id UUID, zone_partner_id UUID, stars INT, tags TEXT[], comment TEXT);
+
+After rating saved: Update zone_partners.average_rating
+
+Ratings drive partner accountability. Below 4.0 triggers warnings.`
       },
       {
         id: 'refund-system',
@@ -358,10 +377,15 @@ CONTEXT: Ratings drive partner accountability. Below 4.0 triggers warnings.`
         description: 'Customer requests, admin reviews, partner may be charged',
         priority: 'medium',
         estimatedHours: 6,
-        aiContext: `CREATE:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Build refund system
+
+CREATE FILES:
 1. /src/app/refund/[orderId]/page.tsx - Request form with reason + photos
 2. /src/app/admin/refunds/page.tsx - Review queue, approve/reject
-3. DB: CREATE TABLE refund_requests (id, order_id, reason, status, who_pays, amount)
+
+SQL (run in Supabase):
+CREATE TABLE refund_requests (id UUID PRIMARY KEY, order_id UUID, reason TEXT, status TEXT, who_pays TEXT, amount INT);
 
 WHO PAYS MATRIX:
 - Defective product → Jeffy pays
@@ -376,7 +400,10 @@ WHO PAYS MATRIX:
         description: 'Auto-split each payment to partner',
         priority: 'medium',
         estimatedHours: 4,
-        aiContext: `RESEARCH: PayFast Split Payments API
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Research PayFast Split Payments
+
+RESEARCH: PayFast Split Payments API
 Configure in PayFast dashboard: percentage split or fixed amounts
 Partner needs PayFast merchant ID linked to their account
 
