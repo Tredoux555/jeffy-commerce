@@ -14,6 +14,7 @@
     "@react-google-maps/api": "^2.20.8",
     "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.47.10",
+    "@types/qrcode": "^1.5.6",
     "autoprefixer": "^10.4.23",
     "clsx": "^2.1.1",
     "html5-qrcode": "^2.3.8",
