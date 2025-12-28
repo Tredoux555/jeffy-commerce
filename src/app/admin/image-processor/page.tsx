@@ -1,22 +1,46 @@
 'use client';
 
 import { useState } from 'react';
-import { Wand2, Upload, Image as ImageIcon, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Wand2, Loader2, Check, AlertCircle, Languages, Eye } from 'lucide-react';
+
+interface Translation {
+  original: string;
+  translated: string;
+}
+
+interface TextRegion {
+  text: string;
+  bounds: { x: number; y: number; width: number; height: number };
+  translation?: string;
+}
+
+interface ProcessResult {
+  success: boolean;
+  originalUrl: string;
+  textFound: TextRegion[];
+  chineseTexts: string[];
+  translations: Translation[];
+  error?: string;
+}
 
 export default function ImageProcessorPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<ProcessResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const testImages = [
     {
-      name: 'Stanley Tumbler (1688)',
+      name: 'Stanley Tumbler',
       url: 'https://cbu01.alicdn.com/img/ibank/O1CN01HfHmZ51Kj8KSDB5x4_!!2214257338879-0-cib.jpg'
     },
     {
-      name: 'Water Bottle',
+      name: 'Water Bottle',  
       url: 'https://cbu01.alicdn.com/img/ibank/2020/023/099/21847990320_1179940267.jpg'
+    },
+    {
+      name: 'Phone Case',
+      url: 'https://cbu01.alicdn.com/img/ibank/O1CN01qJXK2T1Kj8KS7Kpg4_!!2214257338879-0-cib.jpg'
     }
   ];
 
@@ -31,14 +55,7 @@ export default function ImageProcessorPage() {
       const response = await fetch('/api/images/process', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          imageUrl,
-          options: {
-            removeChineseText: true,
-            addEnglishTranslation: true,
-            outputFormat: 'png'
-          }
-        })
+        body: JSON.stringify({ imageUrl })
       });
 
       const data = await response.json();
@@ -55,21 +72,23 @@ export default function ImageProcessorPage() {
     }
   };
 
+  const containsChinese = (text: string) => /[\u4e00-\u9fff]/.test(text);
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Wand2 className="w-8 h-8 text-purple-500" />
-          Image Processor — Chinese → English
+          <Languages className="w-8 h-8 text-purple-500" />
+          1688 Image Translator
         </h1>
         <p className="text-gray-600 mt-2">
-          Remove Chinese text from 1688 product images and replace with English translations
+          Detect Chinese text in product images and get English translations
         </p>
       </div>
 
       {/* Test Images */}
       <div className="bg-white rounded-xl border p-6 mb-6">
-        <h2 className="font-bold mb-4">🧪 Test with Sample Images</h2>
+        <h2 className="font-bold mb-4">🧪 Test with Sample 1688 Images</h2>
         <div className="flex flex-wrap gap-3">
           {testImages.map((img) => (
             <button
@@ -106,12 +125,12 @@ export default function ImageProcessorPage() {
             {processing ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Processing...
+                Scanning...
               </>
             ) : (
               <>
-                <Wand2 className="w-5 h-5" />
-                Process Image
+                <Eye className="w-5 h-5" />
+                Detect Text
               </>
             )}
           </button>
@@ -127,7 +146,7 @@ export default function ImageProcessorPage() {
             <p className="text-red-600">{error}</p>
             {error.includes('API key') && (
               <p className="text-sm text-red-500 mt-2">
-                Add <code className="bg-red-100 px-1 rounded">GOOGLE_CLOUD_API_KEY</code> to your .env.local
+                Add <code className="bg-red-100 px-1 rounded">GOOGLE_CLOUD_API_KEY</code> to Vercel environment variables
               </p>
             )}
           </div>
@@ -136,92 +155,84 @@ export default function ImageProcessorPage() {
 
       {/* Result */}
       {result && (
-        <div className="bg-white rounded-xl border p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Check className="w-6 h-6 text-green-500" />
-            <h2 className="font-bold text-green-700">Processing Complete!</h2>
+        <div className="space-y-6">
+          {/* Image Preview */}
+          <div className="bg-white rounded-xl border p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Check className="w-6 h-6 text-green-500" />
+              <h2 className="font-bold text-green-700">
+                Scan Complete — {result.chineseTexts.length} Chinese text regions found
+              </h2>
+            </div>
+            
+            <div className="border-2 rounded-xl overflow-hidden bg-gray-100 max-w-md">
+              <img 
+                src={result.originalUrl} 
+                alt="Product" 
+                className="w-full h-auto"
+              />
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Original */}
-            <div>
-              <h3 className="font-medium mb-2 text-gray-600">Original Image</h3>
-              <div className="border-2 rounded-xl overflow-hidden bg-gray-100">
-                <img 
-                  src={result.originalUrl} 
-                  alt="Original" 
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
-
-            {/* Processed */}
-            <div>
-              <h3 className="font-medium mb-2 text-gray-600">Processed Image</h3>
-              <div className="border-2 border-green-300 rounded-xl overflow-hidden bg-gray-100">
-                {result.processedUrl ? (
-                  <img 
-                    src={result.processedUrl} 
-                    alt="Processed" 
-                    className="w-full h-auto"
-                  />
-                ) : result.processedBase64 ? (
-                  <img 
-                    src={`data:image/png;base64,${result.processedBase64}`} 
-                    alt="Processed" 
-                    className="w-full h-auto"
-                  />
-                ) : (
-                  <div className="p-8 text-center text-gray-500">
-                    No processed image available
+          {/* Translations */}
+          {result.translations.length > 0 && (
+            <div className="bg-white rounded-xl border p-6">
+              <h2 className="font-bold mb-4 flex items-center gap-2">
+                <Languages className="w-5 h-5 text-purple-500" />
+                Translations ({result.translations.length})
+              </h2>
+              <div className="space-y-3">
+                {result.translations.map((t, i) => (
+                  <div key={i} className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex-1">
+                      <p className="text-red-600 font-medium">{t.original}</p>
+                      <p className="text-sm text-gray-500">Chinese</p>
+                    </div>
+                    <div className="text-2xl">→</div>
+                    <div className="flex-1">
+                      <p className="text-green-700 font-medium">{t.translated}</p>
+                      <p className="text-sm text-gray-500">English</p>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Text Found */}
-          {result.textFound && result.textFound.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-medium mb-2 text-gray-600">
-                Text Detected ({result.textFound.length} regions)
-              </h3>
+          {/* All Text Detected */}
+          {result.textFound.length > 0 && (
+            <div className="bg-white rounded-xl border p-6">
+              <h2 className="font-bold mb-4">
+                All Text Detected ({result.textFound.length} regions)
+              </h2>
               <div className="flex flex-wrap gap-2">
-                {result.textFound.slice(0, 20).map((t: any, i: number) => (
+                {result.textFound.map((t, i) => (
                   <span 
                     key={i} 
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      /[\u4e00-\u9fff]/.test(t.text)
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-gray-100 text-gray-700'
+                    className={`px-3 py-1.5 rounded-lg text-sm ${
+                      containsChinese(t.text)
+                        ? 'bg-red-100 text-red-700 border border-red-200'
+                        : 'bg-gray-100 text-gray-700 border border-gray-200'
                     }`}
+                    title={t.translation ? `→ ${t.translation}` : undefined}
                   >
                     {t.text}
+                    {t.translation && (
+                      <span className="ml-2 text-green-600">→ {t.translation}</span>
+                    )}
                   </span>
                 ))}
-                {result.textFound.length > 20 && (
-                  <span className="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-500">
-                    +{result.textFound.length - 20} more
-                  </span>
-                )}
               </div>
             </div>
           )}
 
-          {/* Download */}
-          {result.processedUrl && (
-            <div className="mt-6">
-              <a
-                href={result.processedUrl}
-                target="_blank"
-                download
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-              >
-                <Upload className="w-4 h-4" />
-                Download Processed Image
-              </a>
-            </div>
-          )}
+          {/* JSON Output for Developers */}
+          <details className="bg-slate-800 rounded-xl p-4 text-white">
+            <summary className="cursor-pointer font-bold">🔧 Raw JSON Response</summary>
+            <pre className="mt-4 text-sm overflow-x-auto text-slate-300">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </details>
         </div>
       )}
 
@@ -238,26 +249,18 @@ export default function ImageProcessorPage() {
           </li>
           <li>
             <strong className="text-white">2. Create API Key:</strong>
-            <ul className="ml-4 mt-1 text-sm">
-              <li>• Go to APIs & Services → Credentials → Create API Key</li>
-            </ul>
+            <p className="ml-4 mt-1 text-sm">APIs & Services → Credentials → Create API Key</p>
           </li>
           <li>
-            <strong className="text-white">3. Add to .env.local:</strong>
+            <strong className="text-white">3. Add to Vercel:</strong>
             <pre className="mt-2 bg-slate-900 p-3 rounded-lg text-sm overflow-x-auto">
               GOOGLE_CLOUD_API_KEY=your_api_key_here
-            </pre>
-          </li>
-          <li>
-            <strong className="text-white">4. Create Supabase Storage Bucket:</strong>
-            <pre className="mt-2 bg-slate-900 p-3 rounded-lg text-sm overflow-x-auto">
-              product-images (public bucket)
             </pre>
           </li>
         </ol>
         <div className="mt-4 p-3 bg-slate-700 rounded-lg">
           <p className="text-sm">
-            <strong>💰 Cost:</strong> ~$1.50 per 1,000 images (Vision) + ~$20 per 1M characters (Translation)
+            <strong>💰 Cost:</strong> Vision API ~$1.50/1000 images, Translation ~$20/1M characters
           </p>
         </div>
       </div>

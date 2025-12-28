@@ -1,18 +1,13 @@
 /**
  * JEFFY IMAGE PROCESSOR
- * Removes Chinese text from 1688 product images and replaces with English
+ * Detects Chinese text in 1688 product images and translates to English
  * 
  * Uses:
  * - Google Cloud Vision API for OCR (detect Chinese text)
- * - Sharp for image manipulation (content-aware fill)
- * - Canvas for English text overlay
+ * - Google Cloud Translation API for Chinese → English
  * 
  * Cost: ~$0.001 per image
  */
-
-import sharp from 'sharp';
-import { createCanvas, loadImage, registerFont } from 'canvas';
-import fetch from 'node-fetch';
 
 interface TextRegion {
   text: string;
@@ -22,22 +17,25 @@ interface TextRegion {
     width: number;
     height: number;
   };
-  vertices: { x: number; y: number }[];
+  translation?: string;
 }
 
 interface ProcessResult {
   success: boolean;
   originalUrl: string;
-  processedBuffer?: Buffer;
-  processedUrl?: string;
   textFound: TextRegion[];
+  chineseTexts: string[];
+  translations: { original: string; translated: string }[];
   error?: string;
 }
 
+// Check if text contains Chinese characters
+function containsChinese(text: string): boolean {
+  return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text);
+}
+
 // Google Cloud Vision API - Detect text in image
-async function detectText(imageBuffer: Buffer, apiKey: string): Promise<TextRegion[]> {
-  const base64Image = imageBuffer.toString('base64');
-  
+async function detectText(imageUrl: string, apiKey: string): Promise<TextRegion[]> {
   const response = await fetch(
     `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
     {
@@ -45,10 +43,10 @@ async function detectText(imageBuffer: Buffer, apiKey: string): Promise<TextRegi
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         requests: [{
-          image: { content: base64Image },
+          image: { source: { imageUri: imageUrl } },
           features: [{ type: 'TEXT_DETECTION', maxResults: 50 }],
           imageContext: {
-            languageHints: ['zh-CN', 'zh-TW', 'en'] // Chinese simplified, traditional, English
+            languageHints: ['zh-CN', 'zh-TW', 'en']
           }
         }]
       })
@@ -76,20 +74,14 @@ async function detectText(imageBuffer: Buffer, apiKey: string): Promise<TextRegi
         y: Math.min(...ys),
         width: Math.max(...xs) - Math.min(...xs),
         height: Math.max(...ys) - Math.min(...ys)
-      },
-      vertices
+      }
     };
   });
 }
 
-// Check if text contains Chinese characters
-function containsChinese(text: string): boolean {
-  return /[\u4e00-\u9fff\u3400-\u4dbf]/.test(text);
-}
-
-// Simple translation using Google Translate API
-async function translateText(text: string, apiKey: string): Promise<string> {
-  if (!containsChinese(text)) return text;
+// Google Translate API - Translate Chinese to English
+async function translateTexts(texts: string[], apiKey: string): Promise<{ original: string; translated: string }[]> {
+  if (texts.length === 0) return [];
   
   try {
     const response = await fetch(
@@ -98,7 +90,7 @@ async function translateText(text: string, apiKey: string): Promise<string> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          q: text,
+          q: texts,
           source: 'zh',
           target: 'en',
           format: 'text'
@@ -107,200 +99,59 @@ async function translateText(text: string, apiKey: string): Promise<string> {
     );
     
     const data = await response.json() as any;
-    return data.data?.translations?.[0]?.translatedText || text;
-  } catch {
-    return text; // Return original if translation fails
+    const translations = data.data?.translations || [];
+    
+    return texts.map((original, i) => ({
+      original,
+      translated: translations[i]?.translatedText || original
+    }));
+  } catch (error) {
+    console.error('Translation error:', error);
+    return texts.map(t => ({ original: t, translated: t }));
   }
-}
-
-// Remove text regions by filling with surrounding color (simple approach)
-async function removeTextRegions(
-  imageBuffer: Buffer, 
-  regions: TextRegion[]
-): Promise<Buffer> {
-  // Get image metadata
-  const metadata = await sharp(imageBuffer).metadata();
-  const width = metadata.width || 800;
-  const height = metadata.height || 800;
-  
-  // Create SVG mask for regions to remove
-  const padding = 5; // Extra padding around text
-  const rects = regions
-    .filter(r => containsChinese(r.text))
-    .map(r => 
-      `<rect x="${r.bounds.x - padding}" y="${r.bounds.y - padding}" 
-            width="${r.bounds.width + padding * 2}" height="${r.bounds.height + padding * 2}" 
-            fill="white"/>`
-    )
-    .join('\n');
-  
-  if (!rects) {
-    // No Chinese text to remove
-    return imageBuffer;
-  }
-
-  // For simple removal, we'll sample the edge color and fill
-  // More sophisticated: use inpainting, but this works for product images
-  const processed = await sharp(imageBuffer)
-    .composite([{
-      input: {
-        create: {
-          width,
-          height,
-          channels: 4,
-          background: { r: 255, g: 255, b: 255, alpha: 0 }
-        }
-      },
-      blend: 'dest-out'
-    }])
-    .toBuffer();
-  
-  // For now, blur the text regions (simple approach)
-  // TODO: Implement proper content-aware fill
-  let result = sharp(imageBuffer);
-  
-  for (const region of regions) {
-    if (!containsChinese(region.text)) continue;
-    
-    const { x, y, width: w, height: h } = region.bounds;
-    const pad = 3;
-    
-    // Extract the region, blur heavily, and composite back
-    try {
-      const blurredRegion = await sharp(imageBuffer)
-        .extract({ 
-          left: Math.max(0, x - pad), 
-          top: Math.max(0, y - pad), 
-          width: Math.min(w + pad * 2, width - x + pad), 
-          height: Math.min(h + pad * 2, height - y + pad) 
-        })
-        .blur(15)
-        .toBuffer();
-      
-      result = sharp(await result.toBuffer())
-        .composite([{
-          input: blurredRegion,
-          left: Math.max(0, x - pad),
-          top: Math.max(0, y - pad)
-        }]);
-    } catch {
-      // Skip if region extraction fails
-    }
-  }
-  
-  return result.toBuffer();
-}
-
-// Add English text overlay
-async function addEnglishText(
-  imageBuffer: Buffer,
-  translations: { original: TextRegion; translated: string }[]
-): Promise<Buffer> {
-  const metadata = await sharp(imageBuffer).metadata();
-  const width = metadata.width || 800;
-  const height = metadata.height || 800;
-  
-  // Create canvas for text overlay
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext('2d');
-  
-  // Load the processed image
-  const img = await loadImage(imageBuffer);
-  ctx.drawImage(img, 0, 0);
-  
-  // Add translated text
-  for (const { original, translated } of translations) {
-    if (!containsChinese(original.text)) continue;
-    if (!translated || translated === original.text) continue;
-    
-    const { x, y, width: w, height: h } = original.bounds;
-    
-    // Calculate font size based on region height
-    const fontSize = Math.max(12, Math.min(h * 0.8, 24));
-    ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-    ctx.fillStyle = '#000000';
-    ctx.textBaseline = 'top';
-    
-    // Add slight background for readability
-    const textMetrics = ctx.measureText(translated);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.fillRect(x - 2, y - 2, textMetrics.width + 4, h + 4);
-    
-    // Draw text
-    ctx.fillStyle = '#000000';
-    ctx.fillText(translated, x, y + (h - fontSize) / 2);
-  }
-  
-  return canvas.toBuffer('image/png');
 }
 
 // Main processing function
 export async function processProductImage(
   imageUrl: string,
-  googleApiKey: string,
-  options: {
-    removeChineseText?: boolean;
-    addEnglishTranslation?: boolean;
-    outputFormat?: 'png' | 'jpeg' | 'webp';
-  } = {}
+  googleApiKey: string
 ): Promise<ProcessResult> {
-  const { 
-    removeChineseText = true, 
-    addEnglishTranslation = true,
-    outputFormat = 'png'
-  } = options;
-
   try {
-    // 1. Download the image
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(`Failed to fetch image: ${imageResponse.status}`);
-    }
-    let imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+    // 1. Detect text using Google Vision
+    const textRegions = await detectText(imageUrl, googleApiKey);
     
-    // 2. Detect text using Google Vision
-    const textRegions = await detectText(imageBuffer, googleApiKey);
+    // 2. Filter Chinese text only
     const chineseRegions = textRegions.filter(r => containsChinese(r.text));
+    const chineseTexts = [...new Set(chineseRegions.map(r => r.text))]; // Unique texts
     
-    if (chineseRegions.length === 0) {
-      // No Chinese text found, return original
+    if (chineseTexts.length === 0) {
       return {
         success: true,
         originalUrl: imageUrl,
-        processedBuffer: imageBuffer,
-        textFound: textRegions
+        textFound: textRegions,
+        chineseTexts: [],
+        translations: []
       };
     }
     
     // 3. Translate Chinese text
-    const translations: { original: TextRegion; translated: string }[] = [];
-    if (addEnglishTranslation) {
-      for (const region of chineseRegions) {
-        const translated = await translateText(region.text, googleApiKey);
-        translations.push({ original: region, translated });
+    const translations = await translateTexts(chineseTexts, googleApiKey);
+    
+    // 4. Add translations to regions
+    const regionsWithTranslations = textRegions.map(region => {
+      if (containsChinese(region.text)) {
+        const translation = translations.find(t => t.original === region.text);
+        return { ...region, translation: translation?.translated };
       }
-    }
-    
-    // 4. Remove Chinese text regions
-    if (removeChineseText) {
-      imageBuffer = await removeTextRegions(imageBuffer, chineseRegions);
-    }
-    
-    // 5. Add English translations
-    if (addEnglishTranslation && translations.length > 0) {
-      imageBuffer = await addEnglishText(imageBuffer, translations);
-    }
-    
-    // 6. Convert to desired output format
-    const finalBuffer = await sharp(imageBuffer)
-      .toFormat(outputFormat, { quality: 90 })
-      .toBuffer();
+      return region;
+    });
     
     return {
       success: true,
       originalUrl: imageUrl,
-      processedBuffer: finalBuffer,
-      textFound: textRegions
+      textFound: regionsWithTranslations,
+      chineseTexts,
+      translations
     };
     
   } catch (error) {
@@ -308,6 +159,8 @@ export async function processProductImage(
       success: false,
       originalUrl: imageUrl,
       textFound: [],
+      chineseTexts: [],
+      translations: [],
       error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
@@ -316,8 +169,7 @@ export async function processProductImage(
 // Batch process multiple images
 export async function processProductImages(
   imageUrls: string[],
-  googleApiKey: string,
-  options?: Parameters<typeof processProductImage>[2]
+  googleApiKey: string
 ): Promise<ProcessResult[]> {
   const results: ProcessResult[] = [];
   
@@ -326,7 +178,7 @@ export async function processProductImages(
   for (let i = 0; i < imageUrls.length; i += batchSize) {
     const batch = imageUrls.slice(i, i + batchSize);
     const batchResults = await Promise.all(
-      batch.map(url => processProductImage(url, googleApiKey, options))
+      batch.map(url => processProductImage(url, googleApiKey))
     );
     results.push(...batchResults);
     

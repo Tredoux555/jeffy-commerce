@@ -2,75 +2,38 @@
  * API Route: Process 1688 Product Images
  * POST /api/images/process
  * 
- * Removes Chinese text and replaces with English translations
+ * Detects Chinese text and provides English translations
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { processProductImage, processProductImages } from '@/lib/image-processor';
 import { createClient } from '@/lib/supabase/server';
 
-export const maxDuration = 60; // Allow up to 60 seconds for batch processing
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
-    // Only allow authenticated users (admin check can be added)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
-    const { imageUrl, imageUrls, options } = body;
+    const { imageUrl, imageUrls } = body;
 
     const googleApiKey = process.env.GOOGLE_CLOUD_API_KEY;
     if (!googleApiKey) {
       return NextResponse.json({ 
-        error: 'Google Cloud API key not configured' 
+        error: 'Google Cloud API key not configured. Add GOOGLE_CLOUD_API_KEY to environment variables.' 
       }, { status: 500 });
     }
 
     // Single image processing
     if (imageUrl) {
-      const result = await processProductImage(imageUrl, googleApiKey, options);
-      
-      if (result.success && result.processedBuffer) {
-        // Upload to Supabase Storage
-        const filename = `processed/${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(filename, result.processedBuffer, {
-            contentType: 'image/png',
-            cacheControl: '3600'
-          });
-
-        if (uploadError) {
-          return NextResponse.json({ 
-            success: true,
-            processedBase64: result.processedBuffer.toString('base64'),
-            textFound: result.textFound,
-            warning: 'Processed but storage upload failed'
-          });
-        }
-
-        const { data: urlData } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(filename);
-
-        return NextResponse.json({
-          success: true,
-          originalUrl: imageUrl,
-          processedUrl: urlData.publicUrl,
-          textFound: result.textFound
-        });
-      }
-
-      return NextResponse.json({
-        success: false,
-        error: result.error,
-        textFound: result.textFound
-      }, { status: 400 });
+      const result = await processProductImage(imageUrl, googleApiKey);
+      return NextResponse.json(result);
     }
 
     // Batch processing
@@ -81,55 +44,14 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      const results = await processProductImages(imageUrls, googleApiKey, options);
+      const results = await processProductImages(imageUrls, googleApiKey);
       
-      // Upload successful results to storage
-      const uploadedResults = await Promise.all(
-        results.map(async (result) => {
-          if (!result.success || !result.processedBuffer) {
-            return {
-              originalUrl: result.originalUrl,
-              success: false,
-              error: result.error
-            };
-          }
-
-          const filename = `processed/${Date.now()}-${Math.random().toString(36).slice(2)}.png`;
-          const { error: uploadError } = await supabase.storage
-            .from('product-images')
-            .upload(filename, result.processedBuffer, {
-              contentType: 'image/png',
-              cacheControl: '3600'
-            });
-
-          if (uploadError) {
-            return {
-              originalUrl: result.originalUrl,
-              success: true,
-              processedBase64: result.processedBuffer.toString('base64').slice(0, 100) + '...',
-              warning: 'Storage upload failed'
-            };
-          }
-
-          const { data: urlData } = supabase.storage
-            .from('product-images')
-            .getPublicUrl(filename);
-
-          return {
-            originalUrl: result.originalUrl,
-            success: true,
-            processedUrl: urlData.publicUrl,
-            textFound: result.textFound?.length || 0
-          };
-        })
-      );
-
       return NextResponse.json({
         success: true,
-        results: uploadedResults,
+        results,
         summary: {
           total: results.length,
-          processed: results.filter(r => r.success).length,
+          withChineseText: results.filter(r => r.chineseTexts.length > 0).length,
           failed: results.filter(r => !r.success).length
         }
       });
