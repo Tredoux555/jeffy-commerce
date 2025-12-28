@@ -343,3 +343,4 @@ The debug logs confirm that:
 **Admin Client:** ✅ Created correctly  
 **Database Insert:** ❌ Blocked by permissions
 
+

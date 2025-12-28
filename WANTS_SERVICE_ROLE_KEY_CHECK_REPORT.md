@@ -326,3 +326,4 @@ The service role key **is correctly set** in `.env.local`, and a proper admin cl
 **Admin Client:** ✅ Exists in codebase  
 **Client Usage:** ❌ Not using admin client
 
+

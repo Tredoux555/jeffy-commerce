@@ -54,3 +54,4 @@ echo "   6. Accept agreement"
 echo "   7. Check admin dashboard for acceptance"
 echo ""
 
+

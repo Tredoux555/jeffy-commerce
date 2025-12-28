@@ -21,3 +21,4 @@ export default function PartnerEarningsPage() {
   return <PartnerEarningsDashboard zonePartnerId={zonePartnerId} />;
 }
 
+

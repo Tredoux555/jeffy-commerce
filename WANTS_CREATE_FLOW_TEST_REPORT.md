@@ -217,3 +217,4 @@ The wants creation flow **cannot be tested** due to a critical routing conflict 
 **Tested By:** Auto (AI Assistant)  
 **Environment:** Local Development (macOS)
 
+

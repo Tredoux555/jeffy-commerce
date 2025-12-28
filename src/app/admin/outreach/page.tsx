@@ -1107,22 +1107,22 @@ export default function OutreachPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const sendToOne = (inf: Influencer) => {
+  // Opens Gmail WITHOUT changing status - you control status manually
+  const openGmail = (inf: Influencer) => {
     const link = getGmailLink(inf);
     if (link) {
       window.open(link, '_blank');
-      updateStatus(inf.id, 'email_sent');
     }
   };
 
-  const sendBatch = (names: string[]) => {
-    const batch = influencers.filter(i => names.includes(i.name) && i.email && getStatus(i) === 'not_contacted');
+  // Opens multiple Gmail tabs WITHOUT changing status
+  const openBatchGmail = (names: string[]) => {
+    const batch = influencers.filter(i => names.includes(i.name) && i.email);
     batch.forEach((inf, i) => {
       setTimeout(() => {
         const link = getGmailLink(inf);
         if (link) {
           window.open(link, '_blank');
-          updateStatus(inf.id, 'email_sent');
         }
       }, i * 1500);
     });
@@ -1192,9 +1192,9 @@ export default function OutreachPage() {
                 </li>;
               })}
             </ul>
-            <button onClick={() => sendBatch(DAY1_NAMES)} disabled={day1Ready === 0}
-              className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-600 text-black font-bold rounded-lg">
-              {day1Ready > 0 ? `SEND TO ${day1Ready}` : 'ALL SENT ✓'}
+            <button onClick={() => openBatchGmail(DAY1_NAMES)} 
+              className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 text-black font-bold rounded-lg">
+              OPEN {day1.filter(i => i.email).length} IN GMAIL
             </button>
           </div>
 
@@ -1214,9 +1214,9 @@ export default function OutreachPage() {
                 </li>;
               })}
             </ul>
-            <button onClick={() => sendBatch(DAY3_NAMES)} disabled={day3Ready === 0}
-              className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 text-white font-bold rounded-lg">
-              {day3Ready > 0 ? `SEND TO ${day3Ready}` : 'ALL SENT ✓'}
+            <button onClick={() => openBatchGmail(DAY3_NAMES)}
+              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg">
+              OPEN {day3.filter(i => i.email).length} IN GMAIL
             </button>
           </div>
 
@@ -1236,9 +1236,9 @@ export default function OutreachPage() {
               })}
               {day5.length > 8 && <li className="text-slate-400">+{day5.length - 8} more...</li>}
             </ul>
-            <button onClick={() => sendBatch(day5.map(i => i.name))} disabled={day5Ready === 0}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 text-white font-bold rounded-lg">
-              {day5Ready > 0 ? `SEND TO ${day5Ready}` : 'ALL SENT ✓'}
+            <button onClick={() => openBatchGmail(day5.map(i => i.name))}
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg">
+              OPEN {day5.filter(i => i.email).length} IN GMAIL
             </button>
           </div>
         </div>
@@ -1278,12 +1278,10 @@ export default function OutreachPage() {
                   </div>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusOpt.color}`}>{statusOpt.label}</span>
-                {inf.email && status === 'not_contacted' ? (
-                  <button onClick={() => sendToOne(inf)} className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg flex items-center gap-2">
-                    <Mail className="w-4 h-4" /> SEND
+                {inf.email ? (
+                  <button onClick={() => openGmail(inf)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> Open Gmail
                   </button>
-                ) : inf.email ? (
-                  <button onClick={() => sendToOne(inf)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm">Resend</button>
                 ) : <span className="text-gray-400 text-sm">No email</span>}
                 <button onClick={() => copyPitch(inf)} className={`p-2 rounded-lg ${copiedId === inf.id ? 'bg-green-100' : 'bg-gray-100 hover:bg-gray-200'}`}>
                   {copiedId === inf.id ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5" />}
@@ -1312,9 +1310,10 @@ export default function OutreachPage() {
                       {inf.profile_url && <p><strong>Profile:</strong> <a href={inf.profile_url} target="_blank" className="text-blue-600 underline">{inf.profile_url}</a></p>}
                       {inf.notes && <p className="text-gray-600 text-sm">{inf.notes}</p>}
                       <div className="pt-3 space-y-2">
-                        {gmailLink && <a href={gmailLink} target="_blank" onClick={() => updateStatus(inf.id, 'email_sent')} className="block w-full text-center px-4 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600">📧 Open in Gmail</a>}
+                        {gmailLink && <a href={gmailLink} target="_blank" className="block w-full text-center px-4 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600">📧 Open in Gmail</a>}
+                        {inf.email && <button onClick={() => updateStatus(inf.id, 'email_sent')} className="block w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold">✓ Mark as SENT</button>}
                         <button onClick={() => copyPitch(inf)} className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">{copiedId === inf.id ? '✓ Copied!' : '📋 Copy for LinkedIn/DM'}</button>
-                        {inf.phone && <a href={`https://wa.me/${inf.phone.replace(/[^0-9]/g, '')}`} target="_blank" className="block w-full text-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">💬 WhatsApp</a>}
+                        {inf.phone && <a href={`https://wa.me/${inf.phone.replace(/[^0-9]/g, '')}`} target="_blank" className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">💬 WhatsApp</a>}
                       </div>
                     </div>
                   </div>
