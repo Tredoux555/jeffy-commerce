@@ -1051,6 +1051,9 @@ export default function OutreachPage() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [newNote, setNewNote] = useState<Record<string, string>>({});
+  const [savingNote, setSavingNote] = useState<string | null>(null);
   
   const supabase = createClient();
 
@@ -1128,7 +1131,34 @@ export default function OutreachPage() {
     });
   };
 
-  // Categorize
+  // Save correspondence note
+  const saveNote = async (id: string) => {
+    const note = newNote[id]?.trim();
+    if (!note) return;
+    
+    setSavingNote(id);
+    const inf = influencers.find(i => i.id === id);
+    const timestamp = new Date().toLocaleString('en-ZA', { 
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+    });
+    const newEntry = `[${timestamp}] ${note}`;
+    const existingNotes = inf?.notes || '';
+    const updatedNotes = existingNotes ? `${newEntry}\n---\n${existingNotes}` : newEntry;
+    
+    await supabase.from('influencers').update({ notes: updatedNotes }).eq('id', id);
+    setNewNote({ ...newNote, [id]: '' });
+    fetchInfluencers();
+    setSavingNote(null);
+  };
+
+  // Filter influencers by search term
+  const filteredInfluencers = influencers.filter(inf => 
+    inf.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    inf.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    inf.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Categorize (use filtered list)
   const day1 = influencers.filter(i => DAY1_NAMES.includes(i.name));
   const day3 = influencers.filter(i => DAY3_NAMES.includes(i.name));
   const day5 = influencers.filter(i => !DAY1_NAMES.includes(i.name) && !DAY3_NAMES.includes(i.name));
@@ -1170,6 +1200,33 @@ export default function OutreachPage() {
           <p className="text-green-600 text-sm">Custom Letters</p>
           <p className="text-3xl font-bold text-green-600">{Object.keys(PITCHES).length}</p>
         </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name, category, or notes..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 border-2 rounded-xl text-lg focus:border-orange-500 focus:outline-none"
+          />
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm('')}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+        {searchTerm && (
+          <p className="mt-2 text-sm text-gray-500">
+            Found {filteredInfluencers.length} of {influencers.length} contacts
+          </p>
+        )}
       </div>
 
       {/* Strategy */}
@@ -1248,9 +1305,9 @@ export default function OutreachPage() {
       </div>
 
       {/* Contact List */}
-      <h2 className="text-xl font-bold mb-4">All Contacts</h2>
+      <h2 className="text-xl font-bold mb-4">All Contacts {searchTerm && `(filtered)`}</h2>
       <div className="space-y-3">
-        {influencers.map((inf) => {
+        {filteredInfluencers.map((inf) => {
           const status = getStatus(inf);
           const statusOpt = STATUS_OPTIONS.find(s => s.value === status)!;
           const pitch = getPitch(inf);
@@ -1294,7 +1351,7 @@ export default function OutreachPage() {
                 </button>
               </div>
               {isExpanded && (
-                <div className="border-t p-4 bg-gray-50 grid md:grid-cols-2 gap-4">
+                <div className="border-t p-4 bg-gray-50 grid md:grid-cols-3 gap-4">
                   <div>
                     <h4 className="font-bold text-sm mb-2">📧 YOUR LETTER {hasPitch ? '(CUSTOM)' : '(DEFAULT)'}</h4>
                     <div className="bg-white border rounded-lg p-4 text-sm max-h-96 overflow-y-auto">
@@ -1308,12 +1365,46 @@ export default function OutreachPage() {
                       {inf.email && <p><strong>Email:</strong> {inf.email}</p>}
                       {inf.phone && <p><strong>Phone:</strong> {inf.phone}</p>}
                       {inf.profile_url && <p><strong>Profile:</strong> <a href={inf.profile_url} target="_blank" className="text-blue-600 underline">{inf.profile_url}</a></p>}
-                      {inf.notes && <p className="text-gray-600 text-sm">{inf.notes}</p>}
                       <div className="pt-3 space-y-2">
                         {gmailLink && <a href={gmailLink} target="_blank" className="block w-full text-center px-4 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600">📧 Open in Gmail</a>}
                         {inf.email && <button onClick={() => updateStatus(inf.id, 'email_sent')} className="block w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-bold">✓ Mark as SENT</button>}
                         <button onClick={() => copyPitch(inf)} className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">{copiedId === inf.id ? '✓ Copied!' : '📋 Copy for LinkedIn/DM'}</button>
                         {inf.phone && <a href={`https://wa.me/${inf.phone.replace(/[^0-9]/g, '')}`} target="_blank" className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">💬 WhatsApp</a>}
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm mb-2">📝 CORRESPONDENCE & NOTES</h4>
+                    <div className="bg-white border rounded-lg p-4 space-y-3">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="Add note (e.g., 'Called, left voicemail')"
+                          value={newNote[inf.id] || ''}
+                          onChange={(e) => setNewNote({ ...newNote, [inf.id]: e.target.value })}
+                          onKeyDown={(e) => e.key === 'Enter' && saveNote(inf.id)}
+                          className="flex-1 px-3 py-2 border rounded-lg text-sm focus:border-orange-500 focus:outline-none"
+                        />
+                        <button 
+                          onClick={() => saveNote(inf.id)}
+                          disabled={savingNote === inf.id || !newNote[inf.id]?.trim()}
+                          className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 text-sm font-medium"
+                        >
+                          {savingNote === inf.id ? '...' : 'Add'}
+                        </button>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {inf.notes ? (
+                          <div className="text-sm space-y-2">
+                            {inf.notes.split('\n---\n').map((entry, i) => (
+                              <div key={i} className="p-2 bg-gray-50 rounded border-l-2 border-orange-300">
+                                <pre className="whitespace-pre-wrap font-sans text-gray-700">{entry}</pre>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-gray-400 text-sm italic">No notes yet. Add your first note above.</p>
+                        )}
                       </div>
                     </div>
                   </div>
