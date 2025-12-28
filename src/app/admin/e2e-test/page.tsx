@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { 
   FlaskConical, Play, CheckCircle, XCircle, Clock, 
-  Loader2, ChevronDown, ChevronRight, AlertCircle
+  Loader2, ChevronDown, ChevronRight, AlertCircle,
+  Copy, Check, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -66,12 +67,14 @@ export default function E2ETestPage() {
   const [simpleResults, setSimpleResults] = useState<TestStep[] | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const runTests = async () => {
     setRunning(true);
     setResult(null);
     setSimpleResults(null);
     setError(null);
+    setCopied(false);
 
     try {
       const response = await fetch('/api/e2e-test', {
@@ -120,6 +123,107 @@ export default function E2ETestPage() {
     return groups;
   };
 
+  // Generate export data for Claude
+  const generateClaudeExport = () => {
+    const steps = result?.steps || simpleResults || [];
+    const failedTests = steps.filter(s => s.status === 'failed');
+    const passedTests = steps.filter(s => s.status === 'passed');
+    
+    const timestamp = new Date().toISOString();
+    const testType = TEST_TYPES.find(t => t.id === selectedType)?.name || selectedType;
+    
+    let report = `## JEFFY E2E TEST REPORT
+**Generated:** ${timestamp}
+**Test Type:** ${testType}
+**Summary:** ${passedTests.length} passed, ${failedTests.length} failed out of ${steps.length} total
+
+`;
+
+    if (failedTests.length === 0) {
+      report += `### ✅ ALL TESTS PASSED
+No issues to fix!\n`;
+    } else {
+      report += `### ❌ FAILED TESTS (${failedTests.length})
+Please fix these issues:\n\n`;
+
+      // Group failed tests by category
+      const failedByCategory: Record<string, TestStep[]> = {};
+      failedTests.forEach(t => {
+        if (!failedByCategory[t.category]) failedByCategory[t.category] = [];
+        failedByCategory[t.category].push(t);
+      });
+
+      Object.entries(failedByCategory).forEach(([category, tests]) => {
+        report += `#### ${CATEGORY_ICONS[category] || '📋'} ${category.toUpperCase()} (${tests.length} failed)\n\n`;
+        
+        tests.forEach((test, i) => {
+          report += `**${i + 1}. ${test.name}**\n`;
+          report += `- Error: \`${test.error || 'Unknown error'}\`\n`;
+          if (test.data) {
+            report += `- Data: \`${JSON.stringify(test.data)}\`\n`;
+          }
+          report += `- Duration: ${test.duration}ms\n\n`;
+        });
+      });
+
+      // Add context for common issues
+      report += `### 🔧 TECHNICAL CONTEXT
+
+**Database Tables Expected:**
+- products, categories, product_categories
+- zones, zone_partners  
+- customers, orders, order_items
+- ratings, refunds, notifications
+- wants, want_agrees
+
+**Common Fixes:**
+- Missing table → Run the SQL schema in Supabase
+- Column missing → ALTER TABLE to add column
+- RLS error → Check Supabase Row Level Security policies
+- API error → Check /src/app/api/ route handlers
+
+**File Locations:**
+- Schema: /src/lib/testing/e2e-complete-test-suite.ts
+- API: /src/app/api/e2e-test/route.ts
+- Database types: /src/lib/supabase/types.ts
+`;
+    }
+
+    // Add cleanup info if available
+    if (result?.cleanup) {
+      report += `\n### 🧹 CLEANUP STATUS
+- Success: ${result.cleanup.success ? 'Yes' : 'No'}
+- Deleted: ${result.cleanup.deleted.join(', ') || 'None'}
+${result.cleanup.errors.length > 0 ? `- Errors: ${result.cleanup.errors.join(', ')}` : ''}
+`;
+    }
+
+    return report;
+  };
+
+  const copyToClipboard = async () => {
+    const report = generateClaudeExport();
+    try {
+      await navigator.clipboard.writeText(report);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = report;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000);
+    }
+  };
+
+  const hasResults = result || simpleResults;
+  const hasFailures = (result?.summary.failed || 0) > 0 || 
+    (simpleResults?.filter(s => s.status === 'failed').length || 0) > 0;
+
   return (
     <div className="max-w-5xl">
       <div className="flex items-center gap-3 mb-6">
@@ -154,24 +258,57 @@ export default function E2ETestPage() {
           ))}
         </div>
 
-        <Button 
-          onClick={runTests} 
-          disabled={running}
-          className="mt-6 w-full md:w-auto"
-          size="lg"
-        >
-          {running ? (
-            <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Running Tests...
-            </>
-          ) : (
-            <>
-              <Play className="h-5 w-5 mr-2" />
-              Run {TEST_TYPES.find(t => t.id === selectedType)?.name}
-            </>
+        <div className="flex flex-wrap gap-3 mt-6">
+          <Button 
+            onClick={runTests} 
+            disabled={running}
+            size="lg"
+          >
+            {running ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Running Tests...
+              </>
+            ) : (
+              <>
+                <Play className="h-5 w-5 mr-2" />
+                Run {TEST_TYPES.find(t => t.id === selectedType)?.name}
+              </>
+            )}
+          </Button>
+
+          {/* Export for Claude Button */}
+          {hasResults && (
+            <Button 
+              onClick={copyToClipboard}
+              variant="outline"
+              size="lg"
+              className={`${hasFailures ? 'border-orange-500 text-orange-600 hover:bg-orange-50' : 'border-green-500 text-green-600 hover:bg-green-50'}`}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-5 w-5 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-5 w-5 mr-2" />
+                  Export for Claude
+                </>
+              )}
+            </Button>
           )}
-        </Button>
+        </div>
+
+        {/* Export Instructions */}
+        {hasResults && hasFailures && (
+          <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm">
+            <strong className="text-orange-700">💡 Found issues?</strong>
+            <span className="text-orange-600 ml-2">
+              Click "Export for Claude" to copy a diagnostic report, then paste it in chat for fixes.
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Error Display */}
@@ -328,12 +465,12 @@ export default function E2ETestPage() {
                                 </span>
                               </div>
                               {step.error && (
-                                <div className="mt-1 text-xs text-red-600 ml-6">
-                                  Error: {step.error}
+                                <div className="mt-1 text-xs text-red-600 ml-6 font-mono bg-red-100 p-1 rounded">
+                                  {step.error}
                                 </div>
                               )}
                               {step.data && (
-                                <div className="mt-1 text-xs text-gray-500 ml-6">
+                                <div className="mt-1 text-xs text-gray-500 ml-6 font-mono">
                                   {JSON.stringify(step.data)}
                                 </div>
                               )}
