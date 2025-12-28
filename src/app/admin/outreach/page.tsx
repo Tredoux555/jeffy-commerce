@@ -308,6 +308,31 @@ Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
 
+  // Alias for Dr Sizwe Nxasana
+  'Dr Sizwe Nxasana': {
+    subject: "From FirstRand CEO to PhD in education at 67 — that tells me everything",
+    body: `Hey Sizwe,
+
+You ran FirstRand for 10 years. Telkom for 8. One of the first 10 Black chartered accountants in South Africa. And then you "retired" — only to start a PhD in Project-Based Learning. At 67. Finished it in May 2025.
+
+That tells me everything I need to know about where your heart is.
+
+You founded KZN's first Black audit firm in 1989. Built an empire. Then walked away to transform education. Sifiso Learning Group. Future Nation Schools. An "African-centred education ecosystem" where kids learn by doing real projects.
+
+That's exactly what I'm building. Jeffy Commerce is a platform that funds free schools. Students selected on pure merit. When they graduate: one hectare of land, a house they built themselves, skills to manufacture food, tech, clothes, everything.
+
+Project-based learning taken to its logical conclusion — not just learning by doing projects, but learning by building an entire life.
+
+My family built a school once for farm kids. Corruption killed it. Your model — learning by doing, African-centered, self-sustaining — is the antidote.
+
+I'd love your perspective on The Jeffy Manifesto. Coming from someone who left a corporate throne to get a PhD in education, I can't think of anyone better to critique what I'm building.
+
+Grateful for your time,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
   'Stacey Brewer': {
     subject: "World's Best School — 78% of SA Grade 4s can't read, you said 'I'll fix it'",
     body: `Hey Stacey,
