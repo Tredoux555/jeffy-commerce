@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 import { 
   Mail, Send, CheckCircle, Clock, MessageSquare, Calendar,
   Search, Phone, Instagram, Linkedin, Twitter, XCircle, 
-  Rocket, Copy, Check, ChevronDown, ChevronUp, Zap
+  Rocket, Copy, Check, ChevronDown, ChevronUp, Zap, Star,
+  Trophy, Target, Users
 } from 'lucide-react';
 
 interface Influencer {
@@ -32,6 +33,25 @@ interface OutreachContact {
   replied_at: string | null;
   notes: string | null;
 }
+
+// Top 5 priority names for Day 1
+const DAY1_NAMES = [
+  'Taddy Blecher',      // Education pioneer - perfect fit
+  'Thulani Madondo',    // CNN Hero - great story alignment  
+  'Vusi Thembekwayo',   // Massive reach + business credibility
+  'Motsepe Foundation', // Funding potential
+  'Theo Baloyi',        // Bathu shoes - direct alignment
+];
+
+// Day 3 names
+const DAY3_NAMES = [
+  'Dr Sizwe Nxasana',
+  'Lindiwe Matlali',
+  'James Urdang',
+  'IkamvaYouth',
+  'Bonang Matheba',
+  'Connie Ferguson',
+];
 
 // All personalized pitches
 const PITCHES: Record<string, { subject: string; body: string }> = {
@@ -60,26 +80,81 @@ www.jeffy.co.za
 
 "We plant trees under whose shade we'll never sit."`
   },
-  'Siyanda Calvin Ntenga': {
-    subject: "From School Shoes to School Buildings - Partnership Opportunity",
-    body: `Siyanda,
+  'Thulani Madondo': {
+    subject: "From Kliptown to Everywhere - Scaling Your Vision",
+    body: `Thulani,
 
-I've watched the Ntenga Foundation's work providing school shoes to children who have none. You understand something most people don't: that small barriers – like not having shoes – can end an entire educational journey.
+CNN Hero. 17 years in Kliptown. 1,400+ children supported. You grew up in the poverty you're now fighting. That's not a story – that's credibility money can't buy.
 
-I'm Tredoux from Jeffy Commerce. We're building something that could multiply your impact 1000x.
+I'm Tredoux from Jeffy Commerce. My family built a school for farm children in SA. Corruption destroyed it. I've spent years figuring out how to try again – corruption-proof this time.
 
 Our model:
-• E-commerce profits fund FREE SCHOOLS across SA
-• Zone Partners run local delivery with 50/50 profit sharing
-• Graduates receive land, skills, and means to build self-sufficient lives
+• E-commerce profits fund FREE SCHOOLS
+• Merit-based selection only
+• Graduates get 1 hectare land + skills + production facilities
+• Self-sufficient communities that don't depend on external funding
 
-Imagine: every purchase on Jeffy doesn't just deliver a product – it adds another brick to a school building. Your shoes get kids to school. Our schools give them somewhere to go.
+Kliptown Youth Program proves the model works. What if we could build 100 Kliptowns?
 
-What if we partnered? Ntenga Foundation + Jeffy Commerce = end-to-end educational support.
+You have 17 years of on-the-ground wisdom. We have a funding mechanism that could scale it nationwide.
 
-15 minutes to explore?
+Can we talk?
 
-Let's build,
+With admiration,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+  'Vusi Thembekwayo': {
+    subject: "100,000 Jobs + Free Schools = Africa's Future",
+    body: `Vusi,
+
+MyGrowthFund's mission to create 100,000 jobs aligns perfectly with what we're building at Jeffy Commerce. But we're taking it further.
+
+I'm Tredoux Willemse. Here's our thesis:
+
+Jobs are great. But what if we created job CREATORS?
+
+Jeffy Commerce model:
+• Zone Partners run local delivery (50/50 profit split) – that's jobs
+• ALL profits fund FREE merit-based schools – that's education
+• Graduates get 1 hectare land + skills + production facilities – that's entrepreneurship
+• Self-sufficient communities manufacturing food, tech, medicine – that's generational wealth
+
+We're not building a company. We're building a machine that produces capable South Africans at scale.
+
+You've got 6.2M followers and the ear of Africa's business community. A 60-second video from you could bring us 1,000 Zone Partner applications.
+
+Worth a conversation?
+
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+  'Motsepe Foundation': {
+    subject: "R1.5 Billion Commitment + Sustainable Model = Permanent Change",
+    body: `Dear Motsepe Foundation Team,
+
+Dr. Patrice Motsepe's R1.5 billion commitment to education at Global Citizen 2018 demonstrated what's possible when South African success reinvests in South African potential.
+
+I'm Tredoux Willemse, founder of Jeffy Commerce. We're building something complementary: a self-sustaining education funding mechanism.
+
+Our model:
+• E-commerce platform with Zone Partners (50/50 profit sharing)
+• ALL profits beyond operations fund FREE merit-based schools
+• Graduates receive 1 hectare land + skills + production facilities
+• Self-sufficient communities that don't require ongoing donations
+
+The Motsepe Foundation provides transformative capital. Jeffy Commerce provides perpetual operational funding. Together: schools that never need another fundraising campaign.
+
+We're seeking:
+1. Strategic guidance from your education program team
+2. Potential partnership on school infrastructure
+3. Introduction to education sector stakeholders
+
+Would your team be open to an exploratory conversation?
+
+Respectfully,
 Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
@@ -112,27 +187,98 @@ Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
-  'Vusi Thembekwayo': {
-    subject: "100,000 Jobs + Free Schools = Africa's Future",
-    body: `Vusi,
+  'Dr Sizwe Nxasana': {
+    subject: "From FirstRand to Future Nation - Let's Compare Notes",
+    body: `Dr. Nxasana,
 
-MyGrowthFund's mission to create 100,000 jobs aligns perfectly with what we're building at Jeffy Commerce. But we're taking it further.
+You left the corner office at FirstRand to build affordable schools with 100% matric pass rates. That tells me everything I need to know about your priorities.
 
-I'm Tredoux Willemse. Here's our thesis:
+I'm Tredoux Willemse, founder of Jeffy Commerce. We're attacking the same problem from a different angle:
 
-Jobs are great. But what if we created job CREATORS?
+Your approach: Build excellent affordable schools
+Our approach: Fund FREE schools through e-commerce profits
 
-Jeffy Commerce model:
-• Zone Partners run local delivery (50/50 profit split) – that's jobs
-• ALL profits fund FREE merit-based schools – that's education
-• Graduates get 1 hectare land + skills + production facilities – that's entrepreneurship
-• Self-sufficient communities manufacturing food, tech, medicine – that's generational wealth
+Our model:
+• Zone Partners deliver products locally (50/50 profit sharing)
+• All profits beyond operations fund merit-based schools
+• Graduates receive 1 hectare land + skills training
+• Self-sufficient communities that can manufacture food, tech, medicine
 
-We're not building a company. We're building a machine that produces capable South Africans at scale.
+You have operational excellence in education delivery. We're building the funding engine that could make it infinitely scalable.
 
-You've got 6.2M followers and the ear of Africa's business community. A 60-second video from you could bring us 1,000 Zone Partner applications.
+I'd love 30 minutes to learn from your experience and explore whether there's a collaboration that makes both our visions bigger.
 
-Worth a conversation?
+With respect,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+  'Lindiwe Matlali': {
+    subject: "800,000 Coders Need Schools That Understand Them",
+    body: `Lindiwe,
+
+You've trained 800,000+ children in coding through Africa Teen Geeks. You've seen firsthand that our kids can compete globally when given tools and opportunity.
+
+I'm Tredoux from Jeffy Commerce. We're building free schools – but not just any schools.
+
+Our vision:
+• E-commerce profits fund merit-based FREE schools
+• Graduates receive 1 hectare land + production facilities
+• Communities that manufacture food, TECH, medicine, clothing
+
+Tech is in our DNA. Our schools won't just teach coding – they'll produce the next generation of SA tech founders.
+
+You're on the Presidential 4IR Commission. You have influence over how SA approaches technology education. What if Africa Teen Geeks grads had a pathway to schools specifically designed for their potential?
+
+15 minutes to explore?
+
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+  'James Urdang': {
+    subject: "30 Years of Education Africa Wisdom + Fresh Funding Model",
+    body: `James,
+
+Mentored by Walter Sisulu. Worked with Mandela. Built Masibambane College. 30+ years creating educational opportunity in South Africa.
+
+I'm Tredoux from Jeffy Commerce, and I need to learn from someone like you.
+
+We're building:
+• E-commerce platform where profits fund FREE schools
+• Zone Partners for local delivery (50/50 profit split)
+• Merit-based selection – graduates get land + skills + facilities
+• Self-sufficient communities across SA
+
+I've read about Education Africa's marimba programmes, your approach to holistic education, the practical skills focus. This is exactly what we want to build – but funded perpetually by commerce, not donations.
+
+Would you give us 30 minutes? Your experience could save us years of mistakes.
+
+With deep respect for your life's work,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+  'IkamvaYouth': {
+    subject: "17 Branches, 80-100% Pass Rates - Let's Scale It",
+    body: `Dear IkamvaYouth Team,
+
+17 branches. 80-100% matric pass rates. Ashoka Fellow recognition. You've proven that peer-to-peer tutoring and community-based education works at scale.
+
+I'm Tredoux from Jeffy Commerce. We're building the funding infrastructure that could help organizations like yours grow indefinitely.
+
+Our model:
+• E-commerce profits fund FREE schools
+• Zone Partners create local employment
+• Graduates receive resources for independent lives
+
+Here's the partnership opportunity:
+
+IkamvaYouth has the educational methodology that works. Jeffy Commerce has a funding model that doesn't depend on grants or donations.
+
+What if every Jeffy sale contributed to IkamvaYouth expansion? What if we could fund 50 branches instead of 17?
+
+Would your team be open to exploring this?
 
 Tredoux Willemse
 Founder, Jeffy Commerce
@@ -158,34 +304,6 @@ One Instagram story from you could fund a classroom. One partnership could fund 
 What would it take to get 15 minutes of your time?
 
 With respect,
-Tredoux Willemse
-Founder, Jeffy Commerce
-www.jeffy.co.za`
-  },
-  'Motsepe Foundation': {
-    subject: "R1.5 Billion Commitment + Sustainable Model = Permanent Change",
-    body: `Dear Motsepe Foundation Team,
-
-Dr. Patrice Motsepe's R1.5 billion commitment to education at Global Citizen 2018 demonstrated what's possible when South African success reinvests in South African potential.
-
-I'm Tredoux Willemse, founder of Jeffy Commerce. We're building something complementary: a self-sustaining education funding mechanism.
-
-Our model:
-• E-commerce platform with Zone Partners (50/50 profit sharing)
-• ALL profits beyond operations fund FREE merit-based schools
-• Graduates receive 1 hectare land + skills + production facilities
-• Self-sufficient communities that don't require ongoing donations
-
-The Motsepe Foundation provides transformative capital. Jeffy Commerce provides perpetual operational funding. Together: schools that never need another fundraising campaign.
-
-We're seeking:
-1. Strategic guidance from your education program team
-2. Potential partnership on school infrastructure
-3. Introduction to education sector stakeholders
-
-Would your team be open to an exploratory conversation?
-
-Respectfully,
 Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
@@ -247,7 +365,7 @@ www.jeffy.co.za`
   },
 };
 
-// Default pitch
+// Default pitch for those without custom
 const DEFAULT_PITCH = {
   subject: "Partnership Opportunity - Jeffy Commerce | Building Free Schools Through E-Commerce",
   body: `Hi [NAME],
@@ -287,7 +405,6 @@ export default function OutreachPage() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [sendingAll, setSendingAll] = useState(false);
   
   const supabase = createClient();
 
@@ -297,7 +414,6 @@ export default function OutreachPage() {
     const { data } = await supabase
       .from('influencers')
       .select(`*, outreach_contacts (*)`)
-      .order('priority')
       .order('followers', { ascending: false });
     if (data) setInfluencers(data);
     setLoading(false);
@@ -345,7 +461,6 @@ export default function OutreachPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // SEND TO ONE PERSON
   const sendToOne = (inf: Influencer) => {
     const link = getGmailLink(inf);
     if (link) {
@@ -354,31 +469,31 @@ export default function OutreachPage() {
     }
   };
 
-  // SEND TO EVERYONE - Opens all Gmail tabs
-  const sendToEveryone = async () => {
-    setSendingAll(true);
-    const withEmail = influencers.filter(i => i.email && getStatus(i) === 'not_contacted');
-    
-    for (let i = 0; i < withEmail.length; i++) {
-      const inf = withEmail[i];
-      const link = getGmailLink(inf);
-      if (link) {
-        // Stagger opens to avoid browser blocking
-        setTimeout(() => {
+  const sendBatch = (names: string[]) => {
+    const batch = influencers.filter(i => names.includes(i.name) && i.email && getStatus(i) === 'not_contacted');
+    batch.forEach((inf, i) => {
+      setTimeout(() => {
+        const link = getGmailLink(inf);
+        if (link) {
           window.open(link, '_blank');
           updateStatus(inf.id, 'email_sent');
-        }, i * 1000); // 1 second between each
-      }
-    }
-    
-    setTimeout(() => setSendingAll(false), withEmail.length * 1000 + 1000);
+        }
+      }, i * 1500);
+    });
   };
 
+  // Categorize influencers
+  const day1 = influencers.filter(i => DAY1_NAMES.includes(i.name));
+  const day3 = influencers.filter(i => DAY3_NAMES.includes(i.name));
+  const day5 = influencers.filter(i => !DAY1_NAMES.includes(i.name) && !DAY3_NAMES.includes(i.name));
+
+  const day1Ready = day1.filter(i => i.email && getStatus(i) === 'not_contacted').length;
+  const day3Ready = day3.filter(i => i.email && getStatus(i) === 'not_contacted').length;
+  const day5Ready = day5.filter(i => i.email && getStatus(i) === 'not_contacted').length;
+
   // Stats
-  const withEmail = influencers.filter(i => i.email);
-  const notContacted = influencers.filter(i => getStatus(i) === 'not_contacted' && i.email);
-  const sent = influencers.filter(i => getStatus(i) === 'email_sent');
-  const replied = influencers.filter(i => ['replied', 'meeting_scheduled', 'converted'].includes(getStatus(i)));
+  const sent = influencers.filter(i => getStatus(i) === 'email_sent').length;
+  const replied = influencers.filter(i => ['replied', 'meeting_scheduled', 'converted'].includes(getStatus(i))).length;
 
   if (loading) return <div className="p-8 text-center text-xl">Loading...</div>;
 
@@ -390,59 +505,131 @@ export default function OutreachPage() {
           <Rocket className="w-8 h-8 text-orange-500" />
           Influencer Outreach
         </h1>
-        <p className="text-gray-600 mt-1">Click to send personalized pitches</p>
-      </div>
-
-      {/* BIG SEND TO EVERYONE BUTTON */}
-      <div className="bg-gradient-to-r from-orange-500 to-pink-500 rounded-2xl p-6 mb-6 text-white">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">🚀 Ready to Launch Outreach?</h2>
-            <p className="opacity-90 mt-1">
-              {notContacted.length} contacts with email ready to receive your pitch
-            </p>
-          </div>
-          <button
-            onClick={sendToEveryone}
-            disabled={sendingAll || notContacted.length === 0}
-            className="px-8 py-4 bg-white text-orange-600 font-bold text-xl rounded-xl hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex items-center gap-3"
-          >
-            {sendingAll ? (
-              <>
-                <div className="animate-spin w-6 h-6 border-3 border-orange-500 border-t-transparent rounded-full" />
-                Opening {notContacted.length} emails...
-              </>
-            ) : (
-              <>
-                <Zap className="w-6 h-6" />
-                SEND TO ALL {notContacted.length} CONTACTS
-              </>
-            )}
-          </button>
-        </div>
+        <p className="text-gray-600 mt-1">Strategic staggered outreach - don't send all at once!</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl p-4 border-2">
-          <p className="text-gray-500 text-sm">Total</p>
+          <p className="text-gray-500 text-sm">Total Contacts</p>
           <p className="text-3xl font-bold">{influencers.length}</p>
-        </div>
-        <div className="bg-white rounded-xl p-4 border-2 border-green-200">
-          <p className="text-green-600 text-sm">With Email</p>
-          <p className="text-3xl font-bold text-green-600">{withEmail.length}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border-2 border-blue-200">
           <p className="text-blue-600 text-sm">Emails Sent</p>
-          <p className="text-3xl font-bold text-blue-600">{sent.length}</p>
+          <p className="text-3xl font-bold text-blue-600">{sent}</p>
         </div>
         <div className="bg-white rounded-xl p-4 border-2 border-emerald-200">
           <p className="text-emerald-600 text-sm">Replied/Meeting</p>
-          <p className="text-3xl font-bold text-emerald-600">{replied.length}</p>
+          <p className="text-3xl font-bold text-emerald-600">{replied}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border-2 border-purple-200">
+          <p className="text-purple-600 text-sm">Conversion Rate</p>
+          <p className="text-3xl font-bold text-purple-600">{sent > 0 ? Math.round((replied/sent)*100) : 0}%</p>
         </div>
       </div>
 
-      {/* Influencer List */}
+      {/* STRATEGY SECTION */}
+      <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-6 mb-8 text-white">
+        <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          📋 Your Outreach Strategy
+        </h2>
+        <p className="text-slate-300 mb-4">Don't blast everyone at once. Stagger your outreach so you can properly follow up with replies.</p>
+        
+        <div className="grid md:grid-cols-3 gap-4">
+          {/* Day 1 */}
+          <div className="bg-white/10 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Trophy className="w-5 h-5 text-yellow-400" />
+              <span className="font-bold">DAY 1 - Top 5</span>
+            </div>
+            <p className="text-sm text-slate-300 mb-3">Highest-value targets with perfect mission alignment</p>
+            <ul className="text-sm space-y-1 mb-4">
+              {DAY1_NAMES.map(name => {
+                const inf = influencers.find(i => i.name === name);
+                const status = inf ? getStatus(inf) : 'not_contacted';
+                return (
+                  <li key={name} className="flex items-center gap-2">
+                    {status === 'not_contacted' ? '⚪' : status === 'email_sent' ? '🔵' : '🟢'}
+                    <span className={status !== 'not_contacted' ? 'line-through opacity-60' : ''}>{name}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              onClick={() => sendBatch(DAY1_NAMES)}
+              disabled={day1Ready === 0}
+              className="w-full py-3 bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-black font-bold rounded-lg flex items-center justify-center gap-2"
+            >
+              <Zap className="w-5 h-5" />
+              {day1Ready > 0 ? `SEND TO ${day1Ready} CONTACTS` : 'ALL SENT ✓'}
+            </button>
+          </div>
+
+          {/* Day 3 */}
+          <div className="bg-white/10 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-5 h-5 text-orange-400" />
+              <span className="font-bold">DAY 3 - Wave 2</span>
+            </div>
+            <p className="text-sm text-slate-300 mb-3">Education leaders & high-reach influencers</p>
+            <ul className="text-sm space-y-1 mb-4">
+              {DAY3_NAMES.map(name => {
+                const inf = influencers.find(i => i.name === name);
+                const status = inf ? getStatus(inf) : 'not_contacted';
+                return (
+                  <li key={name} className="flex items-center gap-2">
+                    {status === 'not_contacted' ? '⚪' : status === 'email_sent' ? '🔵' : '🟢'}
+                    <span className={status !== 'not_contacted' ? 'line-through opacity-60' : ''}>{name}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              onClick={() => sendBatch(DAY3_NAMES)}
+              disabled={day3Ready === 0}
+              className="w-full py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center justify-center gap-2"
+            >
+              <Zap className="w-5 h-5" />
+              {day3Ready > 0 ? `SEND TO ${day3Ready} CONTACTS` : 'ALL SENT ✓'}
+            </button>
+          </div>
+
+          {/* Day 5 */}
+          <div className="bg-white/10 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-blue-400" />
+              <span className="font-bold">DAY 5 - Everyone Else</span>
+            </div>
+            <p className="text-sm text-slate-300 mb-3">Complete the outreach to remaining contacts</p>
+            <ul className="text-sm space-y-1 mb-4 max-h-32 overflow-y-auto">
+              {day5.map(inf => {
+                const status = getStatus(inf);
+                return (
+                  <li key={inf.id} className="flex items-center gap-2">
+                    {status === 'not_contacted' ? '⚪' : status === 'email_sent' ? '🔵' : '🟢'}
+                    <span className={status !== 'not_contacted' ? 'line-through opacity-60' : ''}>{inf.name}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            <button
+              onClick={() => sendBatch(day5.map(i => i.name))}
+              disabled={day5Ready === 0}
+              className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold rounded-lg flex items-center justify-center gap-2"
+            >
+              <Zap className="w-5 h-5" />
+              {day5Ready > 0 ? `SEND TO ${day5Ready} CONTACTS` : 'ALL SENT ✓'}
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 p-3 bg-white/5 rounded-lg text-sm text-slate-300">
+          <strong>💡 Pro tip:</strong> After Day 1, wait to see if you get any replies before sending Day 3. If someone replies, give them your full attention!
+        </div>
+      </div>
+
+      {/* Full Contact List */}
+      <h2 className="text-xl font-bold mb-4">All Contacts</h2>
       <div className="space-y-3">
         {influencers.map((inf) => {
           const status = getStatus(inf);
@@ -451,27 +638,30 @@ export default function OutreachPage() {
           const gmailLink = getGmailLink(inf);
           const isExpanded = expandedId === inf.id;
           const hasPitch = !!PITCHES[inf.name];
+          const isDay1 = DAY1_NAMES.includes(inf.name);
+          const isDay3 = DAY3_NAMES.includes(inf.name);
 
           return (
             <div key={inf.id} className="bg-white rounded-xl border shadow-sm">
-              {/* Main Row */}
               <div className="p-4 flex items-center gap-4">
-                {/* Priority */}
+                {/* Day indicator */}
                 <div className={`w-2 h-14 rounded-full ${
-                  inf.priority === 'high' ? 'bg-red-500' :
-                  inf.priority === 'medium' ? 'bg-yellow-400' : 'bg-gray-300'
+                  isDay1 ? 'bg-yellow-500' : isDay3 ? 'bg-orange-500' : 'bg-blue-400'
                 }`} />
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-lg">{inf.name}</span>
-                    {hasPitch && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✨ Custom Pitch</span>}
+                    {isDay1 && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Day 1</span>}
+                    {isDay3 && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Day 3</span>}
+                    {!isDay1 && !isDay3 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Day 5</span>}
+                    {hasPitch && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✨ Custom</span>}
                   </div>
                   <div className="text-sm text-gray-500 flex items-center gap-2 mt-0.5">
                     <span className="bg-gray-100 px-2 py-0.5 rounded">{inf.category}</span>
                     {inf.followers && <span>{inf.followers >= 1000000 ? `${(inf.followers/1000000).toFixed(1)}M` : `${Math.round(inf.followers/1000)}K`}</span>}
-                    {inf.email && <span className="text-green-600 font-medium">📧 {inf.email}</span>}
+                    {inf.email && <span className="text-green-600">📧 {inf.email}</span>}
                   </div>
                 </div>
 
@@ -480,37 +670,26 @@ export default function OutreachPage() {
                   {statusOpt.label}
                 </span>
 
-                {/* SEND BUTTON - Big and Clear */}
+                {/* Actions */}
                 {inf.email && status === 'not_contacted' ? (
-                  <button
-                    onClick={() => sendToOne(inf)}
-                    className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl flex items-center gap-2 shadow-lg"
-                  >
-                    <Mail className="w-5 h-5" />
-                    SEND
+                  <button onClick={() => sendToOne(inf)} className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg flex items-center gap-2">
+                    <Mail className="w-4 h-4" /> SEND
                   </button>
                 ) : inf.email ? (
-                  <button
-                    onClick={() => sendToOne(inf)}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2"
-                  >
-                    <Mail className="w-4 h-4" />
-                    Resend
+                  <button onClick={() => sendToOne(inf)} className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4" /> Resend
                   </button>
                 ) : (
                   <span className="text-gray-400 text-sm">No email</span>
                 )}
 
-                {/* Copy */}
                 <button
                   onClick={() => copyPitch(inf)}
                   className={`p-2 rounded-lg ${copiedId === inf.id ? 'bg-green-100 text-green-600' : 'bg-gray-100 hover:bg-gray-200'}`}
-                  title="Copy pitch"
                 >
                   {copiedId === inf.id ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
                 </button>
 
-                {/* Status Change */}
                 <select
                   value={status}
                   onChange={(e) => updateStatus(inf.id, e.target.value)}
@@ -519,16 +698,14 @@ export default function OutreachPage() {
                   {STATUS_OPTIONS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
 
-                {/* Expand */}
                 <button onClick={() => setExpandedId(isExpanded ? null : inf.id)} className="p-2 text-gray-500">
                   {isExpanded ? <ChevronUp /> : <ChevronDown />}
                 </button>
               </div>
 
-              {/* Expanded Content */}
+              {/* Expanded */}
               {isExpanded && (
                 <div className="border-t p-4 bg-gray-50 grid md:grid-cols-2 gap-4">
-                  {/* Pitch */}
                   <div>
                     <h4 className="font-bold text-sm mb-2">📧 PITCH PREVIEW</h4>
                     <div className="bg-white border rounded-lg p-4 text-sm max-h-80 overflow-y-auto">
@@ -536,8 +713,6 @@ export default function OutreachPage() {
                       <pre className="whitespace-pre-wrap text-xs text-gray-700 font-sans">{pitch.body}</pre>
                     </div>
                   </div>
-
-                  {/* Contact & Actions */}
                   <div>
                     <h4 className="font-bold text-sm mb-2">📞 CONTACT & ACTIONS</h4>
                     <div className="bg-white border rounded-lg p-4 space-y-3">
@@ -548,28 +723,24 @@ export default function OutreachPage() {
                       
                       <div className="pt-3 space-y-2">
                         {gmailLink && (
-                          <a
-                            href={gmailLink}
-                            target="_blank"
-                            onClick={() => updateStatus(inf.id, 'email_sent')}
-                            className="block w-full text-center px-4 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600"
-                          >
-                            📧 Open in Gmail (Ready to Send)
+                          <a href={gmailLink} target="_blank" onClick={() => updateStatus(inf.id, 'email_sent')}
+                            className="block w-full text-center px-4 py-3 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600">
+                            📧 Open in Gmail
                           </a>
                         )}
-                        <button
-                          onClick={() => copyPitch(inf)}
-                          className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-                        >
+                        <button onClick={() => copyPitch(inf)} className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
                           {copiedId === inf.id ? '✓ Copied!' : '📋 Copy Pitch for LinkedIn/DM'}
                         </button>
                         {inf.phone && (
-                          <a
-                            href={`https://wa.me/${inf.phone.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            className="block w-full text-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                          >
+                          <a href={`https://wa.me/${inf.phone.replace(/[^0-9]/g, '')}`} target="_blank"
+                            className="block w-full text-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                             💬 WhatsApp
+                          </a>
+                        )}
+                        {inf.profile_url && (
+                          <a href={inf.profile_url} target="_blank"
+                            className="block w-full text-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                            🔗 View Profile
                           </a>
                         )}
                       </div>
