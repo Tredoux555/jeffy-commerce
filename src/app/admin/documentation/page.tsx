@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { 
   FileText, 
   Download, 
@@ -171,7 +171,7 @@ export default function AdminDocumentationPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   useEffect(() => {
     fetchStoredDocuments();

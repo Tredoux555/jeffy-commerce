@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { 
   FileText, 
   Upload, 
@@ -55,7 +55,7 @@ export default function LegalDocumentsPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const fetchDocuments = useCallback(async () => {
     setLoading(true);
