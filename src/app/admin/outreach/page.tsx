@@ -36,57 +36,284 @@ interface OutreachContact {
 
 // Top 5 priority names for Day 1
 const DAY1_NAMES = [
-  'Taddy Blecher',      // Education pioneer - perfect fit
-  'Thulani Madondo',    // CNN Hero - great story alignment  
-  'Vusi Thembekwayo',   // Massive reach + business credibility
-  'Motsepe Foundation', // Funding potential
-  'Theo Baloyi',        // Bathu shoes - direct alignment
+  'Taddy Blecher',
+  'Vusi Thembekwayo',
+  'Motsepe Foundation',
+  'Theo Baloyi',
+  'Lindiwe Matlali',
 ];
 
 // Day 3 names
 const DAY3_NAMES = [
   'Dr Sizwe Nxasana',
-  'Lindiwe Matlali',
+  'Thulani Madondo',
   'James Urdang',
   'IkamvaYouth',
   'Bonang Matheba',
   'Connie Ferguson',
 ];
 
-// All personalized pitches
+// ============================================
+// REAL PERSONALIZED LETTERS - WITH SOUL
+// ============================================
 const PITCHES: Record<string, { subject: string; body: string }> = {
+  'Vusi Thembekwayo': {
+    subject: "From walking through malls with CVs to building free schools",
+    body: `Hey Vusi,
+
+I'm going to be straight with you — I've followed your journey for years and it took me a while to work up the nerve to send this. But here goes.
+
+I know where you came from. The gunmen. Losing your father at 13. Your mom working herself to the bone. Living at your grandfather's place with no electricity, waking before dawn just to catch buses to school. Dropping out of university when the money dried up. Walking through malls for six weeks handing out CVs.
+
+And I know where you ended up. Business from your bedroom at 17. World champion speaker by 22. MyGrowthFund. 300 Black businesses. 100,000 jobs by 2030.
+
+Here's the thing — I'm building something that I think speaks to everything you've been fighting for. It's called Jeffy, and on the surface it's just a commerce platform. But underneath? It's the engine for something bigger.
+
+The profits from Jeffy are going to build free schools. Not charity schools — schools where kids are selected purely on merit. And when they graduate? They walk away with one hectare of land, a house they built themselves, and the skills to manufacture whatever they need. Food. Tech. Clothes. Everything.
+
+My family built a school once. For farm kids who had to walk 30km each way just to learn. Corruption killed it. I've been trying to figure out how to build something they can't destroy ever since.
+
+I'm not asking for money or a favour. I'm asking if you'd take 10 minutes to read The Jeffy Manifesto and tell me if it's worth a conversation. That's it.
+
+You once said you challenge yourself to do one terrifying thing every year. Sending this email might be mine.
+
+Cheers,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Theo Baloyi': {
+    subject: "Walk Your Journey — from Alex to building schools together",
+    body: `Hey Theo,
+
+Your dad taught you something that stuck with me — have an intellectual relationship with money, not an emotional one. Lose R10? Don't cry about it. Think about how to make R20.
+
+He passed in 2014 before he could see what you built. That gets me. The people who plant trees they'll never sit under.
+
+I know the story. Moving to Alex. Seeing guys on street corners who'd given up. Asking yourself if you'd be the one in the fancy office looking down or the one actually doing something. Sixteen factories saying no to your mesh design. Wanting 100 pairs but they demanded 1,200. Twenty-one samples later, finally a yes.
+
+Now? 32+ stores. 400+ jobs. 80% of your warehouse staff from Alex. Your sister on the team. Job Creator of the Year. A million school shoes through Bathu for Batho.
+
+"Walk Your Journey" isn't just a slogan. It's a whole philosophy. And I think what I'm building has the same DNA.
+
+Jeffy Commerce is a platform where Zone Partners — local entrepreneurs — own their territories and keep 50% of profits. Not the 25% Uber and Bolt leave for their drivers. Real ownership. Real money back in the community.
+
+But that's just the engine. The profits build free schools where graduates walk away with land, a house they built, and skills to make anything they need. Selected on merit alone. No connections. No money. Just potential.
+
+You said "don't despise small beginnings." This is mine. I'm not asking you to endorse anything blind. Just read The Jeffy Manifesto and tell me if it's worth walking together for a bit.
+
+Walk your journey,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
   'Taddy Blecher': {
-    subject: "Fellow Education Revolutionary - Let's Build Free Schools Together",
-    body: `Dear Dr. Blecher,
+    subject: "From millionaire actuary to free education — I need to learn from you",
+    body: `Hey Taddy,
 
-Your work with CIDA City Campus didn't just create a university – it proved that free, quality education at scale is possible in South Africa. That proof of concept has inspired everything we're building at Jeffy Commerce.
+I'm going to be honest with you — when I found out what you've built, I couldn't believe someone hadn't sent me to you years ago.
 
-I'm Tredoux Willemse, founder of Jeffy Commerce. Like you, I believe South Africans are the most capable people on the planet when given opportunity. My family built a school for farm children who walked 30km to learn. Corruption killed it. I've spent years on every continent learning how to try again – properly this time.
+You were a millionaire actuary with tickets to America in 1995. But driving through the townships changed everything. You unpacked your bags and spent four years in Alexandra. And when you realized graduates were ending up back on the streets, you founded a free university with "no buildings, no books, no money, no teachers, no computers — nothing."
 
-Here's what we're building:
-• E-commerce platform with Zone Partners (50/50 profit sharing)
-• ALL profits beyond operations fund FREE SCHOOLS
-• Merit-based selection – graduates receive 1 hectare land + skills training
-• Self-sufficient communities producing food, tech, medicine, clothing
+Now? 600,000+ South Africans trained. 19,000+ graduates collectively earning R100M+ annually. 5,000+ businesses created. The "Learn and Earn" model where students literally build and maintain the institution while studying.
 
-We're not asking for money. We're asking for your wisdom.
+You're already doing what I've been dreaming about.
 
-Would you give us 30 minutes? Your experience scaling free education could save us years of mistakes.
+Here's my version: Jeffy Commerce is a platform that funds free schools. Students are selected on pure merit. When they graduate, they leave with one hectare of land, a house they built themselves, and skills to manufacture everything they need. The schools become self-sustaining communities.
+
+My family built a school once. Corruption killed it. Your model is corruption-proof because it doesn't depend on outside funding — the community sustains itself.
+
+I'd love to learn from you. Pick your brain. Maybe find ways our visions can support each other.
+
+The Jeffy Manifesto is attached. Would love your thoughts on it — from someone who's actually built what I'm trying to build.
+
+With serious respect,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Motsepe Foundation': {
+    subject: "Land WITH skills — exactly what you've been building",
+    body: `Dear Dr. Motsepe,
+
+Your father ran a spaza shop in Soweto. You became the first Black partner at Bowman Gilfillan. First African to sign the Giving Pledge. Built an empire. And then pledged R3.5 billion toward providing rural communities land WITH skills and resources for sustainable farming.
+
+That last part is exactly what I'm trying to do. Not just land. Land WITH skills AND resources.
+
+Jeffy Commerce is a platform that funds free schools. Merit-only selection. Graduates leave with one hectare of land, a house they built themselves, and skills to manufacture everything they need — food, tech, medicine, housing. Complete self-sufficiency.
+
+Your land reform approach is the model. Providing land without skills creates dependency. You understood that. I want to take it further — not just farming skills, but manufacturing skills. Complete independence.
+
+The Jeffy Manifesto is attached. If there is any alignment between what I'm building and the Motsepe Foundation's work, I would be deeply honored to have that conversation.
+
+You've already committed over $2 billion to building South Africa. I'm not asking for funding — I'm asking if you'd read the vision and tell me if it's worth pursuing.
 
 With deep respect,
 Tredoux Willemse
 Founder, Jeffy Commerce
-www.jeffy.co.za
-
-"We plant trees under whose shade we'll never sit."`
+www.jeffy.co.za`
   },
+
+  'Lindiwe Matlali': {
+    subject: "800,000 kids trained — children need to know they matter",
+    body: `Hey Lindiwe,
+
+Orphaned young. Founded Africa Teen Geeks in 2014 after meeting an 8-year-old US coder who'd built her own app. Realized IT was only taught from grade 10, only in rich schools. Said "I'm going to fix this."
+
+Now? 800,000+ kids trained. Presidential 4th Industrial Commission. MS at Columbia. Graduate certificate at Stanford. Africa's largest computer science NGO.
+
+"Children need to know that they matter." That sentence broke me.
+
+Here's what I'm building. Jeffy Commerce funds free schools. Merit-only selection — so no child is left behind because of money. Graduates leave with land, a house they built, and skills to manufacture everything they need — including technology.
+
+Coding is part of that. But I'm going further — manufacturing tech, not just using it. Building computers, not just programming them. Real physical and digital skills combined.
+
+Would you read The Jeffy Manifesto? Your work in townships and rural areas is exactly who these schools are for. I'd love your thoughts on how coding and tech skills fit into a self-sufficiency curriculum.
+
+Raising little Marian Croaks,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Dr Sizwe Nxasana': {
+    subject: "From FirstRand CEO to PhD in education at 67 — that tells me everything",
+    body: `Hey Sizwe,
+
+You ran FirstRand for 10 years. Telkom for 8. One of the first 10 Black chartered accountants in South Africa. And then you "retired" — only to start a PhD in Project-Based Learning. At 67. Finished it in May 2025.
+
+That tells me everything I need to know about where your heart is.
+
+You founded KZN's first Black audit firm in 1989. Built an empire. Then walked away to transform education. Sifiso Learning Group. Future Nation Schools. An "African-centred education ecosystem" where kids learn by doing real projects.
+
+That's exactly what I'm building. Jeffy Commerce is a platform that funds free schools. Students selected on pure merit. When they graduate: one hectare of land, a house they built themselves, skills to manufacture food, tech, clothes, everything.
+
+Project-based learning taken to its logical conclusion — not just learning by doing projects, but learning by building an entire life.
+
+My family built a school once for farm kids. Corruption killed it. Your model — learning by doing, African-centered, self-sustaining — is the antidote.
+
+I'd love your perspective on The Jeffy Manifesto. Coming from someone who left a corporate throne to get a PhD in education, I can't think of anyone better to critique what I'm building.
+
+Grateful for your time,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Bonang Matheba': {
+    subject: "You dropped out due to fees — then built an empire anyway",
+    body: `Bonang,
+
+You dropped out of university due to fee issues. Then you built an empire anyway. House of BNG. Forbes Africa recognition. 10.5 million followers.
+
+But I wonder — how many brilliant South Africans never got their shot because there was no Bonang-level determination to fall back on?
+
+I'm Tredoux from Jeffy Commerce. We're building free schools funded by e-commerce profits. Not charity schools — excellence schools. Merit-based. Graduates get land, skills, and means to build independent lives.
+
+Here's why you:
+• You LIVED the education access problem
+• You proved SA talent can compete globally
+• You reach millions of young South Africans daily
+
+One Instagram story from you could fund a classroom. One partnership could fund a school.
+
+What would it take to get 15 minutes of your time?
+
+With respect,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Connie Ferguson': {
+    subject: "Ferguson Foundation + Jeffy Schools = Legacy That Outlives Us",
+    body: `Connie,
+
+The Ferguson Foundation's work funding disadvantaged youth education shows that success in entertainment doesn't have to stay in entertainment.
+
+I'm Tredoux from Jeffy Commerce. We're building free schools funded by e-commerce profits — and we need partners who understand the power of story.
+
+Our model:
+• Zone Partners deliver products locally (50/50 profit split)
+• ALL profits fund merit-based free schools
+• Graduates get land, skills, production facilities
+• Self-sufficient communities across SA
+
+Here's what Ferguson Films could add:
+• Documentary telling the Jeffy Schools story
+• Reaching 5.8M followers with our mission
+• Ferguson Foundation partnership on education delivery
+
+What we offer:
+• A story worth telling — commerce funding education at scale
+• Real students, real transformation, real impact
+• Content that matters
+
+15 minutes to explore?
+
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Terra-Khaya': {
+    subject: "You built an off-grid eco-lodge from nothing — I need that for my schools",
+    body: `Hey Shane and Carrie,
+
+You built an entire eco-lodge from natural and salvaged materials. 100% off-grid. Cob construction. Mud bricks. Earthbags. Cordwood. Wattle and daub. Zero waste. In Hogsback.
+
+And you run 10-day workshops teaching others how to do it. Foundations, structure, roofing, cob ovens, rocket stoves. Real skills. Real buildings.
+
+This is literally what I need for my schools.
+
+Jeffy Commerce funds free schools. Merit-only selection. Graduates leave with one hectare of land, a house they built themselves, and skills to manufacture everything they need. The "house they built themselves" part? That's where you come in.
+
+I don't want students building with expensive imported materials. I want them building with what's around them. Natural. Sustainable. Beautiful. Like what you've created at Terra-Khaya.
+
+Would you read The Jeffy Manifesto and tell me if this is something you'd want to be part of? Even as advisors or curriculum consultants. Your building skills program is exactly what we need to teach the next generation.
+
+You said: "We aim, through our methods of living and building, to be an example that conscious living and respect for Mother Earth is something mutually simple and rewarding." I want that to be the ethos of every Jeffy school.
+
+Building with the earth,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
+  'Trevor Noah Foundation': {
+    subject: "Trevor's favorite toy was a brick — Faranani builds schools",
+    body: `Dear Foundation Team,
+
+Trevor's favorite childhood toy was a brick. He couldn't afford real toys. His book "Born a Crime" captures what growing up in Soweto really looked like.
+
+But what got my attention was the Faranani Infrastructure Project. Youth who are "not in employment, education or training" BUILD school infrastructure while receiving skills training, work experience, and career development.
+
+They're not just learning. They're building. And what they build is a school for others.
+
+That's exactly the philosophy behind what I'm creating. Jeffy Commerce funds free schools. Merit-only selection. Graduates leave with land, a house they built themselves, and skills to manufacture everything they need.
+
+"Faranani" — working together. That's what I want for every Jeffy community. Students building the infrastructure, learning by doing, then helping the next generation.
+
+Trevor said: "Kids of today are being told to be the leaders of tomorrow, but they're not given the tools. We tell people to follow their dreams, but you can only dream of what you can imagine."
+
+Jeffy schools expand what kids can imagine. The Jeffy Manifesto is attached. If there's any alignment with the Foundation's work, I'd love to explore it.
+
+Working together,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
   'Thulani Madondo': {
-    subject: "From Kliptown to Everywhere - Scaling Your Vision",
+    subject: "CNN Hero from Kliptown — what if we built 100 Kliptowns?",
     body: `Thulani,
 
-CNN Hero. 17 years in Kliptown. 1,400+ children supported. You grew up in the poverty you're now fighting. That's not a story – that's credibility money can't buy.
+CNN Hero. 17 years in Kliptown. 1,400+ children supported. You grew up in the poverty you're now fighting. That's not a story — that's credibility money can't buy.
 
-I'm Tredoux from Jeffy Commerce. My family built a school for farm children in SA. Corruption destroyed it. I've spent years figuring out how to try again – corruption-proof this time.
+I'm Tredoux from Jeffy Commerce. My family built a school for farm children in SA. Corruption destroyed it. I've spent years figuring out how to try again — corruption-proof this time.
 
 Our model:
 • E-commerce profits fund FREE SCHOOLS
@@ -105,139 +332,9 @@ Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
-  'Vusi Thembekwayo': {
-    subject: "100,000 Jobs + Free Schools = Africa's Future",
-    body: `Vusi,
 
-MyGrowthFund's mission to create 100,000 jobs aligns perfectly with what we're building at Jeffy Commerce. But we're taking it further.
-
-I'm Tredoux Willemse. Here's our thesis:
-
-Jobs are great. But what if we created job CREATORS?
-
-Jeffy Commerce model:
-• Zone Partners run local delivery (50/50 profit split) – that's jobs
-• ALL profits fund FREE merit-based schools – that's education
-• Graduates get 1 hectare land + skills + production facilities – that's entrepreneurship
-• Self-sufficient communities manufacturing food, tech, medicine – that's generational wealth
-
-We're not building a company. We're building a machine that produces capable South Africans at scale.
-
-You've got 6.2M followers and the ear of Africa's business community. A 60-second video from you could bring us 1,000 Zone Partner applications.
-
-Worth a conversation?
-
-Tredoux Willemse
-Founder, Jeffy Commerce
-www.jeffy.co.za`
-  },
-  'Motsepe Foundation': {
-    subject: "R1.5 Billion Commitment + Sustainable Model = Permanent Change",
-    body: `Dear Motsepe Foundation Team,
-
-Dr. Patrice Motsepe's R1.5 billion commitment to education at Global Citizen 2018 demonstrated what's possible when South African success reinvests in South African potential.
-
-I'm Tredoux Willemse, founder of Jeffy Commerce. We're building something complementary: a self-sustaining education funding mechanism.
-
-Our model:
-• E-commerce platform with Zone Partners (50/50 profit sharing)
-• ALL profits beyond operations fund FREE merit-based schools
-• Graduates receive 1 hectare land + skills + production facilities
-• Self-sufficient communities that don't require ongoing donations
-
-The Motsepe Foundation provides transformative capital. Jeffy Commerce provides perpetual operational funding. Together: schools that never need another fundraising campaign.
-
-We're seeking:
-1. Strategic guidance from your education program team
-2. Potential partnership on school infrastructure
-3. Introduction to education sector stakeholders
-
-Would your team be open to an exploratory conversation?
-
-Respectfully,
-Tredoux Willemse
-Founder, Jeffy Commerce
-www.jeffy.co.za`
-  },
-  'Theo Baloyi': {
-    subject: "1 Million Shoes + Free Schools = Unstoppable",
-    body: `Theo,
-
-Bathu for Batho. 1 million school shoes. You didn't just build a sneaker brand – you built a movement that says "South Africans uplift South Africans."
-
-I'm Tredoux, founder of Jeffy Commerce. Our mission is audacious but simple: use e-commerce profits to build FREE SCHOOLS across South Africa.
-
-Here's what caught my attention about Bathu:
-• Township to success story that inspires millions
-• "Bathu for Batho" already addresses education access
-• You understand that business and social impact aren't separate
-
-Here's what we're building:
-• Zone Partners run local delivery (50/50 profit split)
-• ALL profits fund merit-based free schools
-• Graduates get 1 hectare land + skills to be self-sufficient
-
-Bathu gets kids TO school. Jeffy builds the schools they go TO.
-
-What if we combined forces? Bathu sold through Jeffy, with every sale funding education infrastructure?
-
-Let's talk ambition.
-
-Tredoux Willemse
-Founder, Jeffy Commerce
-www.jeffy.co.za`
-  },
-  'Dr Sizwe Nxasana': {
-    subject: "From FirstRand to Future Nation - Let's Compare Notes",
-    body: `Dr. Nxasana,
-
-You left the corner office at FirstRand to build affordable schools with 100% matric pass rates. That tells me everything I need to know about your priorities.
-
-I'm Tredoux Willemse, founder of Jeffy Commerce. We're attacking the same problem from a different angle:
-
-Your approach: Build excellent affordable schools
-Our approach: Fund FREE schools through e-commerce profits
-
-Our model:
-• Zone Partners deliver products locally (50/50 profit sharing)
-• All profits beyond operations fund merit-based schools
-• Graduates receive 1 hectare land + skills training
-• Self-sufficient communities that can manufacture food, tech, medicine
-
-You have operational excellence in education delivery. We're building the funding engine that could make it infinitely scalable.
-
-I'd love 30 minutes to learn from your experience and explore whether there's a collaboration that makes both our visions bigger.
-
-With respect,
-Tredoux Willemse
-Founder, Jeffy Commerce
-www.jeffy.co.za`
-  },
-  'Lindiwe Matlali': {
-    subject: "800,000 Coders Need Schools That Understand Them",
-    body: `Lindiwe,
-
-You've trained 800,000+ children in coding through Africa Teen Geeks. You've seen firsthand that our kids can compete globally when given tools and opportunity.
-
-I'm Tredoux from Jeffy Commerce. We're building free schools – but not just any schools.
-
-Our vision:
-• E-commerce profits fund merit-based FREE schools
-• Graduates receive 1 hectare land + production facilities
-• Communities that manufacture food, TECH, medicine, clothing
-
-Tech is in our DNA. Our schools won't just teach coding – they'll produce the next generation of SA tech founders.
-
-You're on the Presidential 4IR Commission. You have influence over how SA approaches technology education. What if Africa Teen Geeks grads had a pathway to schools specifically designed for their potential?
-
-15 minutes to explore?
-
-Tredoux Willemse
-Founder, Jeffy Commerce
-www.jeffy.co.za`
-  },
   'James Urdang': {
-    subject: "30 Years of Education Africa Wisdom + Fresh Funding Model",
+    subject: "30 years of Education Africa — mentored by Sisulu, worked with Mandela",
     body: `James,
 
 Mentored by Walter Sisulu. Worked with Mandela. Built Masibambane College. 30+ years creating educational opportunity in South Africa.
@@ -247,10 +344,10 @@ I'm Tredoux from Jeffy Commerce, and I need to learn from someone like you.
 We're building:
 • E-commerce platform where profits fund FREE schools
 • Zone Partners for local delivery (50/50 profit split)
-• Merit-based selection – graduates get land + skills + facilities
+• Merit-based selection — graduates get land + skills + facilities
 • Self-sufficient communities across SA
 
-I've read about Education Africa's marimba programmes, your approach to holistic education, the practical skills focus. This is exactly what we want to build – but funded perpetually by commerce, not donations.
+I've read about Education Africa's marimba programmes, your approach to holistic education, the practical skills focus. This is exactly what we want to build — but funded perpetually by commerce, not donations.
 
 Would you give us 30 minutes? Your experience could save us years of mistakes.
 
@@ -259,8 +356,9 @@ Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
+
   'IkamvaYouth': {
-    subject: "17 Branches, 80-100% Pass Rates - Let's Scale It",
+    subject: "17 branches, 80-100% pass rates — what if we funded 50 branches?",
     body: `Dear IkamvaYouth Team,
 
 17 branches. 80-100% matric pass rates. Ashoka Fellow recognition. You've proven that peer-to-peer tutoring and community-based education works at scale.
@@ -284,62 +382,87 @@ Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
-  'Bonang Matheba': {
-    subject: "Queen B - Help Us Crown SA's Future Leaders",
-    body: `Bonang,
 
-You dropped out of university due to fee issues. Then you built an empire anyway. House of BNG. Forbes Africa recognition. 10.5 million followers.
+  'Nicolette Mashile': {
+    subject: "No one is born bad at money — they're just never taught",
+    body: `Hey Nicolette,
 
-But I wonder – how many brilliant South Africans never got their shot because there was no Bonang-level determination to fall back on?
+You said something once that hit me hard — no one is born bad at money. We're just never taught. Families living paycheck to paycheck aren't failing. They're repeating patterns nobody showed them how to break.
 
-I'm Tredoux from Jeffy Commerce. We're building free schools funded by e-commerce profits. Not charity schools – excellence schools. Merit-based. Graduates get land, skills, and means to build independent lives.
+I know your story. Bushbuckridge. Boarding school where you couldn't speak English or Swazi. Depression diagnosis at 17. Dropping out of Rhodes. Your sister taking a loan so you could try again. That R125,000 lesson from an Offer to Purchase you didn't fully understand.
 
-Here's why you:
-• You LIVED the education access problem
-• You proved SA talent can compete globally
-• You reach millions of young South Africans daily
+And now? Five investment properties. Millionaire. Coco the Money Bunny teaching kids. FSCA Consumer Advisory Panel. Every mistake turned into a lesson for millions.
 
-One Instagram story from you could fund a classroom. One partnership could fund a school.
+Your vision is "a financially inclusive and economically viable South Africa where everyone can thrive." That's literally what I'm trying to build.
 
-What would it take to get 15 minutes of your time?
+Jeffy Commerce gives Zone Partners 50% of profits — real money, not scraps. But that's just the start. The profits fund free schools where kids are selected on merit alone and graduate with land, a home, and skills to manufacture everything they need.
 
-With respect,
+Imagine if those schools taught financial literacy from day one. If Coco's lessons were woven right into the curriculum. Kids who aren't just self-sufficient but financially capable too.
+
+Not asking for anything today except your time. Read The Jeffy Manifesto. If it lines up with where you're headed, I'd love to chat.
+
+You bought your first property to protect yourself from instant gratification. This is me doing the same thing — betting on something bigger than myself.
+
+Thanks for reading,
 Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
-  'Connie Ferguson': {
-    subject: "Ferguson Foundation + Jeffy Schools = Legacy That Outlives Us",
-    body: `Connie,
 
-The Ferguson Foundation's work funding disadvantaged youth education shows that success in entertainment doesn't have to stay in entertainment.
+  'Aisha Pandor': {
+    subject: "30,000 jobs for women — let's create 30,000 more futures",
+    body: `Aisha,
 
-I'm Tredoux from Jeffy Commerce. We're building free schools funded by e-commerce profits – and we need partners who understand the power of story.
+SweepSouth created 30,000+ jobs for women who needed them. You proved tech can be a force for inclusion, not just disruption.
 
-Our model:
-• Zone Partners deliver products locally (50/50 profit split)
-• ALL profits fund merit-based free schools
+I'm Tredoux from Jeffy Commerce. We're taking a similar approach to education:
+
+• E-commerce platform with Zone Partners (50/50 profit split)
+• ALL profits fund FREE merit-based schools
 • Graduates get land, skills, production facilities
-• Self-sufficient communities across SA
+• Focus on creating self-sufficient communities
 
-Here's what Ferguson Films could add:
-• Documentary telling the Jeffy Schools story
-• Reaching 5.8M followers with our mission
-• Ferguson Foundation partnership on education delivery
+You understand building platforms that create opportunity at scale. That's exactly what we need guidance on.
 
-What we offer:
-• A story worth telling – commerce funding education at scale
-• Real students, real transformation, real impact
-• Content that matters
+Would you be open to a conversation? Specifically around:
+• How you scaled SweepSouth's social impact
+• Lessons learned in SA market
+• Potential advisory relationship
 
-15 minutes to explore?
+15 minutes?
 
 Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
+
+  'Boity Thulo': {
+    subject: "#OwnYourThrone — help SA's next generation claim theirs",
+    body: `Boity,
+
+You dropped out due to fees. Then you built an empire — music, business, 6 million followers, Forbes 30 Under 30. #OwnYourThrone isn't just a brand — it's your story.
+
+But how many talented South Africans never got to own anything because there was no throne to claim?
+
+I'm Tredoux from Jeffy Commerce. We're building free schools funded by e-commerce profits:
+
+• Zone Partners deliver locally (50/50 profit split)
+• ALL profits build merit-based schools
+• Graduates get 1 hectare land + skills + independence
+
+You know what it's like to have financial barriers almost end your journey. Your story could inspire thousands to either become Zone Partners or support our mission.
+
+One IG story. One tweet. One conversation.
+
+What would it take?
+
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
+
   'Sizwe Dhlomo': {
-    subject: "2.5M Twitter Followers Could Build Schools",
+    subject: "2.5M Twitter followers could build schools",
     body: `Sizwe,
 
 You've got 2.5 million people paying attention to what you say. That's power. And from what I've seen, you use it thoughtfully.
@@ -363,21 +486,44 @@ Tredoux Willemse
 Founder, Jeffy Commerce
 www.jeffy.co.za`
   },
+
+  'Dr Precious Moloi-Motsepe': {
+    subject: "UCT Chancellor + R1.5B education commitment — aligned visions",
+    body: `Dear Dr. Moloi-Motsepe,
+
+As UCT Chancellor and CEO of the Motsepe Foundation, you sit at the intersection of tertiary excellence and primary/secondary access. You understand the full education pipeline.
+
+I'm Tredoux Willemse, founder of Jeffy Commerce. We're building the funding mechanism for free schools:
+
+• E-commerce profits fund merit-based FREE schools
+• Graduates receive 1 hectare land + skills + facilities
+• Self-sufficient communities producing food, tech, medicine
+
+The Motsepe Foundation's R1.5 billion education commitment is transformative. Jeffy Commerce offers a self-sustaining complement: schools that fund themselves perpetually through commerce.
+
+We would be honored to present our model to the Foundation team and explore potential alignment.
+
+Respectfully,
+Tredoux Willemse
+Founder, Jeffy Commerce
+www.jeffy.co.za`
+  },
 };
 
 // Default pitch for those without custom
 const DEFAULT_PITCH = {
-  subject: "Partnership Opportunity - Jeffy Commerce | Building Free Schools Through E-Commerce",
+  subject: "Partnership Opportunity — Jeffy Commerce | Building Free Schools",
   body: `Hi [NAME],
 
-I'm Tredoux Willemse, founder of Jeffy Commerce. I've been following your work and believe there's powerful alignment with what we're building.
+I'm Tredoux Willemse, founder of Jeffy Commerce.
 
-Jeffy Commerce is more than e-commerce – we're building a machine that produces free schools:
+My family built a school once. For farm kids who walked 30km just to learn. Corruption killed it. I've spent years trying to figure out how to build something they can't destroy.
 
-• Zone Partners run local delivery (50/50 profit sharing)
-• ALL profits beyond operations fund FREE merit-based schools
-• Graduates receive 1 hectare land + skills + production facilities
-• Self-sufficient communities across South Africa
+Here's what we're building:
+
+Jeffy Commerce is a platform where Zone Partners — local entrepreneurs — own their territories and keep 50% of profits. Real ownership. Real money back in the community.
+
+But that's just the engine. The profits build free schools where graduates walk away with land, a house they built, and skills to make anything they need. Selected on merit alone. No connections. No money. Just potential.
 
 We're looking for partners who believe South Africans are the most capable people on the planet when given opportunity.
 
@@ -389,6 +535,7 @@ www.jeffy.co.za
 
 "We plant trees under whose shade we'll never sit."`
 };
+
 
 const STATUS_OPTIONS = [
   { value: 'not_contacted', label: 'Not Contacted', color: 'bg-gray-100 text-gray-700' },
@@ -505,7 +652,7 @@ export default function OutreachPage() {
           <Rocket className="w-8 h-8 text-orange-500" />
           Influencer Outreach
         </h1>
-        <p className="text-gray-600 mt-1">Strategic staggered outreach - don't send all at once!</p>
+        <p className="text-gray-600 mt-1">Personalized letters with soul — not corporate templates</p>
       </div>
 
       {/* Stats */}
@@ -542,7 +689,7 @@ export default function OutreachPage() {
               <Trophy className="w-5 h-5 text-yellow-400" />
               <span className="font-bold">DAY 1 - Top 5</span>
             </div>
-            <p className="text-sm text-slate-300 mb-3">Highest-value targets with perfect mission alignment</p>
+            <p className="text-sm text-slate-300 mb-3">Highest-value targets</p>
             <ul className="text-sm space-y-1 mb-4">
               {DAY1_NAMES.map(name => {
                 const inf = influencers.find(i => i.name === name);
@@ -571,7 +718,7 @@ export default function OutreachPage() {
               <Target className="w-5 h-5 text-orange-400" />
               <span className="font-bold">DAY 3 - Wave 2</span>
             </div>
-            <p className="text-sm text-slate-300 mb-3">Education leaders & high-reach influencers</p>
+            <p className="text-sm text-slate-300 mb-3">Education leaders & high-reach</p>
             <ul className="text-sm space-y-1 mb-4">
               {DAY3_NAMES.map(name => {
                 const inf = influencers.find(i => i.name === name);
@@ -600,7 +747,7 @@ export default function OutreachPage() {
               <Users className="w-5 h-5 text-blue-400" />
               <span className="font-bold">DAY 5 - Everyone Else</span>
             </div>
-            <p className="text-sm text-slate-300 mb-3">Complete the outreach to remaining contacts</p>
+            <p className="text-sm text-slate-300 mb-3">Complete the outreach</p>
             <ul className="text-sm space-y-1 mb-4 max-h-32 overflow-y-auto">
               {day5.map(inf => {
                 const status = getStatus(inf);
@@ -656,7 +803,7 @@ export default function OutreachPage() {
                     {isDay1 && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Day 1</span>}
                     {isDay3 && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Day 3</span>}
                     {!isDay1 && !isDay3 && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Day 5</span>}
-                    {hasPitch && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✨ Custom</span>}
+                    {hasPitch && <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✨ Personal Letter</span>}
                   </div>
                   <div className="text-sm text-gray-500 flex items-center gap-2 mt-0.5">
                     <span className="bg-gray-100 px-2 py-0.5 rounded">{inf.category}</span>
@@ -707,10 +854,10 @@ export default function OutreachPage() {
               {isExpanded && (
                 <div className="border-t p-4 bg-gray-50 grid md:grid-cols-2 gap-4">
                   <div>
-                    <h4 className="font-bold text-sm mb-2">📧 PITCH PREVIEW</h4>
-                    <div className="bg-white border rounded-lg p-4 text-sm max-h-80 overflow-y-auto">
-                      <p className="font-medium mb-2">Subject: {pitch.subject}</p>
-                      <pre className="whitespace-pre-wrap text-xs text-gray-700 font-sans">{pitch.body}</pre>
+                    <h4 className="font-bold text-sm mb-2">📧 YOUR LETTER</h4>
+                    <div className="bg-white border rounded-lg p-4 text-sm max-h-96 overflow-y-auto">
+                      <p className="font-medium mb-2 text-orange-600">Subject: {pitch.subject}</p>
+                      <pre className="whitespace-pre-wrap text-sm text-gray-700 font-sans leading-relaxed">{pitch.body}</pre>
                     </div>
                   </div>
                   <div>
@@ -729,18 +876,12 @@ export default function OutreachPage() {
                           </a>
                         )}
                         <button onClick={() => copyPitch(inf)} className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
-                          {copiedId === inf.id ? '✓ Copied!' : '📋 Copy Pitch for LinkedIn/DM'}
+                          {copiedId === inf.id ? '✓ Copied!' : '📋 Copy Letter for LinkedIn/DM'}
                         </button>
                         {inf.phone && (
                           <a href={`https://wa.me/${inf.phone.replace(/[^0-9]/g, '')}`} target="_blank"
                             className="block w-full text-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">
                             💬 WhatsApp
-                          </a>
-                        )}
-                        {inf.profile_url && (
-                          <a href={inf.profile_url} target="_blank"
-                            className="block w-full text-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                            🔗 View Profile
                           </a>
                         )}
                       </div>
