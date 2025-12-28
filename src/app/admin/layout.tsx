@@ -1,8 +1,8 @@
 import Link from 'next/link';
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, 
-  FlaskConical, MapPin, UserCheck, RotateCcw, FileText, Scale,
-  Megaphone, Rocket, UserCog, MessageSquare, BarChart3, Tag
+  FlaskConical, MapPin, UserCheck, RotateCcw, FileText,
+  Megaphone, Rocket, BarChart3, Tag, Bell, Activity
 } from 'lucide-react';
 
 export default function AdminLayout({
@@ -74,18 +74,18 @@ export default function AdminLayout({
               Wants
             </Link>
             <Link
-              href="/admin/whatsapp-queue"
+              href="/admin/notifications"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <MessageSquare className="h-5 w-5" />
-              WhatsApp Queue
+              <Bell className="h-5 w-5" />
+              Notifications
             </Link>
             <Link
-              href="/admin/wants-stats"
+              href="/admin/analytics"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <BarChart3 className="h-5 w-5" />
-              Wants Stats
+              Analytics
             </Link>
             
             {/* Operations Section */}
@@ -120,13 +120,6 @@ export default function AdminLayout({
               <MapPin className="h-5 w-5" />
               Zones
             </Link>
-            <Link
-              href="/admin/refunds"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <RotateCcw className="h-5 w-5" />
-              Refunds
-            </Link>
             
             {/* Documentation Section */}
             <div className="pt-4 pb-2">
@@ -139,38 +132,31 @@ export default function AdminLayout({
               <FileText className="h-5 w-5" />
               Documentation
             </Link>
-            <Link
-              href="/admin/legal"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              <Scale className="h-5 w-5" />
-              Legal Documents
-            </Link>
             
             {/* Growth Section */}
             <div className="pt-4 pb-2">
               <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Growth</div>
             </div>
             <Link
-              href="/admin/influencer-outreach"
+              href="/admin/outreach"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <Megaphone className="h-5 w-5" />
               Influencer Outreach
             </Link>
             <Link
-              href="/admin/launch-roadmap"
+              href="/admin/roadmap"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <Rocket className="h-5 w-5" />
-              Launch Roadmap
+              Build Progress
             </Link>
             <Link
-              href="/admin/agent-portal"
+              href="/admin/activity"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <UserCog className="h-5 w-5" />
-              Agent Portal
+              <Activity className="h-5 w-5" />
+              Activity Log
             </Link>
             
             {/* Dev Tools Section */}
