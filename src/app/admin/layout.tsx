@@ -1,5 +1,9 @@
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, FlaskConical, MapPin, UserCheck, RotateCcw } from 'lucide-react';
+import { 
+  LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, 
+  FlaskConical, MapPin, UserCheck, RotateCcw, FileText, Scale,
+  Megaphone, Rocket, UserCog, MessageSquare, BarChart3, Tag
+} from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -20,7 +24,7 @@ export default function AdminLayout({
       </header>
 
       <div className="flex">
-        <aside className="w-64 bg-white border-r min-h-[calc(100vh-65px)] p-4">
+        <aside className="w-64 bg-white border-r min-h-[calc(100vh-65px)] p-4 overflow-y-auto">
           <nav className="space-y-1">
             <Link
               href="/admin"
@@ -51,30 +55,70 @@ export default function AdminLayout({
               Categories
             </Link>
             <Link
+              href="/admin/discounts"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Tag className="h-5 w-5" />
+              Discounts
+            </Link>
+            
+            {/* Wants Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Wants</div>
+            </div>
+            <Link
               href="/admin/wants"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <Gift className="h-5 w-5" />
               Wants
             </Link>
-            
-            {/* Zone Partner Section */}
-            <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Zone Partners</div>
-            </div>
             <Link
-              href="/admin/zones"
+              href="/admin/whatsapp-queue"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <MapPin className="h-5 w-5" />
-              Zones
+              <MessageSquare className="h-5 w-5" />
+              WhatsApp Queue
+            </Link>
+            <Link
+              href="/admin/wants-stats"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <BarChart3 className="h-5 w-5" />
+              Wants Stats
+            </Link>
+            
+            {/* Operations Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Operations</div>
+            </div>
+            <Link
+              href="/admin/procurement"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Truck className="h-5 w-5" />
+              Procurement
+            </Link>
+            <Link
+              href="/admin/procurement/smart-finder"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg ml-4"
+            >
+              <span className="text-jeffy-orange">🤖</span>
+              Smart Finder
             </Link>
             <Link
               href="/admin/partners"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <UserCheck className="h-5 w-5" />
-              Partners
+              Zone Partners
+            </Link>
+            <Link
+              href="/admin/zones"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <MapPin className="h-5 w-5" />
+              Zones
             </Link>
             <Link
               href="/admin/refunds"
@@ -84,23 +128,49 @@ export default function AdminLayout({
               Refunds
             </Link>
             
-            {/* Procurement Section */}
+            {/* Documentation Section */}
             <div className="pt-4 pb-2">
-              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Procurement</div>
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Documentation</div>
             </div>
             <Link
-              href="/admin/procurement"
+              href="/admin/documentation"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <Truck className="h-5 w-5" />
-              Overview
+              <FileText className="h-5 w-5" />
+              Documentation
             </Link>
             <Link
-              href="/admin/procurement/smart-finder"
+              href="/admin/legal"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
-              <span className="text-jeffy-orange">🤖</span>
-              Smart Finder
+              <Scale className="h-5 w-5" />
+              Legal Documents
+            </Link>
+            
+            {/* Growth Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Growth</div>
+            </div>
+            <Link
+              href="/admin/influencer-outreach"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Megaphone className="h-5 w-5" />
+              Influencer Outreach
+            </Link>
+            <Link
+              href="/admin/launch-roadmap"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <Rocket className="h-5 w-5" />
+              Launch Roadmap
+            </Link>
+            <Link
+              href="/admin/agent-portal"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <UserCog className="h-5 w-5" />
+              Agent Portal
             </Link>
             
             {/* Dev Tools Section */}
