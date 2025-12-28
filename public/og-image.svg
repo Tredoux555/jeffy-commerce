@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b35"/>
+      <stop offset="100%" style="stop-color:#f7931e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="600" y="200" text-anchor="middle" fill="white" font-size="120" font-family="Arial, sans-serif" font-weight="bold">Jeffy</text>
+  <text x="600" y="320" text-anchor="middle" fill="white" font-size="60" font-family="Arial, sans-serif">Get Products FREE!</text>
+  <text x="600" y="420" text-anchor="middle" fill="rgba(255,255,255,0.9)" font-size="36" font-family="Arial, sans-serif">Share with 10 friends, get it FREE</text>
+  <text x="600" y="550" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="28" font-family="Arial, sans-serif">jeffy.co.za</text>
+</svg>

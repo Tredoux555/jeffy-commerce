@@ -1,0 +1,17 @@
+
+> jeffy-commerce@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 2.1s
+ ○ Compiling /wants/create ...
+ ✓ Compiled /wants/create in 2.8s (720 modules)
+ GET /wants/create 200 in 3086ms
+ ✓ Compiled in 272ms (338 modules)
+ GET /wants/create? 200 in 49ms
+ POST /wants/create 200 in 1044ms
+[?25h

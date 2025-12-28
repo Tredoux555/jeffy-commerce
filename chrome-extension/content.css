@@ -1,0 +1,119 @@
+/* Jeffy 1688 Importer Styles */
+
+#jeffy-import-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#jeffy-import-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+  transition: all 0.3s ease;
+}
+
+#jeffy-import-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(255, 107, 53, 0.5);
+}
+
+#jeffy-import-btn:active {
+  transform: translateY(0);
+}
+
+#jeffy-import-btn.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+#jeffy-import-btn.loading .jeffy-text::after {
+  content: '...';
+  animation: dots 1.5s infinite;
+}
+
+@keyframes dots {
+  0%, 20% { content: '.'; }
+  40% { content: '..'; }
+  60%, 100% { content: '...'; }
+}
+
+.jeffy-icon {
+  font-size: 20px;
+}
+
+.jeffy-status {
+  margin-top: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+}
+
+.jeffy-status.hidden {
+  display: none;
+}
+
+.jeffy-status.info {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 1px solid #90caf9;
+}
+
+.jeffy-status.success {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.jeffy-status.error {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef9a9a;
+}
+
+.jeffy-status.warning {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffcc80;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse animation for button */
+#jeffy-import-btn::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  z-index: -1;
+  opacity: 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.05); }
+}

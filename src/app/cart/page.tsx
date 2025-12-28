@@ -6,6 +6,7 @@ import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from 'lucide-react';
 import { useCartStore } from '@/lib/cart-store';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { FreeShippingProgress } from '@/components/free-shipping-progress';
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, getSubtotal } = useCartStore();
@@ -110,6 +111,11 @@ export default function CartPage() {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl border p-6 sticky top-20">
             <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+
+            {/* Free Shipping Progress */}
+            <div className="mb-4">
+              <FreeShippingProgress />
+            </div>
 
             <div className="space-y-3 mb-6">
               <div className="flex justify-between text-gray-600">

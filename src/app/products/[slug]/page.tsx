@@ -1,8 +1,11 @@
 import { notFound } from 'next/navigation';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
-import { formatCurrency } from '@/lib/utils';
 import { AddToCartButton } from './add-to-cart-button';
+import { ShareButtons } from '@/components/share-buttons';
+import { RelatedProducts } from '@/components/related-products';
+import { ProductDetailClient } from './product-detail-client';
+import { ProductImageGallery } from './product-image-gallery';
+import { formatCurrency } from '@/lib/utils';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -28,47 +31,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ? Math.round((1 - product.selling_price_cents / product.compare_at_price_cents!) * 100)
     : 0;
 
-  // Get all images
   const images = product.images?.length ? product.images : (product.primary_image_url ? [product.primary_image_url] : []);
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Images */}
-        <div className="space-y-4">
-          <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
-            {images[0] ? (
-              <Image
-                src={images[0]}
-                alt={product.name}
-                fill
-                className="object-cover"
-                priority
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400">
-                No image available
-              </div>
-            )}
-            
-            {hasDiscount && (
-              <span className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1 rounded">
-                Save {discountPercent}%
-              </span>
-            )}
-          </div>
+      <ProductDetailClient product={{
+        id: product.id,
+        name: product.name,
+        slug: product.slug,
+        price: product.selling_price_cents,
+        image: product.primary_image_url,
+      }} />
 
-          {/* Thumbnail Gallery */}
-          {images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
-              {images.map((img: string, index: number) => (
-                <div key={index} className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                  <Image src={img} alt={`${product.name} ${index + 1}`} fill className="object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* Images - Interactive Gallery */}
+        <ProductImageGallery 
+          images={images} 
+          productName={product.name} 
+          discountPercent={hasDiscount ? discountPercent : 0} 
+        />
 
         {/* Product Info */}
         <div>
@@ -85,17 +66,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
             )}
           </nav>
 
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
+            <ShareButtons url={`/products/${product.slug}`} title={product.name} />
+          </div>
 
           {/* Price */}
           <div className="flex items-baseline gap-3 mb-6">
-            <span className="text-3xl font-bold text-gray-900">
-              {formatCurrency(product.selling_price_cents)}
-            </span>
+            <span className="text-3xl font-bold text-gray-900">{formatCurrency(product.selling_price_cents)}</span>
             {hasDiscount && (
-              <span className="text-xl text-gray-400 line-through">
-                {formatCurrency(product.compare_at_price_cents!)}
-              </span>
+              <span className="text-xl text-gray-400 line-through">{formatCurrency(product.compare_at_price_cents!)}</span>
             )}
           </div>
 
@@ -110,27 +90,26 @@ export default async function ProductPage({ params }: ProductPageProps) {
             )}
           </div>
 
-          {/* Description */}
           {product.short_description && (
             <p className="text-gray-600 mb-6">{product.short_description}</p>
           )}
 
-          {/* Add to Cart */}
           <div className="mb-8">
             <AddToCartButton product={product} />
           </div>
 
-          {/* Full Description */}
           {product.description && (
             <div className="border-t pt-6">
               <h3 className="font-semibold mb-3">Description</h3>
-              <div className="text-gray-600 prose prose-sm max-w-none">
+              <div className="text-gray-600 prose prose-sm max-w-none whitespace-pre-line">
                 {product.description}
               </div>
             </div>
           )}
         </div>
       </div>
+
+      <RelatedProducts currentProductId={product.id} categoryId={product.category_id} />
     </div>
   );
 }
