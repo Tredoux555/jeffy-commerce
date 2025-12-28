@@ -25,6 +25,7 @@ interface TechTask {
   aiContext: string; // Instructions for future AI
   codeLocation?: string;
   sqlRequired?: boolean;
+  taskType: 'sql' | 'cursor'; // SQL = paste in Supabase, Cursor = give to Cursor AI
 }
 
 interface TechPhase {
@@ -51,12 +52,14 @@ const TECH_PHASES: TechPhase[] = [
         priority: 'critical',
         estimatedHours: 0.5,
         sqlRequired: true,
-        aiContext: `RUN IN SUPABASE SQL EDITOR:
+        taskType: 'sql',
+        aiContext: `-- PASTE THIS INTO SUPABASE SQL EDITOR --
+
 ALTER TABLE zones ADD COLUMN IF NOT EXISTS postal_codes TEXT[] DEFAULT '{}';
 CREATE INDEX IF NOT EXISTS idx_zones_postal_codes ON zones USING GIN(postal_codes);
 
-CONTEXT: Orders need to match to zones by postal code. zones.postal_codes is an array like ['2196', '2191'].
-VERIFICATION: SELECT column_name FROM information_schema.columns WHERE table_name = 'zones' AND column_name = 'postal_codes';`
+-- VERIFY IT WORKED --
+SELECT column_name FROM information_schema.columns WHERE table_name = 'zones' AND column_name = 'postal_codes';`
       },
       {
         id: 'db-orders',
@@ -66,15 +69,16 @@ VERIFICATION: SELECT column_name FROM information_schema.columns WHERE table_nam
         estimatedHours: 0.5,
         dependencies: ['db-zones'],
         sqlRequired: true,
-        aiContext: `RUN IN SUPABASE SQL EDITOR:
+        taskType: 'sql',
+        aiContext: `-- PASTE THIS INTO SUPABASE SQL EDITOR --
+
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS zone_partner_id UUID REFERENCES zone_partners(id);
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS assigned_at TIMESTAMPTZ;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivered_at TIMESTAMPTZ;
 ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_photo_url TEXT;
 CREATE INDEX IF NOT EXISTS idx_orders_zone_partner ON orders(zone_partner_id);
 
-CONTEXT: When order is paid, we assign zone_partner_id and set assigned_at. Partner marks delivered_at when complete.
-VERIFICATION: Check orders table in Supabase dashboard for new columns.`
+-- VERIFY: Check orders table in Supabase dashboard for new columns`
       },
       {
         id: 'db-partners',
@@ -83,7 +87,9 @@ VERIFICATION: Check orders table in Supabase dashboard for new columns.`
         priority: 'critical',
         estimatedHours: 0.5,
         sqlRequired: true,
-        aiContext: `RUN IN SUPABASE SQL EDITOR:
+        taskType: 'sql',
+        aiContext: `-- PASTE THIS INTO SUPABASE SQL EDITOR --
+
 ALTER TABLE zone_partners ADD COLUMN IF NOT EXISTS disclosure_sent_at TIMESTAMPTZ;
 ALTER TABLE zone_partners ADD COLUMN IF NOT EXISTS can_sign_after DATE;
 ALTER TABLE zone_partners ADD COLUMN IF NOT EXISTS agreement_signed_at TIMESTAMPTZ;
@@ -94,9 +100,7 @@ ALTER TABLE zone_partners ADD COLUMN IF NOT EXISTS stock_received_at TIMESTAMPTZ
 ALTER TABLE zone_partners ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT FALSE;
 ALTER TABLE zone_partners ADD COLUMN IF NOT EXISTS average_rating DECIMAL(3,2) DEFAULT 5.00;
 
-CONTEXT: CPA requires 14-day wait (disclosure_sent_at → can_sign_after) and 10 business day cooling off. 
-is_active = true means partner can receive orders.
-VERIFICATION: Check zone_partners table in Supabase.`
+-- VERIFY: Check zone_partners table in Supabase dashboard`
       }
     ]
   },
@@ -115,14 +119,21 @@ VERIFICATION: Check zone_partners table in Supabase.`
         estimatedHours: 1,
         dependencies: ['db-zones'],
         codeLocation: '/src/app/admin/zones/page.tsx',
-        aiContext: `MODIFY /src/app/admin/zones/page.tsx:
-1. Add postal_codes field to formData state: postal_codes: '' (comma-separated string)
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Modify /src/app/admin/zones/page.tsx
+
+WHAT TO BUILD:
+Add postal codes input field to the zone creation/edit form.
+
+STEPS:
+1. Add to formData state: postal_codes: '' (comma-separated string)
 2. Add input field in form after description:
    <Input value={formData.postal_codes} onChange={...} placeholder="2196, 2191, 2090" />
-3. Parse on submit: postal_codes.split(',').map(p => p.trim()).filter(p => /^\d{4}$/.test(p))
+3. Parse on submit: postal_codes.split(',').map(p => p.trim()).filter(p => /^\\d{4}$/.test(p))
 4. Display in zone list: show "{zone.postal_codes?.length || 0} postal codes"
 
 CONTEXT: SA postal codes are 4 digits. Zone Partner owns exclusive delivery for those codes.
+
 TEST: Create zone, add postal codes, verify they save and display.`
       },
       {
@@ -133,7 +144,11 @@ TEST: Create zone, add postal codes, verify they save and display.`
         estimatedHours: 2,
         dependencies: ['db-zones', 'db-orders'],
         codeLocation: '/src/app/api/orders/auto-assign/route.ts',
-        aiContext: `CREATE /src/app/api/orders/auto-assign/route.ts:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Create /src/app/api/orders/auto-assign/route.ts
+
+WHAT TO BUILD:
+API endpoint that assigns paid orders to Zone Partners based on postal code.
 
 LOGIC:
 1. Get order by ID, verify status === 'paid'
@@ -146,7 +161,7 @@ LOGIC:
 
 RETURN: { success: boolean, partnerId?, partnerName?, reason? }
 
-EXISTING CODE TO REFERENCE:
+REFERENCE FILES:
 - /src/app/api/webhooks/payfast/route.ts (order update pattern)
 - /src/lib/supabase/server.ts (createAdminClient)
 
@@ -160,9 +175,13 @@ TEST: Create zone with postal codes, create partner in zone, place test order, v
         estimatedHours: 0.5,
         dependencies: ['assign-api'],
         codeLocation: '/src/app/api/webhooks/payfast/route.ts',
-        aiContext: `MODIFY /src/app/api/webhooks/payfast/route.ts:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Modify /src/app/api/webhooks/payfast/route.ts
 
-After the line that updates order to 'paid', ADD:
+WHAT TO BUILD:
+After marking order as 'paid', call the auto-assign API.
+
+ADD THIS CODE after the order status update to 'paid':
 
 // AUTO-ASSIGN TO ZONE PARTNER
 try {
@@ -177,7 +196,6 @@ try {
   console.error(\`Failed to auto-assign order \${orderId}:\`, e);
 }
 
-CONTEXT: PayFast webhook fires when customer pays. We mark paid, then immediately try to assign.
 TEST: Complete PayFast sandbox payment, check if order gets zone_partner_id populated.`
       }
     ]
@@ -196,7 +214,11 @@ TEST: Complete PayFast sandbox payment, check if order gets zone_partner_id popu
         priority: 'critical',
         estimatedHours: 1,
         codeLocation: '/src/lib/legal-compliance.ts',
-        aiContext: `CREATE /src/lib/legal-compliance.ts:
+        taskType: 'cursor',
+        aiContext: `CURSOR TASK: Create /src/lib/legal-compliance.ts
+
+WHAT TO BUILD:
+Legal compliance utility functions for SA Consumer Protection Act.
 
 FUNCTIONS NEEDED:
 1. canSignAgreement(disclosureSentAt: Date | null): { allowed: boolean, daysRemaining: number }
@@ -210,8 +232,8 @@ FUNCTIONS NEEDED:
    - Full refund during cooling off
    - Deduct damaged stock after
 
-CONTEXT: SA Consumer Protection Act requires these waiting periods for franchise agreements.
-Use date-fns: addDays, differenceInDays, isSaturday, isSunday`
+INSTALL: npm install date-fns
+USE: addDays, differenceInDays, isSaturday, isSunday from date-fns`
       },
       {
         id: 'approval-flow',
@@ -1191,12 +1213,18 @@ export default function RoadmapPage() {
           <div>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
               <h3 className="font-semibold text-blue-800 flex items-center gap-2">
-                <Code className="h-5 w-5" /> AI Context Recovery
+                <Code className="h-5 w-5" /> Two Workflows
               </h3>
-              <p className="text-sm text-blue-700 mt-1">
-                Each task includes detailed instructions for future Claude sessions. 
-                Click "Show Context" to see instructions, then copy to give to AI.
-              </p>
+              <div className="mt-2 grid md:grid-cols-2 gap-4 text-sm">
+                <div className="bg-purple-100 rounded-lg p-3">
+                  <p className="font-semibold text-purple-800">🗄️ SQL Tasks → Supabase</p>
+                  <p className="text-purple-700">Copy SQL and paste into Supabase SQL Editor. Run manually.</p>
+                </div>
+                <div className="bg-green-100 rounded-lg p-3">
+                  <p className="font-semibold text-green-800">💻 Code Tasks → Cursor</p>
+                  <p className="text-green-700">Copy instructions and give to Cursor AI. It builds the code.</p>
+                </div>
+              </div>
             </div>
 
             {TECH_PHASES.map((phase) => {
@@ -1268,10 +1296,14 @@ export default function RoadmapPage() {
                               )}
                               <button
                                 onClick={() => setExpandedContext(isExpanded ? null : task.id)}
-                                className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded-full hover:bg-blue-200 flex items-center gap-1"
+                                className={`text-xs px-3 py-1 rounded-full flex items-center gap-1 ${
+                                  task.sqlRequired 
+                                    ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' 
+                                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                }`}
                               >
                                 {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                                AI Context
+                                {task.sqlRequired ? '🗄️ Supabase' : '💻 Cursor'}
                               </button>
                             </div>
                           </div>
@@ -1279,18 +1311,20 @@ export default function RoadmapPage() {
                           {/* Expanded AI Context */}
                           {isExpanded && (
                             <div className="px-4 pb-4 ml-10">
-                              <div className="bg-slate-800 rounded-xl p-4 text-white">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs text-slate-400">Instructions for AI</span>
+                              <div className={`rounded-xl p-4 text-white ${task.sqlRequired ? 'bg-purple-900' : 'bg-slate-800'}`}>
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className={`text-sm font-semibold ${task.sqlRequired ? 'text-purple-300' : 'text-green-300'}`}>
+                                    {task.sqlRequired ? '🗄️ PASTE INTO SUPABASE SQL EDITOR' : '💻 GIVE TO CURSOR AI'}
+                                  </span>
                                   <button
                                     onClick={() => copyToClipboard(task.aiContext, task.id)}
-                                    className="text-xs px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded flex items-center gap-1"
+                                    className="text-xs px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg flex items-center gap-1 font-medium"
                                   >
                                     {copiedId === task.id ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                                     {copiedId === task.id ? 'Copied!' : 'Copy'}
                                   </button>
                                 </div>
-                                <pre className="text-sm text-slate-200 whitespace-pre-wrap font-mono overflow-x-auto">
+                                <pre className="text-sm text-slate-200 whitespace-pre-wrap font-mono overflow-x-auto bg-black/20 p-3 rounded-lg">
                                   {task.aiContext}
                                 </pre>
                               </div>
