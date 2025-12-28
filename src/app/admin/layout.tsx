@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, FlaskConical, MapPin, UserCheck, RotateCcw } from 'lucide-react';
 
 export default function AdminLayout({
   children,
@@ -57,19 +57,62 @@ export default function AdminLayout({
               <Gift className="h-5 w-5" />
               Wants
             </Link>
+            
+            {/* Zone Partner Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Zone Partners</div>
+            </div>
+            <Link
+              href="/admin/zones"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <MapPin className="h-5 w-5" />
+              Zones
+            </Link>
+            <Link
+              href="/admin/partners"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <UserCheck className="h-5 w-5" />
+              Partners
+            </Link>
+            <Link
+              href="/admin/refunds"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <RotateCcw className="h-5 w-5" />
+              Refunds
+            </Link>
+            
+            {/* Procurement Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Procurement</div>
+            </div>
             <Link
               href="/admin/procurement"
               className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <Truck className="h-5 w-5" />
-              Procurement
+              Overview
             </Link>
             <Link
               href="/admin/procurement/smart-finder"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg ml-6"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
             >
               <span className="text-jeffy-orange">🤖</span>
               Smart Finder
+            </Link>
+            
+            {/* Dev Tools Section */}
+            <div className="pt-4 pb-2">
+              <div className="px-4 text-xs font-semibold text-gray-400 uppercase">Dev Tools</div>
+            </div>
+            <Link
+              href="/admin/e2e-test"
+              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <FlaskConical className="h-5 w-5 text-purple-600" />
+              E2E Tests
             </Link>
           </nav>
         </aside>
