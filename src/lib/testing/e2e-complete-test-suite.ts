@@ -276,40 +276,16 @@ export async function runCompleteTestSuite(baseUrl: string): Promise<TestSuiteRe
 
   const partner = await runStep('Create active zone partner', 'partners', async () => {
     if (!zone) throw new Error('Zone not created');
-    const now = new Date();
-    const fifteenDaysAgo = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
-    
-    // Generate a test UUID for user_id (not a real auth user, just for testing)
-    const testUserId = crypto.randomUUID();
     
     const { data, error } = await supabaseAdmin
       .from('zone_partners')
       .insert({
-        user_id: testUserId,
         full_name: 'E2E Test Partner',
-        full_legal_name: 'E2E Test Partner (Pty) Ltd',
-        id_number: '9001015026082',
         email: generateEmail(),
         phone: '+27123456789',
-        business_name: 'Test Deliveries PTY',
-        business_type: 'sole_proprietor',
-        registration_number: '2024/123456/07',
-        vat_number: '4123456789',
-        physical_address: '123 Test Street, Sandton, 2196',
-        bank_name: 'FNB',
-        bank_account_number: '62012345678',
-        bank_branch_code: '250655',
-        bank_account_type: 'cheque',
         zone_id: zone.id,
         postal_codes: ['0001', '0002'],
         status: 'approved',
-        disclosure_sent_at: fifteenDaysAgo.toISOString(),
-        can_sign_after: fifteenDaysAgo.toISOString(),
-        agreement_signed_at: now.toISOString(),
-        cooling_off_ends_at: now.toISOString(),
-        deposit_paid_at: now.toISOString(),
-        training_completed_at: now.toISOString(),
-        stock_received_at: now.toISOString(),
         is_active: true,
         average_rating: 5.00
       })
