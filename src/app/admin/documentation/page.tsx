@@ -23,8 +23,27 @@ import {
   Star
 } from 'lucide-react';
 
+// Type for section documents
+interface SectionDocument {
+  name: string;
+  description: string;
+  version: string;
+  category: string;
+  tags: string[];
+  importance: string;
+  legalNote?: string;
+  externalNote?: string;
+}
+
 // Document sections with their documents
-const DOCUMENTATION_SECTIONS = [
+const DOCUMENTATION_SECTIONS: Array<{
+  id: string;
+  title: string;
+  description: string;
+  icon: typeof Briefcase;
+  color: string;
+  documents: SectionDocument[];
+}> = [
   {
     id: 'business',
     title: '📊 Business Plans & Strategy',
