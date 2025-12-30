@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, Plus, Factory, ExternalLink, ChevronDown, ChevronUp, Eye, Trash2, Save, X, FileText, Tag, DollarSign, Globe, Package } from 'lucide-react';
+import { Search, Plus, Factory, ExternalLink, ChevronDown, ChevronUp, Eye, Trash2, Save, X, FileText, Tag, DollarSign, Globe, Package, Sparkles } from 'lucide-react';
+import Link from 'next/link';
 
 interface OEMResearch {
   id: string;
@@ -211,13 +212,22 @@ export default function OEMResearchPage() {
           </h1>
           <p className="text-gray-600 mt-1">Deep dive research on best-selling products and their OEM factories</p>
         </div>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-jeffy-orange text-white rounded-lg hover:bg-orange-600 transition"
-        >
-          <Plus className="h-5 w-5" />
-          Add Research
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/oem-research/analyzer"
+            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition"
+          >
+            <Sparkles className="h-5 w-5" />
+            Research → 1688 Links
+          </Link>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-jeffy-orange text-white rounded-lg hover:bg-orange-600 transition"
+          >
+            <Plus className="h-5 w-5" />
+            Add Research
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
