@@ -136,12 +136,12 @@ export default function PartnerDashboardPage() {
         <h1 className="text-2xl font-bold mb-4">Zone Partner Dashboard</h1>
         <p className="text-gray-400 mb-6">You need to be an approved Zone Partner to access this page</p>
         <div className="space-y-3">
-          <Link href="/partner/apply">
+        <Link href="/partner/apply">
             <Button className="w-full bg-orange-500">Apply to be a Zone Partner</Button>
           </Link>
           <Link href="/auth/login?redirect=/partner/dashboard">
             <Button variant="outline" className="w-full">Login</Button>
-          </Link>
+        </Link>
         </div>
       </div>
     );
@@ -159,7 +159,7 @@ export default function PartnerDashboardPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="font-bold text-xl">Partner Dashboard</h1>
+            <h1 className="font-bold text-xl">Partner Dashboard</h1>
               <p className="text-sm text-gray-400">{partner.zone_name || 'Zone Partner'}</p>
             </div>
           </div>
@@ -169,7 +169,7 @@ export default function PartnerDashboardPage() {
             </Button>
             <Button onClick={handleLogout} variant="ghost" size="sm" className="text-gray-400">
               <LogOut className="h-4 w-4" />
-            </Button>
+          </Button>
           </div>
         </div>
       </div>

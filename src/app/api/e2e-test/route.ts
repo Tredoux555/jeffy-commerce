@@ -100,3 +100,5 @@ export async function GET() {
     usage: 'POST { "type": "full" | "schema" | "legal" | "pricing" }'
   });
 }
+
+
