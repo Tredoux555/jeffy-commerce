@@ -433,7 +433,7 @@ export default function WantsPage() {
                   <p className="text-xs text-gray-500 mt-1">We&apos;ll notify you when it&apos;s available + you get it FREE!</p>
                 </div>
 
-                {submitMessage && submitMessage.type !== 'similar' && (
+                {submitMessage && (
                   <p className={`text-sm ${submitMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
                     {submitMessage.text}
                   </p>
