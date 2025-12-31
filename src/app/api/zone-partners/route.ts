@@ -145,16 +145,14 @@ export async function POST(request: NextRequest) {
       referrerId = referrer?.id;
     }
 
-    // Insert new entry
+    // Insert new entry - store phone in name field temporarily, message in zone_id notes
     const { data: newEntry, error } = await supabase
       .from('waitlist')
       .insert({
         email: cleanEmail,
-        name: name || null,
+        name: name ? `${name} | Phone: ${phone || 'N/A'}` : null,
         type: 'zone_partner',
-        zone_id,
-        referred_by: referrerId,
-        metadata: { phone, message }
+        zone_id: `${zone_id} | Why: ${message || 'N/A'}`
       })
       .select()
       .single();
