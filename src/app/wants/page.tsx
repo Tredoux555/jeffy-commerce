@@ -300,7 +300,8 @@ export default function WantsPage() {
         </div>
       </section>
 
-      {/* ============ CURRENT WANTS LIST ============ */}
+      {/* ============ WANTS LIST - Only show when there are wants ============ */}
+      {(stats.voting + stats.sourcing + stats.available > 0) && (
       <section className="bg-gray-50 text-gray-900 rounded-t-[3rem] mt-8">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-6">
@@ -308,12 +309,6 @@ export default function WantsPage() {
               <h2 className="text-2xl font-bold">Wants</h2>
               <p className="text-sm text-gray-500">Products people are rallying for</p>
             </div>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 transition"
-            >
-              <Plus className="h-4 w-4" /> Request
-            </button>
           </div>
 
           {/* Stats Bar */}
@@ -425,6 +420,7 @@ export default function WantsPage() {
           )}
         </div>
       </section>
+      )}
 
       {/* ============ NEW WANT MODAL ============ */}
       {showForm && (
@@ -442,9 +438,10 @@ export default function WantsPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Want Created!</h3>
-                <p className="text-gray-500 mb-4">Now share your link to get 10 verifications.</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Want Created! 🎉</h3>
+                <p className="text-gray-500 mb-4">Share your link to get 10 verifications and earn your free product.</p>
                 
+                {/* Share Link */}
                 <div className="bg-gray-50 rounded-xl p-4 mb-4">
                   <p className="text-xs text-gray-500 mb-2">Your verification link:</p>
                   <div className="flex items-center gap-2">
@@ -455,13 +452,35 @@ export default function WantsPage() {
                   </div>
                 </div>
 
-                <button onClick={() => shareViaWhatsApp(submitMessage.want!)} className="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2">
+                <button onClick={() => shareViaWhatsApp(submitMessage.want!)} className="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2 mb-6">
                   <MessageCircle className="h-5 w-5" /> Share on WhatsApp
                 </button>
 
-                <button onClick={() => { setShowForm(false); setSubmitMessage(null); }} className="w-full mt-3 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">
-                  Done
-                </button>
+                {/* Divider */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex-1 h-px bg-gray-200" />
+                  <span className="text-xs text-gray-400 uppercase">What&apos;s next?</span>
+                  <div className="flex-1 h-px bg-gray-200" />
+                </div>
+
+                {/* Two Options */}
+                <div className="space-y-3">
+                  <Link
+                    href="/my-wants"
+                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg flex items-center justify-center gap-2"
+                  >
+                    <Users className="h-5 w-5" /> Track My Progress
+                  </Link>
+                  <p className="text-xs text-gray-400">See verifications come in, get a dashboard</p>
+                  
+                  <button 
+                    onClick={() => { setShowForm(false); setSubmitMessage(null); }} 
+                    className="w-full py-3 border border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2"
+                  >
+                    Just Notify Me When I Hit 10
+                  </button>
+                  <p className="text-xs text-gray-400">We&apos;ll email you at {newWant.email || 'your email'}</p>
+                </div>
               </div>
             ) : submitMessage?.type === 'similar' ? (
               <div>
