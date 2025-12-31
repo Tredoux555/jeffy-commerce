@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Jeffy - The Future of Retail';
+export const alt = 'Jeffy - Retail is broken. We\'re building something different.';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -17,7 +17,7 @@ export default async function Image() {
           alignItems: 'center',
           justifyContent: 'center',
           backgroundColor: '#0f172a',
-          backgroundImage: 'radial-gradient(circle at 30% 30%, #1e293b 0%, #0f172a 50%)',
+          backgroundImage: 'radial-gradient(circle at 30% 40%, #1e293b 0%, #0f172a 60%)',
         }}
       >
         <div
@@ -31,64 +31,44 @@ export default async function Image() {
         >
           <div
             style={{
-              fontSize: 90,
+              fontSize: 100,
               fontWeight: 'bold',
-              color: '#f59e0b',
-              marginBottom: 20,
+              background: 'linear-gradient(to right, #f59e0b, #f97316)',
+              backgroundClip: 'text',
+              color: 'transparent',
+              marginBottom: 30,
             }}
           >
-            JEFFY
+            Jeffy
           </div>
           <div
             style={{
-              fontSize: 48,
+              fontSize: 44,
               fontWeight: 'bold',
               color: 'white',
-              marginBottom: 30,
-              maxWidth: 900,
+              marginBottom: 16,
             }}
           >
-            The future of retail starts here.
+            Retail is broken.
           </div>
           <div
             style={{
-              fontSize: 26,
+              fontSize: 32,
               color: '#94a3b8',
               marginBottom: 50,
             }}
           >
-            This isn&apos;t a store. It&apos;s a movement.
+            We&apos;re building something different.
           </div>
           <div
             style={{
-              display: 'flex',
-              gap: 30,
+              fontSize: 18,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              letterSpacing: 4,
             }}
           >
-            <div
-              style={{
-                backgroundColor: '#f59e0b',
-                color: '#0f172a',
-                padding: '16px 32px',
-                borderRadius: 12,
-                fontSize: 22,
-                fontWeight: 'bold',
-              }}
-            >
-              Create a Want
-            </div>
-            <div
-              style={{
-                backgroundColor: '#10b981',
-                color: 'white',
-                padding: '16px 32px',
-                borderRadius: 12,
-                fontSize: 22,
-                fontWeight: 'bold',
-              }}
-            >
-              Become a Zone Partner
-            </div>
+            This isn&apos;t for everyone
           </div>
         </div>
       </div>
