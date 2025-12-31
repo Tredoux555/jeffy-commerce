@@ -70,6 +70,18 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        {/* Analytics - uncomment your preferred option:
+        
+        Option 1: Plausible (privacy-friendly, paid)
+        <script defer data-domain="jeffy.co.za" src="https://plausible.io/js/script.js"></script>
+        
+        Option 2: Google Analytics (free, add your GA4 ID)
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script dangerouslySetInnerHTML={{__html: `window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-XXXXXXXXXX');`}} />
+        
+        Option 3: Umami (self-hosted or cloud free tier)
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="YOUR-ID"></script>
+        */}
       </head>
       <body>
         <Providers>
