@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Factory, Save, Zap, Trash2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, FileText, Upload } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Factory, Save, Zap, Trash2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, FileText, Upload, File, Archive, Loader2 } from 'lucide-react';
 
 interface OEMResearch {
   id: string;
@@ -21,6 +21,13 @@ interface AnalyzedProduct {
   priceRange: { margin: string } | null;
 }
 
+interface ExtractedFileInfo {
+  name: string;
+  type: string;
+  size: number;
+  contentLength: number;
+}
+
 export default function OEMResearchPage() {
   const [research, setResearch] = useState<OEMResearch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +39,9 @@ export default function OEMResearchPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [extractedFiles, setExtractedFiles] = useState<ExtractedFileInfo[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchResearch();
@@ -50,9 +60,41 @@ export default function OEMResearchPage() {
     }
   };
 
+  const handleFileUpload = async (file: File) => {
+    setExtracting(true);
+    setExtractedFiles([]);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch('/api/admin/oem-research/extract', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await res.json();
+      
+      if (data.success) {
+        setResearchText(prev => prev + (prev ? '\n\n' : '') + data.combinedText);
+        setExtractedFiles(data.stats.files);
+        if (!researchName && file.name) {
+          setResearchName(file.name.replace(/\.[^/.]+$/, ''));
+        }
+      } else {
+        alert(`Error: ${data.error || 'Failed to extract file'}`);
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Failed to upload file');
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!researchText.trim()) {
-      alert('Please paste some research first');
+      alert('Please paste some research or upload files first');
       return;
     }
 
@@ -75,6 +117,7 @@ export default function OEMResearchPage() {
       if (res.ok) {
         setResearchText('');
         setResearchName('');
+        setExtractedFiles([]);
         fetchResearch();
       }
     } catch (error) {
@@ -149,24 +192,26 @@ export default function OEMResearchPage() {
     e.preventDefault();
     setIsDragging(false);
     
+    // Handle text drops
     const text = e.dataTransfer.getData('text/plain');
     if (text) {
       setResearchText(prev => prev + (prev ? '\n\n' : '') + text);
+      return;
     }
     
     // Handle file drops
     const files = Array.from(e.dataTransfer.files);
-    files.forEach(file => {
-      if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const content = event.target?.result as string;
-          setResearchText(prev => prev + (prev ? '\n\n' : '') + content);
-        };
-        reader.readAsText(file);
-      }
-    });
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
+    }
   }, []);
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileUpload(file);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -177,7 +222,7 @@ export default function OEMResearchPage() {
           OEM Research → 1688 Links
         </h1>
         <p className="text-gray-600 mt-1">
-          Paste your deep dive research, save it, then analyze to get factory search links
+          Upload files (.zip, .docx, .pdf, .txt, .md) or paste research to extract 1688 factory links
         </p>
       </div>
 
@@ -192,7 +237,6 @@ export default function OEMResearchPage() {
       >
         <div className="p-4 border-b border-gray-200 bg-gray-50 rounded-t-xl">
           <div className="flex items-center gap-4">
-            <Upload className="h-5 w-5 text-gray-400" />
             <input
               type="text"
               value={researchName}
@@ -200,7 +244,43 @@ export default function OEMResearchPage() {
               placeholder="Research name (optional - auto-generates if empty)"
               className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".zip,.docx,.pdf,.txt,.md,.csv,.json,.html,.rtf"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={extracting}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50"
+            >
+              {extracting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Extracting...
+                </>
+              ) : (
+                <>
+                  <Archive className="h-4 w-4" />
+                  Upload Files
+                </>
+              )}
+            </button>
           </div>
+          
+          {/* Extracted Files Info */}
+          {extractedFiles.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {extractedFiles.map((f, i) => (
+                <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-sm">
+                  <File className="h-3 w-3" />
+                  {f.name} ({(f.contentLength / 1000).toFixed(1)}k chars)
+                </span>
+              ))}
+            </div>
+          )}
         </div>
         
         <textarea
@@ -209,39 +289,48 @@ export default function OEMResearchPage() {
           rows={12}
           className="w-full px-4 py-3 focus:outline-none focus:ring-0 border-0 resize-none font-mono text-sm"
           placeholder={isDragging 
-            ? "Drop your research here..." 
-            : `Paste or drag & drop your deep dive research here...
+            ? "Drop your files or text here..." 
+            : `Drop files here or paste research text...
 
-Examples of what to paste:
-• Product research from TikTok, Amazon, market analysis
-• Factory information and pricing
-• Competitor analysis
-• Any text mentioning products like "Stanley Cup", "massage gun", "LED skincare"
+Supported formats:
+• ZIP files (extracts all readable files inside)
+• Documents: .docx, .pdf, .rtf
+• Text: .txt, .md, .csv, .json, .html
 
-The analyzer will extract products and generate 1688 search links in Chinese.`}
+The analyzer extracts products and generates 1688 search links in Chinese.`}
         />
         
         <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex justify-between items-center">
           <span className="text-sm text-gray-500">
-            {researchText.length > 0 ? `${researchText.length.toLocaleString()} characters` : 'Drag & drop text files or paste directly'}
+            {researchText.length > 0 ? `${researchText.length.toLocaleString()} characters` : 'Drop files or paste text'}
           </span>
-          <button
-            onClick={handleSave}
-            disabled={saving || !researchText.trim()}
-            className="flex items-center gap-2 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                Save Research
-              </>
+          <div className="flex gap-2">
+            {researchText && (
+              <button
+                onClick={() => { setResearchText(''); setExtractedFiles([]); setResearchName(''); }}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition"
+              >
+                Clear
+              </button>
             )}
-          </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || !researchText.trim()}
+              className="flex items-center gap-2 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save Research
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -254,11 +343,11 @@ The analyzer will extract products and generate 1688 search links in Chinese.`}
 
         {loading ? (
           <div className="bg-white rounded-lg border p-8 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto"></div>
+            <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto" />
           </div>
         ) : research.length === 0 ? (
           <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
-            No research saved yet. Paste your first deep dive above!
+            No research saved yet. Upload files or paste your first deep dive above!
           </div>
         ) : (
           research.map((item) => (
@@ -280,7 +369,7 @@ The analyzer will extract products and generate 1688 search links in Chinese.`}
                   >
                     {analyzing === item.id ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <Loader2 className="h-4 w-4 animate-spin" />
                         Analyzing...
                       </>
                     ) : (
