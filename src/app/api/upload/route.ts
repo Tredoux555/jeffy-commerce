@@ -1,15 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Allow larger body size for image uploads
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-// Increase max duration for mobile uploads
+// Route segment config for App Router
 export const maxDuration = 30;
+export const dynamic = 'force-dynamic';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -18,12 +12,8 @@ export async function POST(request: NextRequest) {
   try {
     console.log('Upload request received');
     
-    // Debug: Check if env vars exist
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing env vars:', { 
-        hasUrl: !!supabaseUrl, 
-        hasKey: !!supabaseServiceKey 
-      });
+      console.error('Missing env vars');
       return NextResponse.json({ 
         success: false, 
         error: 'Server configuration error' 
@@ -55,20 +45,16 @@ export async function POST(request: NextRequest) {
       size: file.size 
     });
 
-    // Validate file type - include HEIC for iPhone
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
-    // Some mobile browsers report empty or generic type
-    const isImage = allowedTypes.includes(file.type) || 
-                    file.type.startsWith('image/') || 
+    // Validate file type
+    const isImage = file.type.startsWith('image/') || 
                     file.type === '' || 
                     file.type === 'application/octet-stream';
     
     if (!isImage) {
-      console.log('Rejected file type:', file.type);
       return NextResponse.json({ success: false, error: `Invalid file type: ${file.type}` }, { status: 400 });
     }
 
-    // Validate file size (max 10MB for mobile photos)
+    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json({ success: false, error: 'File too large. Max 10MB.' }, { status: 400 });
     }
@@ -79,29 +65,17 @@ export async function POST(request: NextRequest) {
     const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const filename = `wants/${timestamp}-${randomStr}.${ext}`;
 
-    // Convert file to Uint8Array (more compatible)
-    let uint8Array;
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      uint8Array = new Uint8Array(arrayBuffer);
-      console.log('File buffer created, size:', uint8Array.length);
-    } catch (bufferError: any) {
-      console.error('Buffer error:', bufferError);
-      return NextResponse.json({ 
-        success: false, 
-        error: `Failed to process file: ${bufferError?.message || 'Unknown'}` 
-      }, { status: 500 });
-    }
+    // Convert file to Uint8Array
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
 
-    // Determine content type (default to jpeg if unknown)
-    let contentType = file.type;
-    if (!contentType || contentType === 'application/octet-stream' || contentType === '') {
+    // Determine content type
+    let contentType = file.type || 'image/jpeg';
+    if (contentType === 'application/octet-stream' || contentType === '') {
       contentType = 'image/jpeg';
     }
 
     // Upload to Supabase Storage
-    console.log('Uploading to Supabase:', { filename, contentType, size: uint8Array.length });
-    
     const { data, error } = await supabase.storage
       .from('images')
       .upload(filename, uint8Array, {
