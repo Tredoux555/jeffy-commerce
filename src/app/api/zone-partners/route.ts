@@ -113,13 +113,13 @@ export async function POST(request: NextRequest) {
     if (existing) {
       // If they exist but not as zone partner, update them to zone partner
       if (existing.type !== 'zone_partner') {
+        const zoneWithPhone = phone ? `${zone_id} | Phone: ${phone}` : zone_id;
         const { data: updated, error: updateError } = await supabase
           .from('waitlist')
           .update({ 
             type: 'zone_partner', 
-            zone_id: zone_id,
-            name: name || existing.name,
-            whatsapp: phone || existing.whatsapp
+            zone_id: zoneWithPhone,
+            name: name || existing.name
           })
           .eq('id', existing.id)
           .select()
@@ -185,15 +185,15 @@ export async function POST(request: NextRequest) {
       referrerId = referrer?.id;
     }
 
-    // Insert new entry
+    // Insert new entry - include phone in zone_id for now since whatsapp column doesn't exist
+    const zoneWithPhone = phone ? `${zone_id} | Phone: ${phone}` : zone_id;
     const { data: newEntry, error } = await supabase
       .from('waitlist')
       .insert({
         email: cleanEmail,
         name: name || null,
         type: 'zone_partner',
-        zone_id: zone_id,
-        whatsapp: phone || null
+        zone_id: zoneWithPhone
       })
       .select()
       .single();
