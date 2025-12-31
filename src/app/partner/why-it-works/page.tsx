@@ -59,7 +59,7 @@ export default function WhyItWorksPage() {
               ))}
             </div>
             <p className="text-center mt-6 text-slate-400">
-              By the time a <span className="text-white font-bold">R50 product</span> reaches you, it&apos;s <span className="text-red-400 font-bold">R200</span>.
+              By the time a <span className="text-white font-bold">R50 product</span> reaches you, it&apos;s <span className="text-red-400 font-bold">R500</span>.
             </p>
           </div>
 
