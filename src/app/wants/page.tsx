@@ -440,7 +440,6 @@ export default function WantsPage() {
                     ref={fileInputRef}
                     type="file"
                     accept="image/*,.heic,.heif"
-                    capture="environment"
                     onChange={handleImageSelect}
                     className="hidden"
                   />
