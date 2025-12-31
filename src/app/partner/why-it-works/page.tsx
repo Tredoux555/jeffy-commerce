@@ -220,7 +220,8 @@ export default function WhyItWorksPage() {
               The real reason this matters.
             </h2>
             <div className="space-y-4 text-lg text-slate-300">
-              <p>The profits fund schools.</p>
+              <p>Jeffy builds the commerce empire.</p>
+              <p>The commerce empire builds the school empire.</p>
               <p className="text-xl text-white font-semibold">
                 Free education. Merit-based. No bought places.
               </p>
