@@ -43,6 +43,53 @@ export default function WantsPage() {
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error' | 'similar'; text: string; similar?: Want[]; want?: Want } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Compress image before upload
+  const compressImage = async (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Max 1200px on longest side
+        const maxSize = 1200;
+        let { width, height } = img;
+        
+        if (width > height && width > maxSize) {
+          height = (height / width) * maxSize;
+          width = maxSize;
+        } else if (height > maxSize) {
+          width = (width / height) * maxSize;
+          height = maxSize;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              console.log(`Compressed: ${(file.size/1024).toFixed(0)}KB -> ${(compressedFile.size/1024).toFixed(0)}KB`);
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          },
+          'image/jpeg',
+          0.8 // 80% quality
+        );
+      };
+      
+      img.onerror = () => resolve(file);
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // Load email from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('jeffy_voter_email');
@@ -100,8 +147,11 @@ export default function WantsPage() {
     
     setUploadingImage(true);
     try {
+      // Compress image first (reduces ~2MB to ~200KB)
+      const compressedFile = await compressImage(imageFile);
+      
       const formData = new FormData();
-      formData.append('file', imageFile);
+      formData.append('file', compressedFile);
       
       const res = await fetch('/api/upload', {
         method: 'POST',
