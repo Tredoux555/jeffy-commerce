@@ -40,50 +40,24 @@ Analyze the research text and extract ALL viable products. For each product, pro
 - Mobile-first: 72% of SA transactions are mobile
 - Import duties: 45% on clothing + 15% VAT, electronics often 0%
 - Trend lag: SA trails US/UK by 3-6 months (arbitrage window!)
-- Load shedding: Solar/power products have unique SA demand
 - Exchange rate: ¥1 ≈ R2.50
 
-## SCORING FORMULA (use this exact weighting)
+## SCORING FORMULA
 TOTAL SA SCORE (0-100) = weighted average of:
-- Margin Potential (30%): Based on landed cost vs retail price achievable
-- Trend Velocity (25%): How fast is demand growing globally?
+- Margin Potential (30%): Based on landed cost vs retail price
+- Trend Velocity (25%): How fast is demand growing?
 - Competition Level (20%): Low competition = higher score
-- Supplier Quality (15%): Factory indicators, badges, verification potential
-- Shipping Ease (10%): Weight, fragility, customs complexity
-
-## FACTORY VERIFICATION INDICATORS
-BADGES TO LOOK FOR:
-- 源头厂家 (Source Factory): Blue badge = verified manufacturer
-- 实力商家 (Powerful Merchant): Red bull logo = 500K+ RMB capital
-- 超级工厂 (Super Factory): 500m²+, serves major brands
-- 深度验厂 (Deep Factory Verified): Third-party audit
-
-MANUFACTURING CLUSTERS (validate location matches product):
-- Electronics → Shenzhen, Suzhou
-- Drinkware → Yongkang, Zhejiang
-- Toys → Chenghai, Shantou
-- Kitchen appliances → Ningbo, Zhejiang
-- Beauty devices → Shenzhen, Guangdong
-
-## PRICE TIERS
-- "impulse": Under R200 - highest conversion
-- "considered": R200-R500 - good for quality items
-- "premium": Over R500 - needs strong differentiation
-
-## DUTY CATEGORIES
-- "zero": Electronics, gadgets (0% duty)
-- "standard": Most goods (15% VAT only)
-- "clothing_45": Apparel, textiles (45% duty + 15% VAT)
+- Supplier Quality (15%): Factory indicators
+- Shipping Ease (10%): Weight, fragility, customs
 
 ## VERDICT ASSIGNMENT
-- "rocket": SA Score 80+ AND margin 60%+ AND (impulse OR considered) = 🚀 QUICK WIN
-- "star": SA Score 70+ AND margin 50%+ = ⭐ TOP PICK  
-- "trending": SA Score 65+ OR strong trend signals = 📈 TRENDING
-- "review": SA Score 50-65 OR has risks = ⚠️ NEEDS REVIEW
-- "skip": SA Score <50 OR major red flags = ❌ SKIP
+- "rocket": Score 80+ AND margin 60%+ = 🚀 QUICK WIN
+- "star": Score 70+ AND margin 50%+ = ⭐ TOP PICK  
+- "trending": Score 65+ = 📈 TRENDING
+- "review": Score 50-65 = ⚠️ NEEDS REVIEW
 
 ## OUTPUT FORMAT
-Return a JSON array with each product having this structure:
+Return ONLY a valid JSON array. Each product:
 {
   "name": "Product Name",
   "category": "category",
@@ -98,94 +72,26 @@ Return a JSON array with each product having this structure:
     "competitionLevel": 85, "supplierQuality": 70, "shippingEase": 80
   },
   "verdict": "rocket",
-  "verdictReason": "High margin impulse buy with low competition",
+  "verdictReason": "High margin impulse buy",
   "market": {
     "priceTier": "impulse", "dutyCategory": "zero", "dutyPercent": 0,
     "trendLagWeeks": 8, "competitionLevel": "low",
-    "demandSignals": ["TikTok viral US"], "targetAudience": "Young women 18-35"
+    "demandSignals": ["TikTok viral"], "targetAudience": "Young women 18-35"
   },
   "sourcing": {
     "shippingType": "air", "weightGrams": 50, "moqEstimate": "50-100",
-    "leadTimeDays": 14, "factoryCluster": "Yiwu, Zhejiang",
+    "leadTimeDays": 14, "factoryCluster": "Yiwu",
     "clusterMatch": true, "recommendedBadges": ["源头厂家"]
   },
-  "risks": ["Seasonal demand"],
-  "opportunities": ["First mover in SA"],
-  "recommendation": "Order samples immediately."
+  "risks": ["Seasonal"],
+  "opportunities": ["First mover"],
+  "recommendation": "Order samples."
 }
 
-IMPORTANT: Return ONLY valid JSON array. No markdown, no explanation. Skip products scoring below 50.
+No markdown. No explanation. Just JSON array.
 
-RESEARCH TEXT:
+RESEARCH:
 `;
-
-async function analyzeChunk(client: Anthropic, chunkText: string, chunkNum: number): Promise<any[]> {
-  console.log(`[AI Analyze] Processing chunk ${chunkNum}: ${chunkText.length} chars`);
-  
-  try {
-    const message = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: SA_SCORING_PROMPT + chunkText }]
-    });
-
-    const responseText = message.content
-      .filter(block => block.type === 'text')
-      .map(block => (block as { type: 'text'; text: string }).text)
-      .join('');
-
-    let cleanJson = responseText.trim();
-    if (cleanJson.startsWith('```json')) cleanJson = cleanJson.slice(7);
-    if (cleanJson.startsWith('```')) cleanJson = cleanJson.slice(3);
-    if (cleanJson.endsWith('```')) cleanJson = cleanJson.slice(0, -3);
-    
-    const products = JSON.parse(cleanJson.trim());
-    console.log(`[AI Analyze] Chunk ${chunkNum} found ${products.length} products`);
-    return products;
-  } catch (error) {
-    console.error(`[AI Analyze] Chunk ${chunkNum} failed:`, error);
-    return [];
-  }
-}
-
-function splitIntoChunks(text: string, maxChunkSize: number = 20000): string[] {
-  const chunks: string[] = [];
-  
-  // Try to split on paragraph boundaries
-  const paragraphs = text.split(/\n\n+/);
-  let currentChunk = '';
-  
-  for (const para of paragraphs) {
-    if (currentChunk.length + para.length > maxChunkSize && currentChunk.length > 0) {
-      chunks.push(currentChunk.trim());
-      currentChunk = para;
-    } else {
-      currentChunk += (currentChunk ? '\n\n' : '') + para;
-    }
-  }
-  
-  if (currentChunk.trim()) {
-    chunks.push(currentChunk.trim());
-  }
-  
-  return chunks;
-}
-
-function deduplicateProducts(products: any[]): any[] {
-  const seen = new Map<string, any>();
-  
-  for (const product of products) {
-    const key = product.name?.toLowerCase().trim();
-    if (!key) continue;
-    
-    // Keep the one with higher score
-    if (!seen.has(key) || (product.scores?.total > seen.get(key).scores?.total)) {
-      seen.set(key, product);
-    }
-  }
-  
-  return Array.from(seen.values());
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -197,34 +103,48 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    console.log(`[AI Analyze] Starting analysis: ${research_text.length} total chars`);
+    const charCount = research_text.length;
+    console.log(`[AI Analyze] Starting: ${charCount} chars`);
+    
+    // Warn if very large (but still process)
+    if (charCount > 30000) {
+      console.log(`[AI Analyze] Warning: Large input (${charCount} chars). Consider splitting for better results.`);
+    }
+    
     const startTime = Date.now();
     const client = getAnthropic();
     
-    // Split into chunks if needed
-    const chunks = splitIntoChunks(research_text, 20000);
-    console.log(`[AI Analyze] Split into ${chunks.length} chunks`);
+    const message = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 8192,
+      messages: [{ role: 'user', content: SA_SCORING_PROMPT + research_text }]
+    });
     
-    // Process all chunks (in parallel for speed)
-    let allProducts: any[] = [];
-    
-    if (chunks.length === 1) {
-      // Single chunk - process directly
-      allProducts = await analyzeChunk(client, chunks[0], 1);
-    } else {
-      // Multiple chunks - process in parallel
-      const results = await Promise.all(
-        chunks.map((chunk, i) => analyzeChunk(client, chunk, i + 1))
-      );
-      allProducts = results.flat();
+    const duration = Date.now() - startTime;
+    console.log(`[AI Analyze] Claude responded in ${duration}ms`);
+
+    const responseText = message.content
+      .filter(block => block.type === 'text')
+      .map(block => (block as { type: 'text'; text: string }).text)
+      .join('');
+
+    let products: any[] = [];
+    try {
+      let cleanJson = responseText.trim();
+      if (cleanJson.startsWith('```json')) cleanJson = cleanJson.slice(7);
+      if (cleanJson.startsWith('```')) cleanJson = cleanJson.slice(3);
+      if (cleanJson.endsWith('```')) cleanJson = cleanJson.slice(0, -3);
+      products = JSON.parse(cleanJson.trim());
+    } catch (parseError) {
+      console.error('[AI Analyze] Parse error:', responseText.slice(0, 500));
+      return NextResponse.json({ 
+        error: 'Failed to parse AI response',
+        hint: 'Try with smaller input'
+      }, { status: 500 });
     }
-    
-    // Deduplicate products that might appear in multiple chunks
-    const uniqueProducts = deduplicateProducts(allProducts);
-    console.log(`[AI Analyze] Total unique products: ${uniqueProducts.length} (${allProducts.length} before dedup)`);
 
     // Enrich with URLs
-    const enrichedProducts = uniqueProducts.map((p: any) => ({
+    const enrichedProducts = products.map((p: any) => ({
       ...p,
       urls: {
         ...generate1688Urls(p.chineseKeywords?.primary || ''),
@@ -233,23 +153,21 @@ export async function POST(request: NextRequest) {
       research_id: research_id || null
     }));
 
-    // Categorize by verdict
+    // Categorize
     const quickWins = enrichedProducts.filter((p: any) => p.verdict === 'rocket');
     const topPicks = enrichedProducts.filter((p: any) => p.verdict === 'star');
     const trending = enrichedProducts.filter((p: any) => p.verdict === 'trending');
     const needsReview = enrichedProducts.filter((p: any) => p.verdict === 'review');
 
-    // Summary stats
+    // Stats
     const avgScore = enrichedProducts.length > 0 
       ? Math.round(enrichedProducts.reduce((sum: number, p: any) => sum + (p.scores?.total || 0), 0) / enrichedProducts.length)
       : 0;
     const avgMargin = enrichedProducts.length > 0 
       ? Math.round(enrichedProducts.reduce((sum: number, p: any) => sum + (p.pricing?.marginPercent || 0), 0) / enrichedProducts.length)
       : 0;
-    const totalPotentialProfit = enrichedProducts.reduce((sum: number, p: any) => sum + (p.pricing?.marginZAR || 0), 0);
 
-    const duration = Date.now() - startTime;
-    console.log(`[AI Analyze] Complete in ${duration}ms: ${enrichedProducts.length} products from ${chunks.length} chunks`);
+    console.log(`[AI Analyze] Found ${enrichedProducts.length} products in ${duration}ms`);
 
     return NextResponse.json({
       success: true,
@@ -261,19 +179,12 @@ export async function POST(request: NextRequest) {
         needsReview: needsReview.length,
         avgScore,
         avgMargin,
-        totalPotentialProfit,
         categories: [...new Set(enrichedProducts.map((p: any) => p.category))],
-        chunksProcessed: chunks.length,
-        totalChars: research_text.length,
-        processingTimeMs: duration
+        inputChars: charCount,
+        processingMs: duration
       },
       products: enrichedProducts,
-      grouped: {
-        quickWins,
-        topPicks,
-        trending,
-        needsReview
-      }
+      grouped: { quickWins, topPicks, trending, needsReview }
     });
 
   } catch (error) {
