@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, ArrowLeft, Search, Share2, Users, Gift, CheckCircle, XCircle, Sparkles, MessageCircle, Mail, Zap } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Search, Share2, Users, Gift, CheckCircle, XCircle, Sparkles, MessageCircle, Mail, Zap, FlaskConical, PackageCheck, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WhatIsWantsPage() {
@@ -31,20 +31,21 @@ export default function WhatIsWantsPage() {
           </h1>
 
           <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto">
-            Jeffy sources products from China at factory prices. But we only source what people actually want.
+            Jeffy sources quality products at factory prices. But we only source what people actually want — and we test everything personally.
           </p>
         </div>
       </section>
 
-      {/* How It Works - 4 Steps */}
+      {/* How It Works - 5 Steps */}
       <section className="px-4 py-20">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">How it works</p>
-            <h2 className="text-3xl md:text-4xl font-black">Four simple steps</h2>
+            <h2 className="text-3xl md:text-4xl font-black">Five simple steps</h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          {/* Steps Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Step 1 */}
             <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700 relative overflow-hidden group hover:border-orange-500/50 transition-colors">
               <div className="absolute top-4 right-4 text-6xl font-black text-slate-700/50">1</div>
@@ -81,30 +82,83 @@ export default function WhatIsWantsPage() {
               </div>
             </div>
 
-            {/* Step 4 */}
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700 relative overflow-hidden group hover:border-orange-500/50 transition-colors">
-              <div className="absolute top-4 right-4 text-6xl font-black text-slate-700/50">4</div>
+            {/* Step 4 - THE NEW ONE */}
+            <div className="bg-gradient-to-br from-blue-900/50 to-cyan-900/50 backdrop-blur rounded-3xl p-8 border border-cyan-500/30 relative overflow-hidden group hover:border-cyan-400/50 transition-colors md:col-span-2 lg:col-span-2">
+              <div className="absolute top-4 right-4 text-6xl font-black text-cyan-700/30">4</div>
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center gap-6">
+                <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center shrink-0">
+                  <FlaskConical className="h-7 w-7 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2 text-cyan-400">We Test</h3>
+                  <p className="text-slate-300">
+                    We order <span className="text-white font-semibold">3 variations</span> from different suppliers. Test them personally. Only the <span className="text-cyan-400 font-semibold">best quality</span> makes it to you — no mystery boxes, no cheap knockoffs.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 5 */}
+            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700 relative overflow-hidden group hover:border-green-500/50 transition-colors">
+              <div className="absolute top-4 right-4 text-6xl font-black text-slate-700/50">5</div>
               <div className="relative z-10">
                 <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mb-4">
                   <Gift className="h-7 w-7 text-white" />
                 </div>
                 <h3 className="text-xl font-bold mb-2">You Win</h3>
-                <p className="text-slate-400">Jeffy sources the product. Everyone can buy it. And YOU — the first requester — get yours <span className="text-green-400 font-bold">FREE</span>.</p>
+                <p className="text-slate-400">Quality-tested product ships to everyone. And YOU — the first requester — get yours <span className="text-green-400 font-bold">FREE</span>.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Not Dropshipping Section */}
+      <section className="px-4 py-20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <ShieldCheck className="h-12 w-12 text-cyan-400 mx-auto mb-4" />
+            <h2 className="text-3xl md:text-4xl font-black mb-4">
+              This isn&apos;t dropshipping.
+            </h2>
+            <p className="text-2xl text-cyan-400 font-bold">Every product is personally tested.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="bg-slate-800/80 rounded-2xl p-6 border border-cyan-500/30 text-center">
+              <div className="text-4xl mb-3">📦</div>
+              <p className="font-semibold text-white mb-1">3 Samples Ordered</p>
+              <p className="text-sm text-slate-400">From different suppliers</p>
+            </div>
+            <div className="bg-slate-800/80 rounded-2xl p-6 border border-cyan-500/30 text-center">
+              <div className="text-4xl mb-3">🔍</div>
+              <p className="font-semibold text-white mb-1">Personally Tested</p>
+              <p className="text-sm text-slate-400">Quality, durability, value</p>
+            </div>
+            <div className="bg-slate-800/80 rounded-2xl p-6 border border-cyan-500/30 text-center">
+              <div className="text-4xl mb-3">✅</div>
+              <p className="font-semibold text-white mb-1">Best One Ships</p>
+              <p className="text-sm text-slate-400">Only if it passes the test</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+            <p className="text-lg text-slate-300 text-center">
+              We don&apos;t just forward orders to China and hope for the best. We <span className="text-white font-semibold">physically test products</span> before they reach you. That takes time and money — which is why we only do it for products with <span className="text-cyan-400 font-semibold">real, verified demand.</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Why 10 Verifications */}
-      <section className="px-4 py-20 bg-gradient-to-r from-orange-500/10 to-amber-500/10">
+      <section className="px-4 py-20">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <Mail className="h-12 w-12 text-orange-400 mx-auto mb-4" />
             <h2 className="text-3xl md:text-4xl font-black mb-4">
               Why 10 verifications?
             </h2>
-            <p className="text-2xl text-orange-400 font-bold">Real demand. Real products.</p>
+            <p className="text-2xl text-orange-400 font-bold">Real demand. Real investment.</p>
           </div>
 
           <div className="space-y-6 text-lg text-slate-300 max-w-2xl mx-auto">
@@ -112,11 +166,11 @@ export default function WhatIsWantsPage() {
               Anyone can click a button. But <span className="text-white font-semibold">10 people entering their email to verify?</span> That&apos;s real interest.
             </p>
             <p>
-              We don&apos;t want to source products that sit in a warehouse. We source what South Africans <span className="text-white font-semibold">actually want to buy.</span>
+              Testing 3 product variations costs money. Shipping samples takes time. We only make that investment for products with <span className="text-white font-semibold">proven demand.</span>
             </p>
             <div className="bg-slate-800/80 rounded-2xl p-6 border border-orange-500/30">
               <p className="text-white font-medium text-center">
-                Your friends verifying = proof there&apos;s a market = Jeffy negotiates better prices = <span className="text-orange-400">everyone wins</span>
+                Your friends verifying = proof there&apos;s demand = we invest in testing = <span className="text-orange-400">you get quality</span>
               </p>
             </div>
           </div>
@@ -162,28 +216,28 @@ export default function WhatIsWantsPage() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            {/* Other Sites */}
+            {/* Dropshipping */}
             <div className="bg-slate-800/30 rounded-3xl p-8 border border-red-500/30">
               <div className="flex items-center gap-3 mb-6">
                 <XCircle className="h-8 w-8 text-red-400" />
-                <h3 className="text-xl font-bold text-red-400">Other sites</h3>
+                <h3 className="text-xl font-bold text-red-400">Typical Dropshipping</h3>
               </div>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">Click to vote</span>
+                  <span className="text-slate-400">Order forwarded directly to China</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">Unlimited votes per person</span>
+                  <span className="text-slate-400">No quality control</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">Numbers mean nothing</span>
+                  <span className="text-slate-400">Mystery box — hope it&apos;s good</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">&quot;Maybe someday&quot;</span>
+                  <span className="text-slate-400">Cheap knockoffs common</span>
                 </li>
               </ul>
             </div>
@@ -197,19 +251,19 @@ export default function WhatIsWantsPage() {
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">Verify with email or phone</span>
+                  <span className="text-white font-medium">3 samples personally tested</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">One person, one verification</span>
+                  <span className="text-white font-medium">Only best quality ships</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">10 real people = we source it</span>
+                  <span className="text-white font-medium">You know exactly what you&apos;re getting</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">Commitment to action</span>
+                  <span className="text-white font-medium">Real person stands behind it</span>
                 </li>
               </ul>
             </div>
