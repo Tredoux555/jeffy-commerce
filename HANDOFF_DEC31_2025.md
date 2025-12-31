@@ -30,49 +30,246 @@ Currently the voting system is broken/missing. Need TWO separate systems:
 - **10 verified people = Tredoux sources the product**
 - **First requester gets it FREE**
 
-### Database Schema Needed
+---
+
+## VERIFICATION INFRASTRUCTURE (Already Exists!)
+
+### Email System ✅ READY
+- **Provider:** Resend
+- **Domain:** jeffy.co.za (verified, DKIM/SPF configured)
+- **API Key:** In Railway env vars as `RESEND_API_KEY`
+- **Sending from:** noreply@jeffy.co.za or hello@jeffy.co.za
+- **Status:** Working - welcome emails already sending
+
+**For Verification:**
+- Send email with unique verification link
+- Link format: `jeffy.co.za/verify/[TOKEN]`
+- Token expires after 24 hours
+- On click → mark as verified
+
+### SMS System ⚠️ NEEDS TESTING
+- **Provider:** Twilio (previously set up)
+- **Credentials:** Check Railway env vars for:
+  - `TWILIO_ACCOUNT_SID`
+  - `TWILIO_AUTH_TOKEN`
+  - `TWILIO_PHONE_NUMBER`
+- **Status:** Set up before but untested recently
+
+**For Verification:**
+- Send 6-digit OTP via SMS
+- User enters OTP on verification page
+- OTP expires after 10 minutes
+- On correct entry → mark as verified
+
+### Verification Flow Options
+
+**Option 1: Email Verification**
+```
+Friend enters email
+    ↓
+System sends email via Resend:
+"[Name] wants you to verify their product request!
+Click here to confirm you'd buy this too: [LINK]"
+    ↓
+Friend clicks link
+    ↓
+verified_count++
+```
+
+**Option 2: SMS Verification (Phone)**
+```
+Friend enters phone number
+    ↓
+System sends SMS via Twilio:
+"Your Jeffy verification code: 123456"
+    ↓
+Friend enters code on page
+    ↓
+verified_count++
+```
+
+**Option 3: Let User Choose**
+- Form shows both options: "Verify via Email" or "Verify via SMS"
+- Email = free (Resend generous limits)
+- SMS = costs money (Twilio charges per SMS)
+- Recommend: Default to email, offer SMS as backup
+
+---
+
+## VERIFICATION DATABASE SCHEMA
+
 ```sql
--- Verifications table (the real votes)
+-- Verification tokens/OTPs
 CREATE TABLE want_verifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   want_id UUID REFERENCES wants(id) ON DELETE CASCADE,
+  
+  -- Contact method (one or the other)
   email TEXT,
   phone TEXT,
-  verification_code TEXT,
+  
+  -- Verification
+  verification_type TEXT CHECK (verification_type IN ('email', 'sms')),
+  verification_token TEXT, -- for email links
+  otp_code TEXT,           -- for SMS (6 digits)
+  expires_at TIMESTAMPTZ,
   verified_at TIMESTAMPTZ,
-  referred_by_code TEXT, -- creator's referral code
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  
+  -- Tracking
+  referred_by_code TEXT,   -- creator's referral code
+  ip_address TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Prevent duplicates
+  UNIQUE(want_id, email),
+  UNIQUE(want_id, phone)
 );
 
--- Add to wants table
-ALTER TABLE wants ADD COLUMN creator_referral_code TEXT UNIQUE;
-ALTER TABLE wants ADD COLUMN verified_count INTEGER DEFAULT 0;
-ALTER TABLE wants ADD COLUMN popularity_clicks INTEGER DEFAULT 0;
+-- Update wants table
+ALTER TABLE wants ADD COLUMN IF NOT EXISTS creator_referral_code TEXT UNIQUE DEFAULT encode(gen_random_bytes(6), 'hex');
+ALTER TABLE wants ADD COLUMN IF NOT EXISTS verified_count INTEGER DEFAULT 0;
+ALTER TABLE wants ADD COLUMN IF NOT EXISTS popularity_clicks INTEGER DEFAULT 0;
+ALTER TABLE wants ADD COLUMN IF NOT EXISTS creator_email TEXT;
+ALTER TABLE wants ADD COLUMN IF NOT EXISTS creator_phone TEXT;
 ```
 
-### Pages/Components Needed
-1. **Want Detail Page** `/want/[id]` - Shows want, verification form if `?ref=` present
-2. **Verification Form** - Phone or email input → sends OTP/link
-3. **OTP/Email Verification** - Confirms and increments verified_count
-4. **Creator Dashboard** - See their wants, share links, track verifications
-5. **Admin Overview** - See all wants, popularity vs real verifications
+---
 
-### Flow Diagram
+## API ENDPOINTS NEEDED
+
+### POST /api/wants/request-verification
+```json
+Request:
+{
+  "want_id": "uuid",
+  "ref_code": "CREATOR_CODE",
+  "method": "email" | "sms",
+  "contact": "email@example.com" | "+27821234567"
+}
+
+Response:
+{
+  "success": true,
+  "message": "Verification email sent" | "OTP sent to your phone"
+}
 ```
-Creator creates Want
-    ↓
-Gets personal link: jeffy.co.za/want/xyz?ref=MYCODE
-    ↓
-Shares with 10 friends
-    ↓
-Friend clicks → Enters phone → Gets OTP → Verifies
-    ↓
-verified_count++
-    ↓
-At 10 verifications → Tredoux notified → Sources product
-    ↓
-First requester gets it FREE
+
+### POST /api/wants/verify
+```json
+Request (for SMS):
+{
+  "want_id": "uuid",
+  "phone": "+27821234567",
+  "otp": "123456"
+}
+
+Request (for Email - just needs token from URL):
+{
+  "token": "abc123xyz"
+}
+
+Response:
+{
+  "success": true,
+  "verified_count": 5,
+  "remaining": 5
+}
 ```
+
+---
+
+## EMAIL TEMPLATE (for Resend)
+
+```typescript
+// src/lib/email/verification.ts
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+export async function sendVerificationEmail({
+  to,
+  creatorName,
+  productName,
+  verificationLink
+}: {
+  to: string;
+  creatorName: string;
+  productName: string;
+  verificationLink: string;
+}) {
+  await resend.emails.send({
+    from: 'Jeffy <hello@jeffy.co.za>',
+    to,
+    subject: `${creatorName} wants your opinion on something`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #f97316;">Jeffy</h1>
+        <p>Hey!</p>
+        <p><strong>${creatorName}</strong> requested a product on Jeffy and wants to know if you'd buy it too:</p>
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 10px; margin: 20px 0;">
+          <h2 style="margin: 0;">${productName}</h2>
+        </div>
+        <p>If 10 people verify they want this, Jeffy will source it - and ${creatorName} gets theirs FREE!</p>
+        <a href="${verificationLink}" style="display: inline-block; background: #f97316; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold;">
+          Yes, I'd Buy This Too!
+        </a>
+        <p style="color: #666; margin-top: 30px; font-size: 14px;">
+          If you don't want this product, just ignore this email.
+        </p>
+      </div>
+    `
+  });
+}
+```
+
+---
+
+## SMS TEMPLATE (for Twilio)
+
+```typescript
+// src/lib/sms/twilio.ts
+import twilio from 'twilio';
+
+const client = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
+
+export async function sendVerificationSMS({
+  to,
+  otp
+}: {
+  to: string;
+  otp: string;
+}) {
+  await client.messages.create({
+    body: `Your Jeffy verification code: ${otp}. Valid for 10 minutes.`,
+    from: process.env.TWILIO_PHONE_NUMBER,
+    to: to
+  });
+}
+```
+
+---
+
+## FIRST STEP: Test Twilio
+
+Before building, test if Twilio still works:
+
+```bash
+# In project directory, create test file:
+node -e "
+const twilio = require('twilio');
+const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+client.messages.create({
+  body: 'Jeffy test: Your code is 123456',
+  from: process.env.TWILIO_PHONE_NUMBER,
+  to: '+27765062049'  // Your number
+}).then(m => console.log('Sent:', m.sid)).catch(e => console.error('Error:', e));
+"
+```
+
+If this works, SMS verification is ready. If not, fall back to email-only.
 
 ---
 
