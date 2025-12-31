@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Loader2, Check, Share2, Gift, Users, ChevronDown, Trophy, Star, Zap, Crown, Heart, ArrowRight, MessageCircle, Copy, ExternalLink } from 'lucide-react';
+import { Loader2, Check, Share2, Gift, Users, ChevronDown, Trophy, Star, Zap, Crown, Heart, ArrowRight, MessageCircle, Copy, ExternalLink, Calendar, Target } from 'lucide-react';
 
 interface RewardTier {
   tier: number;
@@ -27,6 +27,49 @@ const REWARD_TIERS = [
   { referrals: 25, name: 'Champion', reward: 'R200 Store Credit', icon: Crown },
   { referrals: 50, name: 'Legend', reward: 'Founder Kit + Free Product', icon: Gift },
 ];
+
+// Launch date
+const LAUNCH_DATE = new Date('2025-01-20T00:00:00');
+
+function CountdownTimer() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0 });
+
+  useEffect(() => {
+    const calculate = () => {
+      const now = new Date();
+      const diff = LAUNCH_DATE.getTime() - now.getTime();
+      if (diff > 0) {
+        setTimeLeft({
+          days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          mins: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+        });
+      }
+    };
+    calculate();
+    const interval = setInterval(calculate, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="flex items-center justify-center gap-3 text-amber-700">
+      <div className="text-center">
+        <span className="text-2xl font-bold">{timeLeft.days}</span>
+        <p className="text-xs uppercase">days</p>
+      </div>
+      <span className="text-xl">:</span>
+      <div className="text-center">
+        <span className="text-2xl font-bold">{timeLeft.hours}</span>
+        <p className="text-xs uppercase">hrs</p>
+      </div>
+      <span className="text-xl">:</span>
+      <div className="text-center">
+        <span className="text-2xl font-bold">{timeLeft.mins}</span>
+        <p className="text-xs uppercase">mins</p>
+      </div>
+    </div>
+  );
+}
 
 export default function ComingSoonPage() {
   const searchParams = useSearchParams();
@@ -108,14 +151,36 @@ export default function ComingSoonPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 via-white to-white">
+      {/* Launch Date Banner */}
+      <div className="bg-gradient-to-r from-amber-600 to-orange-500 text-white py-3 px-4">
+        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            <span className="font-semibold">Launching January 20, 2025</span>
+          </div>
+          <span className="hidden sm:inline">•</span>
+          <CountdownTimer />
+        </div>
+      </div>
+
+      {/* Impact Bar */}
+      <div className="bg-emerald-600 text-white py-2 px-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-center gap-2 text-sm">
+          <Heart className="h-4 w-4" />
+          <span>Every purchase funds free schools.</span>
+          <span className="font-bold">R0 raised</span>
+          <span className="text-emerald-200">— be the first to change this</span>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <section className="min-h-screen flex flex-col items-center justify-center px-4 py-12 relative">
+      <section className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-12 relative">
         {/* Logo */}
         <div className="mb-8">
           <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight">
             Jeffy
           </h1>
-          <p className="text-amber-600 font-medium text-center">Coming Soon</p>
+          <p className="text-amber-600 font-medium text-center">South Africa&apos;s Community Commerce</p>
         </div>
 
         {/* Main Content */}
@@ -165,6 +230,16 @@ export default function ComingSoonPage() {
                 <span><strong>{totalWaitlist.toLocaleString()}</strong> people already waiting</span>
               </p>
             )}
+
+            {/* Early Bird Urgency */}
+            <div className="mt-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+              <div className="flex items-center gap-2 text-amber-800">
+                <Target className="h-5 w-5" />
+                <p className="font-medium text-sm">
+                  First 100 get <span className="font-bold">Founder pricing</span> at launch
+                </p>
+              </div>
+            </div>
           </div>
         ) : (
           /* Success State */
@@ -243,7 +318,10 @@ export default function ComingSoonPage() {
 
         {/* Scroll Indicator */}
         <button 
-          onClick={() => setShowMission(true)}
+          onClick={() => {
+            setShowMission(true);
+            document.getElementById('rewards')?.scrollIntoView({ behavior: 'smooth' });
+          }}
           className="absolute bottom-8 animate-bounce text-gray-400 hover:text-amber-500 transition"
         >
           <ChevronDown className="h-8 w-8" />
@@ -251,7 +329,7 @@ export default function ComingSoonPage() {
       </section>
 
       {/* Reward Tiers Section */}
-      <section className="py-16 px-4 bg-white">
+      <section id="rewards" className="py-16 px-4 bg-white">
         <div className="max-w-2xl mx-auto">
           <h3 className="text-2xl font-bold text-center text-gray-900 mb-2">
             Unlock Rewards by Sharing
@@ -321,16 +399,16 @@ export default function ComingSoonPage() {
           </div>
 
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div className="p-4">
-              <p className="text-3xl font-bold text-gray-900">R0</p>
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-3xl font-bold text-emerald-600">R0</p>
               <p className="text-sm text-gray-500">Raised so far</p>
             </div>
-            <div className="p-4">
-              <p className="text-3xl font-bold text-gray-900">0</p>
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-3xl font-bold text-emerald-600">0</p>
               <p className="text-sm text-gray-500">Students funded</p>
             </div>
-            <div className="p-4">
-              <p className="text-3xl font-bold text-gray-900">∞</p>
+            <div className="bg-white rounded-xl p-4 shadow-sm">
+              <p className="text-3xl font-bold text-amber-500">∞</p>
               <p className="text-sm text-gray-500">Potential</p>
             </div>
           </div>
@@ -361,7 +439,7 @@ export default function ComingSoonPage() {
 
       {/* Footer */}
       <footer className="py-8 px-4 bg-gray-50 text-center text-gray-500 text-sm">
-        <p>© 2025 Jeffy Commerce. South Africa.</p>
+        <p>© 2025 Jeffy Commerce. Cape Town, South Africa.</p>
       </footer>
     </div>
   );
