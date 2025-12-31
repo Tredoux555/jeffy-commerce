@@ -240,13 +240,11 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'sourc
             </Button>
           </a>
           
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigator.clipboard.writeText(shareLink)}
-          >
-            <Link2 className="h-4 w-4 mr-1" /> Copy Link
-          </Button>
+          <a href={shareLink} target="_blank">
+            <Button variant="outline" size="sm">
+              <Link2 className="h-4 w-4 mr-1" /> Share Link
+            </Button>
+          </a>
           
           {hasImage && (
             <a href={want.reference_image_url} target="_blank">
