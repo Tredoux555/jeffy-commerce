@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, CheckCircle, Users, Copy, MessageCircle, Gift, ArrowRight, Share2, LogOut, Package, ExternalLink, AlertCircle } from 'lucide-react';
+import { Loader2, Copy, Check, MessageCircle, Share2, Gift, Sparkles, ChevronRight, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import confetti from 'canvas-confetti';
 
 interface Want {
   id: string;
@@ -14,6 +15,7 @@ interface Want {
   status: string;
   creator_referral_code: string;
   created_at: string;
+  image_url: string | null;
 }
 
 interface User {
@@ -26,282 +28,260 @@ export default function MyWantsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [wants, setWants] = useState<Want[]>([]);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<string>('');
+  const [want, setWant] = useState<Want | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [celebrated, setCelebrated] = useState(false);
 
   useEffect(() => {
     checkAuth();
   }, []);
 
+  // Trigger confetti when they hit 10
+  useEffect(() => {
+    if (want && want.verified_count >= 10 && !celebrated) {
+      setCelebrated(true);
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#f97316', '#22c55e', '#eab308', '#ffffff']
+      });
+    }
+  }, [want, celebrated]);
+
   const checkAuth = async () => {
-    console.log('[MY-WANTS] Starting auth check...');
-    setDebugInfo('Checking auth...');
-    
     const token = localStorage.getItem('jeffy_session');
-    console.log('[MY-WANTS] Token from localStorage:', token ? token.substring(0, 10) + '...' : 'NONE');
     
     if (!token) {
-      console.log('[MY-WANTS] No token found, redirecting to login');
-      setAuthError('No session found');
-      setDebugInfo('No token in localStorage');
-      setTimeout(() => router.push('/login'), 2000);
+      router.push('/login');
       return;
     }
 
     try {
-      setDebugInfo('Calling /api/auth/me...');
-      console.log('[MY-WANTS] Calling /api/auth/me...');
-      
       const res = await fetch('/api/auth/me', {
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          'Cache-Control': 'no-cache'
-        },
+        headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
       
       const data = await res.json();
-      console.log('[MY-WANTS] Response:', data);
 
       if (data.success) {
-        console.log('[MY-WANTS] Auth successful, user:', data.user.email);
         setUser(data.user);
-        setWants(data.wants || []);
-        setDebugInfo('');
+        // Get the first (and only) want
+        if (data.wants && data.wants.length > 0) {
+          setWant(data.wants[0]);
+        }
       } else {
-        console.log('[MY-WANTS] Auth failed:', data.error);
-        setAuthError(data.error || 'Invalid session');
-        setDebugInfo(`Auth failed: ${data.error}`);
-        // Clear invalid session
         localStorage.removeItem('jeffy_session');
-        setTimeout(() => router.push('/login'), 2000);
+        router.push('/login');
       }
-    } catch (err: any) {
-      console.error('[MY-WANTS] Fetch error:', err);
-      setAuthError('Connection error');
-      setDebugInfo(`Error: ${err.message}`);
-      setTimeout(() => router.push('/login'), 2000);
+    } catch (err) {
+      router.push('/login');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = async () => {
-    const token = localStorage.getItem('jeffy_session');
-    if (token) {
-      await fetch('/api/auth/me', {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-    }
+  const handleLogout = () => {
     localStorage.removeItem('jeffy_session');
-    router.push('/login');
+    router.push('/');
   };
 
-  const getShareLink = (want: Want) => {
+  const getShareLink = () => {
+    if (!want) return '';
     return `https://jeffy.co.za/want/${want.id}?ref=${want.creator_referral_code}`;
   };
 
-  const copyShareLink = async (want: Want) => {
-    const link = getShareLink(want);
-    await navigator.clipboard.writeText(link);
-    setCopiedId(want.id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(getShareLink());
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const shareViaWhatsApp = (want: Want) => {
-    const link = getShareLink(want);
-    const message = `🛒 I want "${want.product_name}" on Jeffy! If 10 people verify, they'll source it and I get mine FREE! Would you buy this too? ${link}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  const shareWhatsApp = () => {
+    const link = getShareLink();
+    const remaining = Math.max(0, 10 - (want?.verified_count || 0));
+    const message = want?.verified_count === 0
+      ? `🛍️ I found "${want?.product_name}" and if 10 people want it too, I get it FREE!\n\nWould you actually buy this? Takes 2 seconds to verify:\n${link}`
+      : `🔥 I'm ${remaining} away from getting "${want?.product_name}" FREE!\n\nCan you help? Just verify you'd want this too:\n${link}`;
+    
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  // Show loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto mb-4" />
-          {debugInfo && <p className="text-slate-500 text-sm">{debugInfo}</p>}
+      <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
+
+  // No want yet - prompt to create one
+  if (!want) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1a] flex flex-col">
+        <header className="p-4 flex items-center justify-between">
+          <span className="text-2xl font-black text-orange-500">Jeffy</span>
+          <button onClick={handleLogout} className="text-slate-500 text-sm">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </header>
+        
+        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mb-6">
+            <Gift className="h-10 w-10 text-orange-500" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-3">No Want Yet</h1>
+          <p className="text-slate-400 mb-8 max-w-xs">
+            Tell us what product you want. Get 10 friends to verify, and it's yours FREE.
+          </p>
+          <Link
+            href="/wants"
+            className="bg-orange-500 text-black font-bold px-8 py-4 rounded-full text-lg flex items-center gap-2"
+          >
+            Create Your Want <ChevronRight className="h-5 w-5" />
+          </Link>
         </div>
       </div>
     );
   }
 
-  // Show auth error with details
-  if (authError) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-          <AlertCircle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Session Issue</h1>
-          <p className="text-gray-500 mb-4">{authError}</p>
-          <p className="text-sm text-gray-400 mb-6">Redirecting to login...</p>
-          {debugInfo && (
-            <p className="text-xs text-gray-400 bg-gray-100 p-2 rounded">{debugInfo}</p>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const verified = want.verified_count || 0;
+  const remaining = Math.max(0, 10 - verified);
+  const progress = Math.min((verified / 10) * 100, 100);
+  const isComplete = verified >= 10;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
-      {/* Header */}
+    <div className="min-h-screen bg-[#0a0f1a] flex flex-col">
+      {/* Minimal Header */}
       <header className="p-4 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-bold text-white">Jeffy</Link>
-        <button
-          onClick={handleLogout}
-          className="text-slate-400 hover:text-white flex items-center gap-2 text-sm"
-        >
-          <LogOut className="h-4 w-4" />
-          Logout
+        <span className="text-2xl font-black text-orange-500">Jeffy</span>
+        <button onClick={handleLogout} className="text-slate-500">
+          <LogOut className="h-5 w-5" />
         </button>
       </header>
 
-      <main className="max-w-2xl mx-auto px-4 py-8">
-        {/* Welcome */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">My Wants</h1>
-          <p className="text-slate-400">{user?.email}</p>
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col px-4 pb-4">
+        
+        {/* Product Image */}
+        <div className="relative mx-auto w-full max-w-sm aspect-square rounded-3xl overflow-hidden bg-slate-800/50 mb-6">
+          {want.image_url ? (
+            <img 
+              src={want.image_url} 
+              alt={want.product_name}
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Gift className="h-24 w-24 text-slate-600" />
+            </div>
+          )}
+          
+          {/* Complete Badge Overlay */}
+          {isComplete && (
+            <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex items-center justify-center">
+              <div className="bg-green-500 text-black font-black text-xl px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-green-500/50">
+                <Sparkles className="h-6 w-6" />
+                IT'S YOURS!
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700">
-            <p className="text-3xl font-bold text-white">{wants.length}</p>
-            <p className="text-sm text-slate-400">Wants</p>
+        {/* Product Name */}
+        <h1 className="text-2xl font-bold text-white text-center mb-6">
+          {want.product_name}
+        </h1>
+
+        {/* Progress Section */}
+        <div className="bg-slate-800/50 rounded-3xl p-6 mb-6">
+          {/* The Number - Big and Bold */}
+          <div className="text-center mb-4">
+            <div className="flex items-baseline justify-center gap-1">
+              <span className={`text-7xl font-black ${isComplete ? 'text-green-400' : 'text-orange-500'}`}>
+                {verified}
+              </span>
+              <span className="text-3xl font-bold text-slate-500">/10</span>
+            </div>
+            <p className="text-slate-400 text-sm mt-1">friends verified</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700">
-            <p className="text-3xl font-bold text-orange-400">
-              {wants.reduce((acc, w) => acc + (w.verified_count || 0), 0)}
-            </p>
-            <p className="text-sm text-slate-400">Verifications</p>
+
+          {/* Progress Bar - Discrete Steps */}
+          <div className="flex gap-1.5 mb-4">
+            {[...Array(10)].map((_, i) => (
+              <div
+                key={i}
+                className={`h-2 flex-1 rounded-full transition-all duration-500 ${
+                  i < verified 
+                    ? isComplete ? 'bg-green-500' : 'bg-orange-500' 
+                    : 'bg-slate-700'
+                }`}
+              />
+            ))}
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-4 text-center border border-slate-700">
-            <p className="text-3xl font-bold text-green-400">
-              {wants.filter(w => w.status === 'sourcing' || w.status === 'available').length}
-            </p>
-            <p className="text-sm text-slate-400">Earned</p>
-          </div>
+
+          {/* Stakes Line - Loss Framed */}
+          <p className={`text-center font-semibold ${isComplete ? 'text-green-400' : 'text-white'}`}>
+            {isComplete 
+              ? "🎉 You did it! We're sourcing your product!"
+              : remaining === 1
+                ? "Just 1 more and it's yours FREE!"
+                : `${remaining} more and it's yours FREE`
+            }
+          </p>
         </div>
 
-        {/* Wants List */}
-        {wants.length === 0 ? (
-          <div className="bg-slate-800/50 rounded-2xl p-8 text-center border border-slate-700">
-            <Gift className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-white mb-2">No Wants Yet</h2>
-            <p className="text-slate-400 mb-6">Create your first want and start collecting verifications!</p>
-            <Link
-              href="/wants"
-              className="inline-flex items-center gap-2 bg-orange-500 text-black font-bold px-6 py-3 rounded-xl hover:bg-orange-400"
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Action Buttons - Thumb Zone */}
+        {!isComplete ? (
+          <div className="space-y-3">
+            {/* Primary CTA - WhatsApp */}
+            <button
+              onClick={shareWhatsApp}
+              className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-5 px-6 rounded-2xl text-lg flex items-center justify-center gap-3 shadow-lg shadow-green-500/20 active:scale-[0.98] transition-transform"
             >
-              Create a Want <ArrowRight className="h-5 w-5" />
-            </Link>
+              <MessageCircle className="h-6 w-6 fill-current" />
+              Share on WhatsApp
+            </button>
+
+            {/* Secondary - Copy Link */}
+            <button
+              onClick={copyLink}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-4 px-6 rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-5 w-5 text-green-400" />
+                  <span className="text-green-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-5 w-5" />
+                  Copy Link
+                </>
+              )}
+            </button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {wants.map((want) => {
-              const progress = Math.min((want.verified_count / 10) * 100, 100);
-              const remaining = Math.max(0, 10 - want.verified_count);
-              const isComplete = want.verified_count >= 10;
-
-              return (
-                <div 
-                  key={want.id} 
-                  className={`rounded-2xl p-5 border ${
-                    isComplete 
-                      ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/30' 
-                      : 'bg-slate-800/50 border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-white">{want.product_name}</h3>
-                      {want.description && (
-                        <p className="text-sm text-slate-400 mt-1">{want.description}</p>
-                      )}
-                    </div>
-                    {isComplete ? (
-                      <span className="shrink-0 px-3 py-1 bg-green-500 text-black text-xs font-bold rounded-full flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" /> FREE!
-                      </span>
-                    ) : (
-                      <span className="shrink-0 px-3 py-1 bg-slate-700 text-slate-300 text-xs font-medium rounded-full">
-                        {want.status === 'sourcing' ? 'Sourcing' : 'Collecting'}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Progress */}
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <Users className="h-4 w-4" /> Verifications
-                      </span>
-                      <span className="font-bold text-white">{want.verified_count}/10</span>
-                    </div>
-                    <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full transition-all ${isComplete ? 'bg-green-500' : 'bg-orange-500'}`}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {isComplete 
-                        ? '🎉 You earned your free product!' 
-                        : `${remaining} more ${remaining === 1 ? 'person' : 'people'} needed`
-                      }
-                    </p>
-                  </div>
-
-                  {/* Actions */}
-                  {!isComplete && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => copyShareLink(want)}
-                        className="flex-1 py-2 px-4 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-xl flex items-center justify-center gap-2"
-                      >
-                        {copiedId === want.id ? (
-                          <><CheckCircle className="h-4 w-4 text-green-400" /> Copied!</>
-                        ) : (
-                          <><Copy className="h-4 w-4" /> Copy Link</>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => shareViaWhatsApp(want)}
-                        className="flex-1 py-2 px-4 bg-green-600 hover:bg-green-500 text-white text-sm font-medium rounded-xl flex items-center justify-center gap-2"
-                      >
-                        <MessageCircle className="h-4 w-4" /> WhatsApp
-                      </button>
-                    </div>
-                  )}
-
-                  {isComplete && (
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 p-3 bg-green-500/20 rounded-xl text-center">
-                        <p className="text-green-400 text-sm font-medium">
-                          🎁 We&apos;ll contact you when it&apos;s ready!
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Create More */}
-        {wants.length > 0 && (
-          <div className="mt-8 text-center">
-            <Link
-              href="/wants"
-              className="inline-flex items-center gap-2 text-orange-400 hover:text-orange-300 font-medium"
+          <div className="space-y-3">
+            {/* Completed State */}
+            <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-5 text-center">
+              <p className="text-green-400 font-medium">
+                We'll email you at <span className="font-bold">{user?.email}</span> when your product is ready!
+              </p>
+            </div>
+            
+            {/* Share the win */}
+            <button
+              onClick={shareWhatsApp}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-4 px-6 rounded-2xl flex items-center justify-center gap-2"
             >
-              Create Another Want <ArrowRight className="h-4 w-4" />
-            </Link>
+              <Share2 className="h-5 w-5" />
+              Share Your Win
+            </button>
           </div>
         )}
       </main>
