@@ -484,20 +484,37 @@ export default function WantsPage() {
                 </div>
               </div>
             ) : submitMessage?.type === 'similar' ? (
-              <div>
-                <p className="text-amber-600 mb-4">{submitMessage.text}</p>
-                <div className="space-y-2 mb-4">
-                  {submitMessage.similar?.map((s) => (
-                    <div key={s.id} className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
-                      <span className="font-medium">{s.product_name}</span>
-                      <button onClick={() => { shareViaWhatsApp(s); setShowForm(false); }} className="text-orange-600 font-medium text-sm">
-                        Share ({s.verified_count || 0}/10)
+              <div className="text-center">
+                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Package className="h-8 w-8 text-amber-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Great minds think alike! 🧠</h3>
+                <p className="text-gray-500 mb-4">Someone already requested something similar. Help them hit 10!</p>
+                
+                <div className="space-y-2 mb-6">
+                  {submitMessage.similar?.slice(0, 2).map((s) => (
+                    <div key={s.id} className="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
+                      <div className="text-left">
+                        <span className="font-medium block">{s.product_name}</span>
+                        <span className="text-xs text-gray-400">{s.verified_count || 0}/10 verifications</span>
+                      </div>
+                      <button onClick={() => { shareViaWhatsApp(s); }} className="px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600">
+                        Share
                       </button>
                     </div>
                   ))}
                 </div>
-                <button onClick={() => setSubmitMessage(null)} className="w-full py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
-                  Request Anyway
+
+                <Link
+                  href="/wants/explore"
+                  className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg flex items-center justify-center gap-2 mb-3"
+                >
+                  <Sparkles className="h-5 w-5" /> Explore All Wants
+                </Link>
+                <p className="text-xs text-gray-400 mb-4">Vote on products, discover what others want</p>
+
+                <button onClick={() => setSubmitMessage(null)} className="w-full py-2 text-gray-500 hover:bg-gray-100 rounded-lg text-sm">
+                  ← Request something different
                 </button>
               </div>
             ) : (
