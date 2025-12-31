@@ -15,15 +15,26 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     
+    // Single entry fetch
+    if (id) {
+      const { data, error } = await supabase
+        .from('oem_research')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+      return NextResponse.json({ data });
+    }
+    
+    // List fetch with filters
     let query = supabase
       .from('oem_research')
       .select('*')
       .order('priority', { ascending: false })
       .order('created_at', { ascending: false });
-    
-    if (id) {
-      query = query.eq('id', id).single();
-    }
     
     if (status && status !== 'all') {
       query = query.eq('research_status', status);
