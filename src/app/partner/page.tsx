@@ -26,7 +26,7 @@ export default function WhatIsJeffyPage() {
             The system wasn&apos;t built for you.
             <br />
             <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              So we built a new one.
+              So we build a new one.
             </span>
           </h1>
 

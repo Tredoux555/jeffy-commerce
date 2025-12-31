@@ -139,8 +139,8 @@ export default function WantsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
       
-      {/* ============ SPLASH HERO ============ */}
-      <section className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+      {/* ============ CO-CREATOR HERO ============ */}
+      <section className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden">
         {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500 rounded-full blur-[150px] opacity-20" />
@@ -148,23 +148,6 @@ export default function WantsPage() {
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-            This isn&apos;t a store.
-            <br />
-            <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
-              It&apos;s a movement.
-            </span>
-          </h1>
-
-          <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto">
-            Jeffy is what happens when you strip away everything that makes retail expensive.
-          </p>
-        </div>
-      </section>
-
-      {/* ============ CO-CREATOR SECTION ============ */}
-      <section className="px-4 py-16 relative">
-        <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-400 text-sm font-medium mb-8">
             <Heart className="h-4 w-4" />
