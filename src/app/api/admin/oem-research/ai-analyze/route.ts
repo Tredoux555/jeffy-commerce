@@ -12,148 +12,155 @@ function getAnthropic() {
   return anthropic;
 }
 
-interface ExtractedProduct {
-  name: string;
-  chineseKeyword: string;
-  chineseKeywordAlt: string;
-  category: string;
-  subcategory: string;
-  
-  // Pricing
-  estimatedRetailZAR: number;
-  estimated1688CostZAR: number;
-  landedCostZAR: number;
-  marginPercent: number;
-  
-  // SA Trend Scores (0-100)
-  saTrendScore: number;
-  tiktokVelocityScore: number;
-  aliexpressScore: number;
-  priceCompetitivenessScore: number;
-  searchVolumeScore: number;
-  mobileFriendlinessScore: number;
-  supplierReliabilityScore: number;
-  categoryAdoptionScore: number;
-  
-  // Market Intelligence
-  demandSignals: string[];
-  competitionLevel: 'low' | 'medium' | 'high';
-  trendLagWeeks: number;
-  trendSource: string;
-  
-  // SA Market Factors
-  priceTier: 'impulse' | 'considered' | 'premium';
-  dutyCategory: 'zero' | 'standard' | 'clothing_45';
-  dutyPercent: number;
-  mobileFriendly: boolean;
-  
-  // Sourcing
-  moqEstimate: string;
-  shippingType: 'air' | 'sea' | 'express';
-  recommendation: string;
-  riskFactors: string[];
-  
-  // 1688 URLs
-  searchUrls: {
-    primary: string;
-    factory: string;
-    oem: string;
-  };
-}
-
 function generate1688Urls(chineseKeyword: string) {
   const encoded = encodeURIComponent(chineseKeyword);
   return {
-    primary: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encoded}`,
-    factory: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encoded}&descendOrder=tradenumaliScore30D`,
+    search: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encoded}`,
+    factory: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encoded}&descendOrder=tradenumaliScore30D&filtIsBpSeller=true`,
     oem: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encodeURIComponent(chineseKeyword + ' 源头工厂')}`,
+    superFactory: `https://s.1688.com/selloffer/offer_search.htm?keywords=${encodeURIComponent(chineseKeyword + ' 超级工厂')}`,
   };
 }
 
-const SA_SCORING_PROMPT = `You are a product sourcing expert analyzing market research to identify products for importing from China via 1688.com to sell in SOUTH AFRICA.
+function generateImageSearchUrls(productName: string) {
+  // These are the image search landing pages - user uploads image there
+  return {
+    ali1688: 'https://s.1688.com/youyuan/index.htm',
+    taobao: 'https://s.taobao.com/search?imgfile=&js=1&stats_click=search_radio_all%3A1&initiative_id=staobaoz_20210101&ie=utf8&tfsid=&app=imgsearch',
+    aliexpress: 'https://www.aliexpress.com/wholesale',
+  };
+}
 
-## CRITICAL SA MARKET CONTEXT:
-- Price sensitivity: Under R500 is sweet spot, R200-R300 optimal for viral adoption
-- Mobile-first: 72% of SA transactions are mobile - products must be mobile-browsable
-- Import duties: 45% on clothing + 15% VAT, electronics often duty-free
-- Trend lag: SA trails US/UK trends by 3-6 months - this creates arbitrage window
+const SA_SCORING_PROMPT = `You are an expert product sourcing analyst for a South African e-commerce company importing from China via 1688.com.
+
+## YOUR TASK
+Analyze the research text and extract ALL viable products. For each product, provide comprehensive scoring and intelligence.
+
+## SA MARKET CONTEXT (CRITICAL)
+- Price sweet spot: Under R500, optimal R200-R300
+- Mobile-first: 72% of SA transactions are mobile
+- Import duties: 45% on clothing + 15% VAT, electronics often 0%
+- Trend lag: SA trails US/UK by 3-6 months (arbitrage window!)
 - Load shedding: Solar/power products have unique SA demand
-- Exchange rate: ¥1 ≈ R2.50 for calculations
+- Exchange rate: ¥1 ≈ R2.50
 
-## SA TREND SCORE FORMULA (calculate this):
-SA_Trend_Score = weighted average of:
-- TikTok velocity (20%): How fast is engagement growing?
-- AliExpress momentum (20%): Sales acceleration on AliExpress
-- Price competitiveness (20%): How well does landed cost support margins?
-- Search volume (15%): Google Trends / demand indicators
-- Mobile friendliness (10%): Can it sell via mobile easily?
-- Supplier reliability (10%): Factory quality indicators
-- Category adoption (5%): How well does this category transfer to SA?
+## SCORING FORMULA (use this exact weighting)
+TOTAL SA SCORE (0-100) = weighted average of:
+- Margin Potential (30%): Based on landed cost vs retail price achievable
+- Trend Velocity (25%): How fast is demand growing globally?
+- Competition Level (20%): Low competition = higher score
+- Supplier Quality (15%): Factory indicators, badges, verification potential
+- Shipping Ease (10%): Weight, fragility, customs complexity
 
-## PRICE TIERS:
-- "impulse": Under R200 - highest conversion
+## FACTORY VERIFICATION INDICATORS (identify these in research)
+BADGES TO LOOK FOR:
+- 源头厂家 (Source Factory): Blue badge = verified manufacturer ⭐⭐⭐
+- 实力商家 (Powerful Merchant): Red bull logo = 500K+ RMB capital ⭐⭐
+- 超级工厂 (Super Factory): 500m²+, serves major brands ⭐⭐⭐⭐
+- 深度验厂 (Deep Factory Verified): Third-party audit ⭐⭐⭐⭐⭐
+
+MANUFACTURING CLUSTERS (validate location matches product):
+- Electronics → Shenzhen, Suzhou (RED FLAG if elsewhere)
+- Drinkware → Yongkang, Zhejiang
+- Toys → Chenghai, Shantou
+- Kitchen appliances → Ningbo, Zhejiang
+- Beauty devices → Shenzhen, Guangdong
+- Textiles → Shaoxing, Zhejiang
+- Jewelry/Accessories → Yiwu, Zhejiang
+
+## PRICE TIERS
+- "impulse": Under R200 - highest conversion, fast turnover
 - "considered": R200-R500 - good for quality items
 - "premium": Over R500 - needs strong differentiation
 
-## DUTY CATEGORIES:
-- "zero": Electronics, gadgets (0%)
+## DUTY CATEGORIES
+- "zero": Electronics, gadgets, machinery parts (0% duty)
 - "standard": Most goods (15% VAT only)
-- "clothing_45": Apparel, textiles (45% duty + 15% VAT)
+- "clothing_45": Apparel, textiles, footwear (45% duty + 15% VAT)
 
-## SHIPPING TYPES:
-- "air": Under 500g, 7-14 days, R40-80/kg
-- "sea": Over 500g, 25-35 days, cheaper for bulk
-- "express": Urgent samples, 3-5 days, expensive
+## VERDICT ASSIGNMENT
+Based on scores, assign ONE verdict:
+- "rocket": SA Score 80+ AND margin 60%+ AND (impulse OR considered price) = 🚀 QUICK WIN
+- "star": SA Score 70+ AND margin 50%+ = ⭐ TOP PICK  
+- "trending": SA Score 65+ OR strong trend signals = 📈 TRENDING
+- "review": SA Score 50-65 OR has risks = ⚠️ NEEDS REVIEW
+- "skip": SA Score <50 OR major red flags = ❌ SKIP
 
-Analyze the research and extract ALL viable products. For each product return:
-
+## OUTPUT FORMAT
+Return a JSON array. Each product:
 {
   "name": "Product Name",
-  "chineseKeyword": "主要中文关键词",
-  "chineseKeywordAlt": "备选中文关键词",
   "category": "category",
   "subcategory": "subcategory",
   
-  "estimatedRetailZAR": 149,
-  "estimated1688CostZAR": 15,
-  "landedCostZAR": 25,
-  "marginPercent": 83,
+  "chineseKeywords": {
+    "primary": "主要关键词",
+    "alt": "备选关键词",
+    "factory": "工厂搜索词"
+  },
   
-  "saTrendScore": 78,
-  "tiktokVelocityScore": 85,
-  "aliexpressScore": 70,
-  "priceCompetitivenessScore": 90,
-  "searchVolumeScore": 65,
-  "mobileFriendlinessScore": 95,
-  "supplierReliabilityScore": 75,
-  "categoryAdoptionScore": 80,
+  "pricing": {
+    "retailZAR": 149,
+    "cost1688ZAR": 15,
+    "shippingZAR": 8,
+    "dutyZAR": 0,
+    "landedCostZAR": 23,
+    "marginPercent": 85,
+    "marginZAR": 126
+  },
   
-  "demandSignals": ["TikTok viral in US", "Amazon bestseller", "Low SA competition"],
-  "competitionLevel": "low",
-  "trendLagWeeks": 12,
-  "trendSource": "tiktok",
+  "scores": {
+    "total": 82,
+    "marginPotential": 90,
+    "trendVelocity": 75,
+    "competitionLevel": 85,
+    "supplierQuality": 70,
+    "shippingEase": 80
+  },
   
-  "priceTier": "impulse",
-  "dutyCategory": "zero",
-  "dutyPercent": 0,
-  "mobileFriendly": true,
+  "verdict": "rocket",
+  "verdictReason": "High margin impulse buy with low competition",
   
-  "moqEstimate": "50-100 units",
-  "shippingType": "air",
-  "recommendation": "High priority - excellent margins, trending, low competition",
-  "riskFactors": ["Seasonal demand", "Quality variance"]
+  "market": {
+    "priceTier": "impulse",
+    "dutyCategory": "zero",
+    "dutyPercent": 0,
+    "trendLagWeeks": 8,
+    "competitionLevel": "low",
+    "demandSignals": ["TikTok viral US", "Amazon bestseller"],
+    "targetAudience": "Young women 18-35"
+  },
+  
+  "sourcing": {
+    "shippingType": "air",
+    "weightGrams": 50,
+    "moqEstimate": "50-100",
+    "leadTimeDays": 14,
+    "factoryCluster": "Yiwu, Zhejiang",
+    "clusterMatch": true,
+    "recommendedBadges": ["源头厂家", "实力商家"]
+  },
+  
+  "risks": ["Seasonal demand", "Quality variance across suppliers"],
+  "opportunities": ["First mover in SA", "Bundle potential"],
+  "recommendation": "Order samples immediately. Target Facebook Marketplace and TikTok Shop.",
+  
+  "factoryVerification": {
+    "knownOEMs": ["Makes for Brand X"],
+    "certifications": ["CE", "FCC"],
+    "redFlags": []
+  }
 }
 
 IMPORTANT:
-- Use ACTUAL Chinese trade terms factories use (not literal translations)
-- Calculate realistic landed costs (1688 cost + shipping + duties)
-- Be conservative with scores - 80+ is exceptional
-- Flag risk factors honestly
-- Products scoring under 50 SA_Trend_Score shouldn't be included
+- Use ACTUAL Chinese trade terms (not literal translations)
+- Be realistic with scores - 80+ is exceptional
+- Include risks honestly
+- Skip products scoring below 50
 
-Return ONLY valid JSON array. No markdown, no explanation.
+Return ONLY valid JSON array. No markdown or explanation.
 
-RESEARCH TEXT TO ANALYZE:
+RESEARCH TEXT:
 `;
 
 export async function POST(request: NextRequest) {
@@ -166,30 +173,21 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Truncate if too long (Claude has limits)
     const truncatedText = research_text.slice(0, 50000);
-    
     const client = getAnthropic();
     
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 8192,
-      messages: [
-        {
-          role: 'user',
-          content: SA_SCORING_PROMPT + truncatedText
-        }
-      ]
+      messages: [{ role: 'user', content: SA_SCORING_PROMPT + truncatedText }]
     });
 
-    // Extract text content
     const responseText = message.content
       .filter(block => block.type === 'text')
       .map(block => (block as { type: 'text'; text: string }).text)
       .join('');
 
-    // Parse JSON response
-    let products: ExtractedProduct[] = [];
+    let products: any[] = [];
     try {
       let cleanJson = responseText.trim();
       if (cleanJson.startsWith('```json')) cleanJson = cleanJson.slice(7);
@@ -204,55 +202,51 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    // Add 1688 URLs to each product
-    const enrichedProducts = products.map((p: ExtractedProduct) => ({
+    // Enrich with URLs
+    const enrichedProducts = products.map((p: any) => ({
       ...p,
-      searchUrls: generate1688Urls(p.chineseKeyword),
+      urls: {
+        ...generate1688Urls(p.chineseKeywords?.primary || ''),
+        imageSearch: generateImageSearchUrls(p.name)
+      },
       research_id: research_id || null
     }));
 
-    // Calculate summary stats
-    const categories = [...new Set(enrichedProducts.map(p => p.category))];
+    // Categorize by verdict
+    const quickWins = enrichedProducts.filter((p: any) => p.verdict === 'rocket');
+    const topPicks = enrichedProducts.filter((p: any) => p.verdict === 'star');
+    const trending = enrichedProducts.filter((p: any) => p.verdict === 'trending');
+    const needsReview = enrichedProducts.filter((p: any) => p.verdict === 'review');
+
+    // Summary stats
     const avgScore = enrichedProducts.length > 0 
-      ? Math.round(enrichedProducts.reduce((sum, p) => sum + (p.saTrendScore || 0), 0) / enrichedProducts.length)
+      ? Math.round(enrichedProducts.reduce((sum: number, p: any) => sum + (p.scores?.total || 0), 0) / enrichedProducts.length)
       : 0;
     const avgMargin = enrichedProducts.length > 0 
-      ? Math.round(enrichedProducts.reduce((sum, p) => sum + (p.marginPercent || 0), 0) / enrichedProducts.length)
+      ? Math.round(enrichedProducts.reduce((sum: number, p: any) => sum + (p.pricing?.marginPercent || 0), 0) / enrichedProducts.length)
       : 0;
-    
-    // Categorize by score
-    const highPotential = enrichedProducts.filter(p => p.saTrendScore >= 75);
-    const mediumPotential = enrichedProducts.filter(p => p.saTrendScore >= 60 && p.saTrendScore < 75);
-    const impulsePrice = enrichedProducts.filter(p => p.priceTier === 'impulse');
-    const airFreightReady = enrichedProducts.filter(p => p.shippingType === 'air');
-
-    // Top picks sorted by SA Trend Score
-    const topPicks = [...enrichedProducts]
-      .sort((a, b) => (b.saTrendScore || 0) - (a.saTrendScore || 0))
-      .slice(0, 5);
-
-    // Quick wins: high score + impulse price + air freight
-    const quickWins = enrichedProducts
-      .filter(p => p.saTrendScore >= 70 && p.priceTier === 'impulse' && p.shippingType === 'air')
-      .sort((a, b) => (b.marginPercent || 0) - (a.marginPercent || 0));
+    const totalPotentialProfit = enrichedProducts.reduce((sum: number, p: any) => sum + (p.pricing?.marginZAR || 0), 0);
 
     return NextResponse.json({
       success: true,
       summary: {
         totalProducts: enrichedProducts.length,
-        avgSATrendScore: avgScore,
-        avgMargin: avgMargin,
-        highPotentialCount: highPotential.length,
-        mediumPotentialCount: mediumPotential.length,
-        impulsePriceCount: impulsePrice.length,
-        airFreightReadyCount: airFreightReady.length,
-        quickWinsCount: quickWins.length,
-        categories,
-        totalSearchLinks: enrichedProducts.length * 3
+        quickWins: quickWins.length,
+        topPicks: topPicks.length,
+        trending: trending.length,
+        needsReview: needsReview.length,
+        avgScore,
+        avgMargin,
+        totalPotentialProfit,
+        categories: [...new Set(enrichedProducts.map((p: any) => p.category))]
       },
       products: enrichedProducts,
-      topPicks,
-      quickWins,
+      grouped: {
+        quickWins,
+        topPicks,
+        trending,
+        needsReview
+      },
       tokenUsage: {
         input: message.usage?.input_tokens || 0,
         output: message.usage?.output_tokens || 0,

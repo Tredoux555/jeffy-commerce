@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Factory, Save, Trash2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, FileText, Archive, Loader2, Brain, TrendingUp, DollarSign, Zap, Package, Plane, Ship, AlertTriangle, Star, Target } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Factory, Save, Trash2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, FileText, Archive, Loader2, Brain, Rocket, Star, TrendingUp, AlertTriangle, X, Search, Image, MapPin, Shield, Package, Plane, Ship, DollarSign, Target, Zap, Info, Clock, Users, AlertCircle } from 'lucide-react';
 
 interface OEMResearch {
   id: string;
@@ -12,54 +12,370 @@ interface OEMResearch {
   created_at: string;
 }
 
-interface ExtractedProduct {
+interface Product {
   name: string;
-  chineseKeyword: string;
-  chineseKeywordAlt: string;
   category: string;
   subcategory: string;
-  estimatedRetailZAR: number;
-  estimated1688CostZAR: number;
-  landedCostZAR: number;
-  marginPercent: number;
-  saTrendScore: number;
-  tiktokVelocityScore: number;
-  aliexpressScore: number;
-  priceCompetitivenessScore: number;
-  searchVolumeScore: number;
-  mobileFriendlinessScore: number;
-  supplierReliabilityScore: number;
-  categoryAdoptionScore: number;
-  demandSignals: string[];
-  competitionLevel: 'low' | 'medium' | 'high';
-  trendLagWeeks: number;
-  trendSource: string;
-  priceTier: 'impulse' | 'considered' | 'premium';
-  dutyCategory: 'zero' | 'standard' | 'clothing_45';
-  dutyPercent: number;
-  mobileFriendly: boolean;
-  moqEstimate: string;
-  shippingType: 'air' | 'sea' | 'express';
+  chineseKeywords: { primary: string; alt: string; factory: string };
+  pricing: {
+    retailZAR: number;
+    cost1688ZAR: number;
+    shippingZAR: number;
+    dutyZAR: number;
+    landedCostZAR: number;
+    marginPercent: number;
+    marginZAR: number;
+  };
+  scores: {
+    total: number;
+    marginPotential: number;
+    trendVelocity: number;
+    competitionLevel: number;
+    supplierQuality: number;
+    shippingEase: number;
+  };
+  verdict: 'rocket' | 'star' | 'trending' | 'review' | 'skip';
+  verdictReason: string;
+  market: {
+    priceTier: string;
+    dutyCategory: string;
+    dutyPercent: number;
+    trendLagWeeks: number;
+    competitionLevel: string;
+    demandSignals: string[];
+    targetAudience: string;
+  };
+  sourcing: {
+    shippingType: string;
+    weightGrams: number;
+    moqEstimate: string;
+    leadTimeDays: number;
+    factoryCluster: string;
+    clusterMatch: boolean;
+    recommendedBadges: string[];
+  };
+  risks: string[];
+  opportunities: string[];
   recommendation: string;
-  riskFactors: string[];
-  searchUrls: { primary: string; factory: string; oem: string; };
+  factoryVerification: {
+    knownOEMs: string[];
+    certifications: string[];
+    redFlags: string[];
+  };
+  urls: {
+    search: string;
+    factory: string;
+    oem: string;
+    superFactory: string;
+    imageSearch: { ali1688: string; taobao: string; aliexpress: string };
+  };
 }
 
-interface AnalysisSummary {
-  totalProducts: number;
-  avgSATrendScore: number;
-  avgMargin: number;
-  highPotentialCount: number;
-  quickWinsCount: number;
-  impulsePriceCount: number;
-  airFreightReadyCount: number;
-  categories: string[];
+interface AnalysisResult {
+  summary: {
+    totalProducts: number;
+    quickWins: number;
+    topPicks: number;
+    trending: number;
+    needsReview: number;
+    avgScore: number;
+    avgMargin: number;
+    totalPotentialProfit: number;
+    categories: string[];
+  };
+  products: Product[];
+  grouped: {
+    quickWins: Product[];
+    topPicks: Product[];
+    trending: Product[];
+    needsReview: Product[];
+  };
+  tokenUsage: { input: number; output: number; estimatedCost: number };
 }
 
-interface TokenUsage {
-  input: number;
-  output: number;
-  estimatedCost: number;
+// Verdict config
+const VERDICTS = {
+  rocket: { icon: Rocket, label: 'Quick Win', color: 'bg-green-500', textColor: 'text-green-700', bgLight: 'bg-green-50', border: 'border-green-400' },
+  star: { icon: Star, label: 'Top Pick', color: 'bg-purple-500', textColor: 'text-purple-700', bgLight: 'bg-purple-50', border: 'border-purple-400' },
+  trending: { icon: TrendingUp, label: 'Trending', color: 'bg-blue-500', textColor: 'text-blue-700', bgLight: 'bg-blue-50', border: 'border-blue-400' },
+  review: { icon: AlertTriangle, label: 'Review', color: 'bg-yellow-500', textColor: 'text-yellow-700', bgLight: 'bg-yellow-50', border: 'border-yellow-400' },
+  skip: { icon: X, label: 'Skip', color: 'bg-gray-400', textColor: 'text-gray-600', bgLight: 'bg-gray-50', border: 'border-gray-300' },
+};
+
+// Simple Product Card - shows only essentials, expandable for details
+function ProductCard({ product }: { product: Product }) {
+  const [expanded, setExpanded] = useState(false);
+  const [copiedKeyword, setCopiedKeyword] = useState(false);
+  
+  const verdict = VERDICTS[product.verdict] || VERDICTS.review;
+  const VerdictIcon = verdict.icon;
+  
+  const copyKeyword = async () => {
+    await navigator.clipboard.writeText(product.chineseKeywords.primary);
+    setCopiedKeyword(true);
+    setTimeout(() => setCopiedKeyword(false), 2000);
+  };
+
+  return (
+    <div className={`rounded-xl border-2 ${verdict.border} ${verdict.bgLight} overflow-hidden transition-all`}>
+      {/* Main Card - Always Visible */}
+      <div className="p-4">
+        {/* Top Row: Verdict + Name + Score */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className={`shrink-0 p-1.5 rounded-lg ${verdict.color} text-white`}>
+              <VerdictIcon className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-bold text-gray-900 truncate">{product.name}</h3>
+              <p className="text-xs text-gray-500">{product.category}</p>
+            </div>
+          </div>
+          <div className="text-center shrink-0">
+            <div className={`text-2xl font-bold ${product.scores.total >= 75 ? 'text-green-600' : product.scores.total >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+              {product.scores.total}
+            </div>
+            <div className="text-[10px] text-gray-500 uppercase">Score</div>
+          </div>
+        </div>
+
+        {/* Key Numbers Row */}
+        <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className="bg-white/60 rounded-lg p-2 text-center">
+            <div className="text-lg font-bold text-gray-900">R{product.pricing.retailZAR}</div>
+            <div className="text-[10px] text-gray-500">Sell Price</div>
+          </div>
+          <div className="bg-white/60 rounded-lg p-2 text-center">
+            <div className="text-lg font-bold text-green-600">R{product.pricing.landedCostZAR}</div>
+            <div className="text-[10px] text-gray-500">Landed Cost</div>
+          </div>
+          <div className={`rounded-lg p-2 text-center ${product.pricing.marginPercent >= 60 ? 'bg-green-100' : product.pricing.marginPercent >= 40 ? 'bg-yellow-100' : 'bg-red-100'}`}>
+            <div className="text-lg font-bold">{product.pricing.marginPercent}%</div>
+            <div className="text-[10px] text-gray-500">Margin</div>
+          </div>
+        </div>
+
+        {/* Verdict Reason */}
+        <p className="text-sm text-gray-700 mb-3 line-clamp-2">{product.verdictReason}</p>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 flex-wrap">
+          <a href={product.urls.factory} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition">
+            <Search className="h-3.5 w-3.5" /> Find on 1688
+          </a>
+          <button onClick={copyKeyword}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition ${copiedKeyword ? 'bg-green-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-100 border'}`}>
+            {copiedKeyword ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copiedKeyword ? 'Copied!' : product.chineseKeywords.primary}
+          </button>
+          <button onClick={() => setExpanded(!expanded)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-100 border transition ml-auto">
+            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            {expanded ? 'Less' : 'More'}
+          </button>
+        </div>
+      </div>
+
+      {/* Expanded Details */}
+      {expanded && (
+        <div className="border-t bg-white p-4 space-y-4">
+          {/* Score Breakdown */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1">
+              <Target className="h-3 w-3" /> Score Breakdown
+            </h4>
+            <div className="grid grid-cols-5 gap-2">
+              {[
+                { label: 'Margin', score: product.scores.marginPotential, weight: '30%' },
+                { label: 'Trend', score: product.scores.trendVelocity, weight: '25%' },
+                { label: 'Competition', score: product.scores.competitionLevel, weight: '20%' },
+                { label: 'Supplier', score: product.scores.supplierQuality, weight: '15%' },
+                { label: 'Shipping', score: product.scores.shippingEase, weight: '10%' },
+              ].map(({ label, score, weight }) => (
+                <div key={label} className="text-center">
+                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-1">
+                    <div className={`h-full ${score >= 70 ? 'bg-green-500' : score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`} 
+                      style={{ width: `${score}%` }} />
+                  </div>
+                  <div className="text-xs font-medium">{score}</div>
+                  <div className="text-[10px] text-gray-500">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pricing Breakdown */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1">
+              <DollarSign className="h-3 w-3" /> Pricing Breakdown
+            </h4>
+            <div className="flex items-center gap-1 text-sm flex-wrap">
+              <span className="px-2 py-0.5 bg-gray-100 rounded">1688: R{product.pricing.cost1688ZAR}</span>
+              <span className="text-gray-400">+</span>
+              <span className="px-2 py-0.5 bg-gray-100 rounded">Ship: R{product.pricing.shippingZAR}</span>
+              <span className="text-gray-400">+</span>
+              <span className="px-2 py-0.5 bg-gray-100 rounded">Duty: R{product.pricing.dutyZAR}</span>
+              <span className="text-gray-400">=</span>
+              <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded font-medium">Landed: R{product.pricing.landedCostZAR}</span>
+              <span className="text-gray-400">→</span>
+              <span className="px-2 py-0.5 bg-purple-100 text-purple-700 rounded font-medium">Profit: R{product.pricing.marginZAR}/unit</span>
+            </div>
+          </div>
+
+          {/* Market Info */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                <Users className="h-3 w-3" /> Market
+              </h4>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Target:</span>
+                  <span className="font-medium">{product.market.targetAudience}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Competition:</span>
+                  <span className={`font-medium ${product.market.competitionLevel === 'low' ? 'text-green-600' : product.market.competitionLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {product.market.competitionLevel}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">SA Peak:</span>
+                  <span className="font-medium">~{product.market.trendLagWeeks} weeks</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                <Package className="h-3 w-3" /> Sourcing
+              </h4>
+              <div className="space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">MOQ:</span>
+                  <span className="font-medium">{product.sourcing.moqEstimate}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Lead Time:</span>
+                  <span className="font-medium">{product.sourcing.leadTimeDays} days</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">Ship:</span>
+                  <span className="font-medium flex items-center gap-1">
+                    {product.sourcing.shippingType === 'air' ? <Plane className="h-3 w-3" /> : <Ship className="h-3 w-3" />}
+                    {product.sourcing.shippingType}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Factory Cluster */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1">
+              <MapPin className="h-3 w-3" /> Factory Location
+            </h4>
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-1 rounded text-sm ${product.sourcing.clusterMatch ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {product.sourcing.factoryCluster}
+              </span>
+              {product.sourcing.clusterMatch ? (
+                <span className="text-xs text-green-600 flex items-center gap-1"><Check className="h-3 w-3" /> Verified cluster</span>
+              ) : (
+                <span className="text-xs text-red-600 flex items-center gap-1"><AlertCircle className="h-3 w-3" /> Check location</span>
+              )}
+            </div>
+            {product.sourcing.recommendedBadges.length > 0 && (
+              <div className="flex gap-1 mt-2 flex-wrap">
+                <span className="text-xs text-gray-500">Look for:</span>
+                {product.sourcing.recommendedBadges.map((badge, i) => (
+                  <span key={i} className="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded">{badge}</span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Demand Signals */}
+          {product.market.demandSignals.length > 0 && (
+            <div>
+              <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2 flex items-center gap-1">
+                <Zap className="h-3 w-3" /> Demand Signals
+              </h4>
+              <div className="flex flex-wrap gap-1">
+                {product.market.demandSignals.map((signal, i) => (
+                  <span key={i} className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded">{signal}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Risks & Opportunities */}
+          <div className="grid grid-cols-2 gap-4">
+            {product.risks.length > 0 && (
+              <div>
+                <h4 className="text-xs font-semibold text-red-500 uppercase mb-2">⚠️ Risks</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {product.risks.map((risk, i) => <li key={i} className="flex items-start gap-1"><span className="text-red-400">•</span>{risk}</li>)}
+                </ul>
+              </div>
+            )}
+            {product.opportunities.length > 0 && (
+              <div>
+                <h4 className="text-xs font-semibold text-green-500 uppercase mb-2">💡 Opportunities</h4>
+                <ul className="text-sm text-gray-600 space-y-1">
+                  {product.opportunities.map((opp, i) => <li key={i} className="flex items-start gap-1"><span className="text-green-400">•</span>{opp}</li>)}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Recommendation */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-3">
+            <h4 className="text-xs font-semibold text-purple-700 uppercase mb-1">💡 Recommendation</h4>
+            <p className="text-sm text-gray-700">{product.recommendation}</p>
+          </div>
+
+          {/* All 1688 Links */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">🔗 All Search Links</h4>
+            <div className="flex flex-wrap gap-2">
+              <a href={product.urls.search} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Basic Search</a>
+              <a href={product.urls.factory} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200">Top Sellers</a>
+              <a href={product.urls.oem} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded hover:bg-orange-200">Source Factories</a>
+              <a href={product.urls.superFactory} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded hover:bg-amber-200">Super Factories</a>
+              <a href={product.urls.imageSearch.ali1688} target="_blank" rel="noopener noreferrer" className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 flex items-center gap-1">
+                <Image className="h-3 w-3" /> Image Search
+              </a>
+            </div>
+          </div>
+
+          {/* Alternative Keywords */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase mb-2">🔤 Chinese Keywords</h4>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={() => navigator.clipboard.writeText(product.chineseKeywords.primary)} 
+                className="text-sm px-2 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100 font-mono">
+                {product.chineseKeywords.primary}
+              </button>
+              {product.chineseKeywords.alt && (
+                <button onClick={() => navigator.clipboard.writeText(product.chineseKeywords.alt)}
+                  className="text-sm px-2 py-1 bg-orange-50 text-orange-700 rounded hover:bg-orange-100 font-mono">
+                  {product.chineseKeywords.alt}
+                </button>
+              )}
+              {product.chineseKeywords.factory && (
+                <button onClick={() => navigator.clipboard.writeText(product.chineseKeywords.factory)}
+                  className="text-sm px-2 py-1 bg-amber-50 text-amber-700 rounded hover:bg-amber-100 font-mono">
+                  {product.chineseKeywords.factory}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function OEMResearchPage() {
@@ -69,17 +385,10 @@ export default function OEMResearchPage() {
   const [researchName, setResearchName] = useState('');
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
-  const [analyzedResults, setAnalyzedResults] = useState<Record<string, { 
-    products: ExtractedProduct[]; 
-    summary: AnalysisSummary;
-    topPicks: ExtractedProduct[];
-    quickWins: ExtractedProduct[];
-    tokenUsage: TokenUsage;
-  }>>({});
+  const [results, setResults] = useState<Record<string, AnalysisResult>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'quickwins' | 'toppicks'>('quickwins');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'rocket' | 'star' | 'trending' | 'review'>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetchResearch(); }, []);
@@ -135,7 +444,7 @@ export default function OEMResearchPage() {
     }
   };
 
-  const handleAIAnalyze = async (id: string, text: string) => {
+  const handleAnalyze = async (id: string, text: string) => {
     setAnalyzing(id);
     try {
       const res = await fetch('/api/admin/oem-research/ai-analyze', {
@@ -145,7 +454,7 @@ export default function OEMResearchPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setAnalyzedResults(prev => ({ ...prev, [id]: data }));
+        setResults(prev => ({ ...prev, [id]: data }));
         setExpandedId(id);
       } else {
         alert(`Analysis failed: ${data.error}`);
@@ -163,315 +472,176 @@ export default function OEMResearchPage() {
     fetchResearch();
   };
 
-  const copyToClipboard = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedUrl(text);
-    setTimeout(() => setCopiedUrl(null), 2000);
+  const getFilteredProducts = (result: AnalysisResult) => {
+    if (activeFilter === 'all') return result.products;
+    if (activeFilter === 'rocket') return result.grouped.quickWins;
+    if (activeFilter === 'star') return result.grouped.topPicks;
+    if (activeFilter === 'trending') return result.grouped.trending;
+    if (activeFilter === 'review') return result.grouped.needsReview;
+    return result.products;
   };
-
-  const exportToCSV = (products: ExtractedProduct[]) => {
-    const headers = ['Product', 'SA Score', 'Chinese', 'Category', 'Retail ZAR', '1688 Cost', 'Landed', 'Margin %', 'Price Tier', 'Duty', 'Ship', 'Competition', 'Trend Lag', 'Primary URL'];
-    const rows = products.map(p => [
-      p.name, p.saTrendScore, p.chineseKeyword, p.category, p.estimatedRetailZAR, p.estimated1688CostZAR,
-      p.landedCostZAR, p.marginPercent, p.priceTier, p.dutyPercent + '%', p.shippingType, p.competitionLevel,
-      p.trendLagWeeks + 'w', p.searchUrls.primary
-    ]);
-    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sa-products-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 65) return 'bg-yellow-500';
-    if (score >= 50) return 'bg-orange-500';
-    return 'bg-red-500';
-  };
-
-  const getScoreBg = (score: number) => {
-    if (score >= 80) return 'bg-green-100 text-green-700 border-green-300';
-    if (score >= 65) return 'bg-yellow-100 text-yellow-700 border-yellow-300';
-    if (score >= 50) return 'bg-orange-100 text-orange-700 border-orange-300';
-    return 'bg-red-100 text-red-700 border-red-300';
-  };
-
-  const ProductCard = ({ product, isQuickWin = false }: { product: ExtractedProduct; isQuickWin?: boolean }) => (
-    <div className={`rounded-lg p-4 border-2 ${isQuickWin ? 'border-green-400 bg-green-50' : 'border-gray-200 bg-white'}`}>
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            {isQuickWin && <Zap className="h-5 w-5 text-green-600" />}
-            <h4 className="font-bold text-gray-900">{product.name}</h4>
-          </div>
-          <div className="flex flex-wrap gap-1 mt-1">
-            <span className="text-xs px-2 py-0.5 bg-gray-200 rounded">{product.category}</span>
-            <span className={`text-xs px-2 py-0.5 rounded ${
-              product.priceTier === 'impulse' ? 'bg-green-100 text-green-700' :
-              product.priceTier === 'considered' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
-            }`}>
-              {product.priceTier === 'impulse' ? '🎯 Impulse' : product.priceTier === 'considered' ? '💭 Considered' : '💎 Premium'}
-            </span>
-            <span className={`text-xs px-2 py-0.5 rounded ${
-              product.shippingType === 'air' ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'
-            }`}>
-              {product.shippingType === 'air' ? <><Plane className="h-3 w-3 inline" /> Air</> : <><Ship className="h-3 w-3 inline" /> Sea</>}
-            </span>
-          </div>
-        </div>
-        {/* SA Score Badge */}
-        <div className={`text-center px-3 py-2 rounded-lg border ${getScoreBg(product.saTrendScore)}`}>
-          <div className="text-2xl font-bold">{product.saTrendScore}</div>
-          <div className="text-xs">SA Score</div>
-        </div>
-      </div>
-
-      {/* Pricing Row */}
-      <div className="grid grid-cols-4 gap-2 mb-3 text-sm">
-        <div className="bg-gray-50 rounded p-2 text-center">
-          <div className="text-gray-500 text-xs">Retail</div>
-          <div className="font-bold text-gray-900">R{product.estimatedRetailZAR}</div>
-        </div>
-        <div className="bg-gray-50 rounded p-2 text-center">
-          <div className="text-gray-500 text-xs">1688 Cost</div>
-          <div className="font-bold text-green-600">R{product.estimated1688CostZAR}</div>
-        </div>
-        <div className="bg-gray-50 rounded p-2 text-center">
-          <div className="text-gray-500 text-xs">Landed</div>
-          <div className="font-bold text-orange-600">R{product.landedCostZAR}</div>
-        </div>
-        <div className={`rounded p-2 text-center ${product.marginPercent >= 70 ? 'bg-green-100' : product.marginPercent >= 50 ? 'bg-yellow-100' : 'bg-red-100'}`}>
-          <div className="text-gray-500 text-xs">Margin</div>
-          <div className="font-bold">{product.marginPercent}%</div>
-        </div>
-      </div>
-
-      {/* Score Breakdown */}
-      <div className="mb-3">
-        <div className="text-xs text-gray-500 mb-1">Score Breakdown:</div>
-        <div className="flex gap-1 flex-wrap">
-          {[
-            { label: 'TikTok', score: product.tiktokVelocityScore },
-            { label: 'AliEx', score: product.aliexpressScore },
-            { label: 'Price', score: product.priceCompetitivenessScore },
-            { label: 'Search', score: product.searchVolumeScore },
-            { label: 'Mobile', score: product.mobileFriendlinessScore },
-          ].map(({ label, score }) => (
-            <div key={label} className="flex items-center gap-1">
-              <span className="text-xs text-gray-600">{label}:</span>
-              <div className="w-8 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div className={`h-full ${getScoreColor(score)}`} style={{ width: `${score}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Chinese Keywords */}
-      <div className="mb-3">
-        <div className="text-xs text-gray-500 mb-1">1688 Keywords:</div>
-        <div className="flex gap-2">
-          <button onClick={() => copyToClipboard(product.chineseKeyword)} 
-            className={`px-2 py-1 rounded font-mono text-sm transition ${copiedUrl === product.chineseKeyword ? 'bg-green-200 text-green-800' : 'bg-red-50 text-red-700 hover:bg-red-100'}`}>
-            {product.chineseKeyword} {copiedUrl === product.chineseKeyword ? <Check className="h-3 w-3 inline" /> : <Copy className="h-3 w-3 inline" />}
-          </button>
-          {product.chineseKeywordAlt && (
-            <button onClick={() => copyToClipboard(product.chineseKeywordAlt)}
-              className="px-2 py-1 bg-orange-50 text-orange-700 rounded font-mono text-sm hover:bg-orange-100">
-              {product.chineseKeywordAlt}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Demand Signals */}
-      {product.demandSignals?.length > 0 && (
-        <div className="mb-3">
-          <div className="text-xs text-gray-500 mb-1">Demand Signals:</div>
-          <div className="flex flex-wrap gap-1">
-            {product.demandSignals.map((s, i) => (
-              <span key={i} className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">{s}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Risk & Recommendation */}
-      <div className="mb-3 space-y-1">
-        {product.recommendation && (
-          <div className="text-sm text-gray-700 bg-gray-50 rounded p-2">💡 {product.recommendation}</div>
-        )}
-        {product.riskFactors?.length > 0 && (
-          <div className="text-sm text-orange-700 bg-orange-50 rounded p-2 flex items-start gap-1">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>Risks: {product.riskFactors.join(', ')}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Meta Info */}
-      <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-3">
-        <span>Competition: <b className={product.competitionLevel === 'low' ? 'text-green-600' : product.competitionLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}>{product.competitionLevel}</b></span>
-        <span>•</span>
-        <span>SA Peak: ~{product.trendLagWeeks} weeks</span>
-        <span>•</span>
-        <span>Duty: {product.dutyPercent}%</span>
-        <span>•</span>
-        <span>MOQ: {product.moqEstimate}</span>
-      </div>
-
-      {/* 1688 Links */}
-      <div className="flex flex-wrap gap-2">
-        <a href={product.searchUrls.primary} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition">
-          <ExternalLink className="h-3 w-3" /> 1688 Search
-        </a>
-        <a href={product.searchUrls.factory} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1 px-3 py-1.5 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 transition">
-          <TrendingUp className="h-3 w-3" /> Top Sellers
-        </a>
-        <a href={product.searchUrls.oem} target="_blank" rel="noopener noreferrer"
-          className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded text-sm hover:bg-amber-600 transition">
-          <Factory className="h-3 w-3" /> OEM Factories
-        </a>
-      </div>
-    </div>
-  );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Factory className="h-7 w-7 text-amber-500" />
-          SA Product Intelligence
-          <span className="ml-2 px-2 py-0.5 bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
-            <Brain className="h-3 w-3" /> AI-Powered SA Scoring
-          </span>
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 flex items-center justify-center gap-3">
+          <Factory className="h-8 w-8 text-amber-500" />
+          Product Finder
         </h1>
-        <p className="text-gray-600 mt-1">
-          Upload research → AI extracts products with <b>SA Trend Scores</b> → Get 1688 factory links
-        </p>
+        <p className="text-gray-500 mt-1">Upload research → AI finds products → Get 1688 factory links</p>
       </div>
 
-      {/* Input Section */}
-      <div className="bg-white rounded-xl border-2 border-dashed border-gray-300">
-        <div className="p-4 border-b bg-gray-50 rounded-t-xl flex items-center gap-4">
+      {/* Input Card */}
+      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+        <div className="p-4 bg-gray-50 border-b flex items-center gap-3">
           <input type="text" value={researchName} onChange={(e) => setResearchName(e.target.value)}
-            placeholder="Research name (optional)" className="flex-1 px-3 py-2 border rounded-lg" />
+            placeholder="Name this research (optional)" className="flex-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
           <input ref={fileInputRef} type="file" accept=".zip,.docx,.pdf,.txt,.md,.csv,.json" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])} className="hidden" />
           <button onClick={() => fileInputRef.current?.click()} disabled={extracting}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50">
+            className="flex items-center gap-2 px-5 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 disabled:opacity-50 font-medium transition">
             {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Archive className="h-4 w-4" />}
-            {extracting ? 'Extracting...' : 'Upload Files'}
+            {extracting ? 'Reading...' : 'Upload'}
           </button>
         </div>
-        <textarea value={researchText} onChange={(e) => setResearchText(e.target.value)} rows={8}
-          className="w-full px-4 py-3 border-0 resize-none font-mono text-sm"
-          placeholder="Paste research or drag files here..." />
-        <div className="p-4 border-t bg-gray-50 rounded-b-xl flex justify-between items-center">
-          <span className="text-sm text-gray-500">{researchText.length > 0 ? `${researchText.length.toLocaleString()} chars (~${Math.round(researchText.length/4).toLocaleString()} tokens)` : 'No content'}</span>
+        
+        <textarea value={researchText} onChange={(e) => setResearchText(e.target.value)} rows={6}
+          className="w-full px-4 py-3 border-0 resize-none focus:ring-0 text-gray-700"
+          placeholder="Paste your product research here... (trends, product ideas, competitor analysis, etc.)" />
+        
+        <div className="p-4 bg-gray-50 border-t flex justify-between items-center">
+          <span className="text-sm text-gray-400">
+            {researchText.length > 0 ? `${researchText.length.toLocaleString()} characters` : 'Ready for input'}
+          </span>
           <div className="flex gap-2">
-            {researchText && <button onClick={() => { setResearchText(''); setResearchName(''); }} className="px-4 py-2 text-gray-600 hover:bg-gray-200 rounded-lg">Clear</button>}
+            {researchText && (
+              <button onClick={() => { setResearchText(''); setResearchName(''); }} 
+                className="px-4 py-2 text-gray-500 hover:bg-gray-200 rounded-xl transition">
+                Clear
+              </button>
+            )}
             <button onClick={handleSave} disabled={saving || !researchText.trim()}
-              className="flex items-center gap-2 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50 font-semibold">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save
+              className="flex items-center gap-2 px-6 py-2 bg-amber-500 text-white rounded-xl hover:bg-amber-600 disabled:opacity-50 font-semibold transition">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Research
             </button>
           </div>
         </div>
       </div>
 
-      {/* Saved Research */}
+      {/* Saved Research List */}
       <div className="space-y-4">
-        <h2 className="text-lg font-semibold flex items-center gap-2"><FileText className="h-5 w-5" /> Saved Research ({research.length})</h2>
+        <h2 className="text-lg font-semibold text-gray-700 flex items-center gap-2">
+          <FileText className="h-5 w-5" /> Your Research ({research.length})
+        </h2>
         
         {loading ? (
-          <div className="bg-white rounded-lg border p-8 text-center"><Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto" /></div>
+          <div className="bg-white rounded-2xl border p-12 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto" />
+            <p className="text-gray-500 mt-2">Loading...</p>
+          </div>
         ) : research.length === 0 ? (
-          <div className="bg-white rounded-lg border p-8 text-center text-gray-500">No research saved yet</div>
+          <div className="bg-white rounded-2xl border p-12 text-center">
+            <Factory className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-500">No research saved yet. Paste some product research above!</p>
+          </div>
         ) : (
           research.map((item) => (
-            <div key={item.id} className="bg-white rounded-lg border overflow-hidden">
+            <div key={item.id} className="bg-white rounded-2xl border overflow-hidden shadow-sm">
+              {/* Research Header */}
               <div className="p-4 flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-gray-900">{item.product_name}</h3>
-                  <p className="text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString()} • {item.raw_research?.length.toLocaleString()} chars</p>
+                  <p className="text-sm text-gray-400">{new Date(item.created_at).toLocaleDateString()} • {item.raw_research?.length.toLocaleString()} chars</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => item.raw_research && handleAIAnalyze(item.id, item.raw_research)}
+                  <button onClick={() => item.raw_research && handleAnalyze(item.id, item.raw_research)}
                     disabled={analyzing === item.id}
-                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 disabled:opacity-50 font-medium shadow-sm">
-                    {analyzing === item.id ? <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing...</> : <><Brain className="h-4 w-4" /> AI Extract → SA Score</>}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl hover:from-purple-600 hover:to-indigo-600 disabled:opacity-50 font-semibold shadow-sm transition">
+                    {analyzing === item.id ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Analyzing...</>
+                    ) : (
+                      <><Brain className="h-4 w-4" /> Find Products</>
+                    )}
                   </button>
-                  <button onClick={() => setExpandedId(expandedId === item.id ? null : item.id)} className="p-2 hover:bg-gray-100 rounded-lg">
-                    {expandedId === item.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                  {results[item.id] && (
+                    <button onClick={() => setExpandedId(expandedId === item.id ? null : item.id)} 
+                      className="p-2.5 hover:bg-gray-100 rounded-xl transition">
+                      {expandedId === item.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                    </button>
+                  )}
+                  <button onClick={() => handleDelete(item.id)} className="p-2.5 hover:bg-red-50 text-red-400 rounded-xl transition">
+                    <Trash2 className="h-5 w-5" />
                   </button>
-                  <button onClick={() => handleDelete(item.id)} className="p-2 hover:bg-red-50 text-red-500 rounded-lg"><Trash2 className="h-5 w-5" /></button>
                 </div>
               </div>
 
-              {expandedId === item.id && analyzedResults[item.id] && (
-                <div className="border-t p-4">
-                  {/* Summary Stats */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-4">
-                    <div className="bg-purple-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-purple-700">{analyzedResults[item.id].summary.totalProducts}</div>
-                      <div className="text-xs text-purple-600">Products</div>
+              {/* Results Section */}
+              {expandedId === item.id && results[item.id] && (
+                <div className="border-t">
+                  {/* Summary Bar */}
+                  <div className="p-4 bg-gradient-to-r from-gray-50 to-white flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-gray-900">{results[item.id].summary.totalProducts}</div>
+                        <div className="text-xs text-gray-500">Products</div>
+                      </div>
+                      <div className="h-10 w-px bg-gray-200" />
+                      <div className="flex gap-3">
+                        <div className="flex items-center gap-1 text-green-600">
+                          <Rocket className="h-4 w-4" />
+                          <span className="font-bold">{results[item.id].summary.quickWins}</span>
+                          <span className="text-xs text-gray-400">Quick Wins</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-purple-600">
+                          <Star className="h-4 w-4" />
+                          <span className="font-bold">{results[item.id].summary.topPicks}</span>
+                          <span className="text-xs text-gray-400">Top Picks</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-blue-600">
+                          <TrendingUp className="h-4 w-4" />
+                          <span className="font-bold">{results[item.id].summary.trending}</span>
+                          <span className="text-xs text-gray-400">Trending</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="bg-green-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-green-700">{analyzedResults[item.id].summary.avgSATrendScore}</div>
-                      <div className="text-xs text-green-600">Avg SA Score</div>
-                    </div>
-                    <div className="bg-blue-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-blue-700">{analyzedResults[item.id].summary.avgMargin}%</div>
-                      <div className="text-xs text-blue-600">Avg Margin</div>
-                    </div>
-                    <div className="bg-yellow-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-yellow-700">{analyzedResults[item.id].summary.quickWinsCount}</div>
-                      <div className="text-xs text-yellow-600">Quick Wins</div>
-                    </div>
-                    <div className="bg-orange-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-orange-700">{analyzedResults[item.id].summary.impulsePriceCount}</div>
-                      <div className="text-xs text-orange-600">Impulse Price</div>
-                    </div>
-                    <div className="bg-indigo-50 rounded-lg p-3 text-center">
-                      <div className="text-2xl font-bold text-indigo-700">${analyzedResults[item.id].tokenUsage.estimatedCost.toFixed(3)}</div>
-                      <div className="text-xs text-indigo-600">API Cost</div>
+                    <div className="ml-auto flex items-center gap-4 text-sm">
+                      <div>Avg Score: <span className="font-bold text-gray-900">{results[item.id].summary.avgScore}</span></div>
+                      <div>Avg Margin: <span className="font-bold text-green-600">{results[item.id].summary.avgMargin}%</span></div>
+                      <div className="text-gray-400 text-xs">API: ${results[item.id].tokenUsage.estimatedCost.toFixed(3)}</div>
                     </div>
                   </div>
 
-                  {/* Tab Navigation */}
-                  <div className="flex gap-2 mb-4">
-                    <button onClick={() => setActiveTab('quickwins')}
-                      className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition ${activeTab === 'quickwins' ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                      <Zap className="h-4 w-4" /> Quick Wins ({analyzedResults[item.id].quickWins.length})
-                    </button>
-                    <button onClick={() => setActiveTab('toppicks')}
-                      className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition ${activeTab === 'toppicks' ? 'bg-purple-500 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                      <Star className="h-4 w-4" /> Top Picks ({analyzedResults[item.id].topPicks.length})
-                    </button>
-                    <button onClick={() => setActiveTab('all')}
-                      className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition ${activeTab === 'all' ? 'bg-gray-700 text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
-                      <Package className="h-4 w-4" /> All ({analyzedResults[item.id].products.length})
-                    </button>
-                    <button onClick={() => exportToCSV(analyzedResults[item.id].products)}
-                      className="flex items-center gap-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium ml-auto">
-                      <FileText className="h-4 w-4" /> Export CSV
-                    </button>
+                  {/* Filter Tabs */}
+                  <div className="px-4 py-2 border-y bg-white flex gap-2 overflow-x-auto">
+                    {[
+                      { key: 'all', label: 'All', count: results[item.id].products.length, color: 'gray' },
+                      { key: 'rocket', label: '🚀 Quick Wins', count: results[item.id].summary.quickWins, color: 'green' },
+                      { key: 'star', label: '⭐ Top Picks', count: results[item.id].summary.topPicks, color: 'purple' },
+                      { key: 'trending', label: '📈 Trending', count: results[item.id].summary.trending, color: 'blue' },
+                      { key: 'review', label: '⚠️ Review', count: results[item.id].summary.needsReview, color: 'yellow' },
+                    ].map(({ key, label, count, color }) => (
+                      <button key={key} onClick={() => setActiveFilter(key as any)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition whitespace-nowrap ${
+                          activeFilter === key 
+                            ? `bg-${color}-100 text-${color}-700 ring-2 ring-${color}-500` 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}>
+                        {label} ({count})
+                      </button>
+                    ))}
                   </div>
 
                   {/* Product Grid */}
-                  <div className="grid gap-4 md:grid-cols-2 max-h-[800px] overflow-y-auto">
-                    {(activeTab === 'quickwins' ? analyzedResults[item.id].quickWins :
-                      activeTab === 'toppicks' ? analyzedResults[item.id].topPicks :
-                      analyzedResults[item.id].products
-                    ).map((product, i) => (
-                      <ProductCard key={i} product={product} isQuickWin={activeTab === 'quickwins'} />
+                  <div className="p-4 grid gap-4 md:grid-cols-2">
+                    {getFilteredProducts(results[item.id]).map((product, i) => (
+                      <ProductCard key={i} product={product} />
                     ))}
+                    {getFilteredProducts(results[item.id]).length === 0 && (
+                      <div className="col-span-2 text-center py-8 text-gray-400">
+                        No products in this category
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
