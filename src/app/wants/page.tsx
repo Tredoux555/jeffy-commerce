@@ -146,30 +146,59 @@ export default function WantsPage() {
     if (!imageFile) return null;
     
     setUploadingImage(true);
+    setSubmitMessage({ type: 'error', text: 'Compressing image...' });
+    
     try {
       // Compress image first (reduces ~2MB to ~200KB)
       const compressedFile = await compressImage(imageFile);
+      console.log('Original size:', imageFile.size, 'Compressed:', compressedFile.size);
+      
+      setSubmitMessage({ type: 'error', text: `Uploading (${Math.round(compressedFile.size/1024)}KB)...` });
       
       const formData = new FormData();
       formData.append('file', compressedFile);
       
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      // Try upload with retry
+      let attempts = 0;
+      let lastError = '';
       
-      const data = await res.json();
-      console.log('Upload response:', data);
-      
-      if (data.success) {
-        return data.url;
-      } else {
-        setSubmitMessage({ type: 'error', text: data.error || 'Upload failed' });
-        return null;
+      while (attempts < 3) {
+        attempts++;
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 30000); // 30s timeout
+          
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeout);
+          const data = await res.json();
+          console.log('Upload response:', data);
+          
+          if (data.success) {
+            setSubmitMessage(null);
+            return data.url;
+          } else {
+            lastError = data.error || 'Upload failed';
+          }
+        } catch (err: any) {
+          console.log(`Attempt ${attempts} failed:`, err.message);
+          lastError = err.name === 'AbortError' ? 'Upload timed out' : (err.message || 'Connection error');
+          if (attempts < 3) {
+            setSubmitMessage({ type: 'error', text: `Retrying... (attempt ${attempts + 1}/3)` });
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
       }
+      
+      setSubmitMessage({ type: 'error', text: lastError });
+      return null;
     } catch (error: any) {
       console.error('Upload error:', error);
-      setSubmitMessage({ type: 'error', text: `Upload error: ${error?.message || 'Unknown'}` });
+      setSubmitMessage({ type: 'error', text: `Error: ${error?.message || 'Unknown'}` });
       return null;
     } finally {
       setUploadingImage(false);
