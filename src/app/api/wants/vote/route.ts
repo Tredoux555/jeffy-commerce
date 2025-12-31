@@ -16,17 +16,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Increment popularity_clicks for engagement tracking
-    // In the future, we could have a separate votes table
     if (vote_type === 'up') {
-      const { error } = await supabase.rpc('increment_popularity', { want_id_input: want_id });
-      
-      // Fallback if RPC doesn't exist
-      if (error) {
-        await supabase
-          .from('wants')
-          .update({ popularity_clicks: supabase.sql`popularity_clicks + 1` })
-          .eq('id', want_id);
-      }
+      // First get current value
+      const { data: want } = await supabase
+        .from('wants')
+        .select('popularity_clicks')
+        .eq('id', want_id)
+        .single();
+
+      // Then increment
+      await supabase
+        .from('wants')
+        .update({ popularity_clicks: (want?.popularity_clicks || 0) + 1 })
+        .eq('id', want_id);
     }
 
     return NextResponse.json({ success: true });
