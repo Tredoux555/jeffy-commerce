@@ -75,8 +75,12 @@ export default function WantsPage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
+      // Validate file type - be lenient for mobile (HEIC, empty type)
+      const isImage = file.type.startsWith('image/') || 
+                      file.type === '' || 
+                      file.type === 'application/octet-stream' ||
+                      file.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|heic|heif)$/);
+      if (!isImage) {
         setSubmitMessage({ type: 'error', text: 'Please select an image file' });
         return;
       }
@@ -435,7 +439,8 @@ export default function WantsPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.heic,.heif"
+                    capture="environment"
                     onChange={handleImageSelect}
                     className="hidden"
                   />

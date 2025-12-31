@@ -33,10 +33,17 @@ export async function POST(request: NextRequest) {
       size: file.size 
     });
 
-    // Validate file type
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ success: false, error: 'Invalid file type. Please upload an image.' }, { status: 400 });
+    // Validate file type - include HEIC for iPhone
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    // Some mobile browsers report empty or generic type
+    const isImage = allowedTypes.includes(file.type) || 
+                    file.type.startsWith('image/') || 
+                    file.type === '' || 
+                    file.type === 'application/octet-stream';
+    
+    if (!isImage) {
+      console.log('Rejected file type:', file.type);
+      return NextResponse.json({ success: false, error: `Invalid file type: ${file.type}` }, { status: 400 });
     }
 
     // Validate file size (max 5MB)
@@ -54,11 +61,17 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
+    // Determine content type (default to jpeg if unknown)
+    let contentType = file.type;
+    if (!contentType || contentType === 'application/octet-stream') {
+      contentType = 'image/jpeg';
+    }
+
     // Upload to Supabase Storage
     const { data, error } = await supabase.storage
       .from('images')
       .upload(filename, uint8Array, {
-        contentType: file.type,
+        contentType,
         cacheControl: '3600',
         upsert: false
       });
