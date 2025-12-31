@@ -300,8 +300,9 @@ export default function WantsPage() {
         </div>
       </section>
 
-      {/* ============ WANTS LIST - Only show when there are wants ============ */}
-      {(stats.voting + stats.sourcing + stats.available > 0) && (
+      {/* ============ WANTS LIST - STORED FOR LATER USE ============ */}
+      {/* Moving to storage - page should end at Zone Partner bonus */}
+      {false && (stats.voting + stats.sourcing + stats.available > 0) && (
       <section className="bg-gray-50 text-gray-900 rounded-t-[3rem] mt-8">
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-6">
