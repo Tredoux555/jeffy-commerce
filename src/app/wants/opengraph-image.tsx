@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Jeffy - Request Any Product';
+export const alt = 'Jeffy Wants - Request Any Product';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -16,8 +16,8 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0a0a0a',
-          backgroundImage: 'radial-gradient(circle at 75% 25%, #1a1a2e 0%, #0a0a0a 50%)',
+          backgroundColor: '#0f172a',
+          backgroundImage: 'radial-gradient(circle at 70% 30%, #1e293b 0%, #0f172a 50%)',
         }}
       >
         <div
@@ -33,7 +33,7 @@ export default async function Image() {
             style={{
               fontSize: 60,
               fontWeight: 'bold',
-              color: '#22c55e',
+              color: '#f59e0b',
               marginBottom: 20,
             }}
           >
@@ -53,17 +53,17 @@ export default async function Image() {
           <div
             style={{
               fontSize: 32,
-              color: '#facc15',
+              color: '#fbbf24',
               marginBottom: 20,
               fontWeight: 'bold',
             }}
           >
-            50 votes = We source it
+            10 votes = We source it
           </div>
           <div
             style={{
               fontSize: 28,
-              color: '#a1a1aa',
+              color: '#94a3b8',
               marginBottom: 40,
             }}
           >

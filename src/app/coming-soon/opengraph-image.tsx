@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Jeffy - Quality Products at China Prices';
+export const alt = 'Jeffy - The Future of Retail';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -16,8 +16,8 @@ export default async function Image() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0a0a0a',
-          backgroundImage: 'radial-gradient(circle at 25% 25%, #1a1a2e 0%, #0a0a0a 50%)',
+          backgroundColor: '#0f172a',
+          backgroundImage: 'radial-gradient(circle at 30% 30%, #1e293b 0%, #0f172a 50%)',
         }}
       >
         <div
@@ -31,9 +31,9 @@ export default async function Image() {
         >
           <div
             style={{
-              fontSize: 80,
+              fontSize: 90,
               fontWeight: 'bold',
-              color: '#22c55e',
+              color: '#f59e0b',
               marginBottom: 20,
             }}
           >
@@ -48,31 +48,47 @@ export default async function Image() {
               maxWidth: 900,
             }}
           >
-            Quality Products at China Prices
+            The future of retail starts here.
           </div>
           <div
             style={{
-              fontSize: 28,
-              color: '#a1a1aa',
-              marginBottom: 40,
-              maxWidth: 800,
+              fontSize: 26,
+              color: '#94a3b8',
+              marginBottom: 50,
             }}
           >
-            Skip the middleman. Every purchase funds free schools.
+            This isn&apos;t a store. It&apos;s a movement.
           </div>
           <div
             style={{
               display: 'flex',
-              alignItems: 'center',
-              backgroundColor: '#22c55e',
-              color: '#0a0a0a',
-              padding: '16px 40px',
-              borderRadius: 12,
-              fontSize: 28,
-              fontWeight: 'bold',
+              gap: 30,
             }}
           >
-            🚀 Launching January 20, 2025
+            <div
+              style={{
+                backgroundColor: '#f59e0b',
+                color: '#0f172a',
+                padding: '16px 32px',
+                borderRadius: 12,
+                fontSize: 22,
+                fontWeight: 'bold',
+              }}
+            >
+              Create a Want
+            </div>
+            <div
+              style={{
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '16px 32px',
+                borderRadius: 12,
+                fontSize: 22,
+                fontWeight: 'bold',
+              }}
+            >
+              Become a Zone Partner
+            </div>
           </div>
         </div>
       </div>

@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Request Products | Jeffy - Vote for What You Want',
-  description: '50 votes = we source it. First requester gets it FREE. Request any product and share to get votes.',
+  title: 'Create a Want | Jeffy',
+  description: 'Request any product. Get 10 people to agree. If we source it, you get it FREE.',
   openGraph: {
-    title: 'Request Products on Jeffy',
-    description: '50 votes = we source it. First requester gets it FREE!',
+    title: 'Create a Want on Jeffy',
+    description: 'Request any product. Get 10 votes. Get it FREE!',
     url: 'https://jeffy.co.za/wants',
     siteName: 'Jeffy',
     locale: 'en_ZA',
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Request Products on Jeffy',
-    description: '50 votes = we source it. First requester gets it FREE!',
+    title: 'Create a Want on Jeffy',
+    description: 'Request any product. Get 10 votes. Get it FREE!',
   },
 };
 

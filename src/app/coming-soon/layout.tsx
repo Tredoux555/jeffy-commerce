@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Jeffy - Quality Products at China Prices | Join the Waitlist',
-  description: 'Skip the middleman. Get quality products direct from manufacturers at prices SA has never seen. Every purchase funds free schools.',
+  title: 'Jeffy - The Future of Retail Starts Here',
+  description: 'Create a want or become a Zone Partner. Join the movement that could change everything.',
   openGraph: {
-    title: 'Jeffy - Quality Products at China Prices',
-    description: 'Skip the middleman. Get quality products direct from manufacturers. Every purchase funds free schools.',
+    title: 'Jeffy - The Future of Retail',
+    description: 'Create a want or become a Zone Partner. Join the movement.',
     url: 'https://jeffy.co.za/coming-soon',
     siteName: 'Jeffy',
     locale: 'en_ZA',
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Jeffy - Quality Products at China Prices',
-    description: 'Skip the middleman. Every purchase funds free schools.',
+    title: 'Jeffy - The Future of Retail',
+    description: 'Create a want or become a Zone Partner. Join the movement.',
   },
 };
 

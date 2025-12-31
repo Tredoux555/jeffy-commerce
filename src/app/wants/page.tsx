@@ -248,7 +248,7 @@ export default function WantsPage() {
               const StatusIcon = status.icon;
               const hasVoted = votedIds.has(want.id);
               const isVoting = voting === want.id;
-              const progress = Math.min((want.vote_count / 50) * 100, 100);
+              const progress = Math.min((want.vote_count / 10) * 100, 100);
 
               return (
                 <div
@@ -295,7 +295,7 @@ export default function WantsPage() {
                       {want.status === 'voting' && (
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                            <span>{want.vote_count}/50 votes to source</span>
+                            <span>{want.vote_count}/10 votes to source</span>
                             <span>{Math.round(progress)}%</span>
                           </div>
                           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
