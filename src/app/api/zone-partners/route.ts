@@ -7,33 +7,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-// SA Zones with capacity limits
-const ZONE_CONFIG: Record<string, { name: string; city: string; maxPartners: number; province: string }> = {
-  'sandton': { name: 'Sandton', city: 'Johannesburg', province: 'Gauteng', maxPartners: 15 },
-  'rosebank': { name: 'Rosebank', city: 'Johannesburg', province: 'Gauteng', maxPartners: 10 },
-  'fourways': { name: 'Fourways', city: 'Johannesburg', province: 'Gauteng', maxPartners: 12 },
-  'midrand': { name: 'Midrand', city: 'Johannesburg', province: 'Gauteng', maxPartners: 10 },
-  'centurion': { name: 'Centurion', city: 'Pretoria', province: 'Gauteng', maxPartners: 10 },
-  'pretoria-east': { name: 'Pretoria East', city: 'Pretoria', province: 'Gauteng', maxPartners: 12 },
-  'pretoria-north': { name: 'Pretoria North', city: 'Pretoria', province: 'Gauteng', maxPartners: 8 },
-  'cape-town-cbd': { name: 'Cape Town CBD', city: 'Cape Town', province: 'Western Cape', maxPartners: 15 },
-  'sea-point': { name: 'Sea Point', city: 'Cape Town', province: 'Western Cape', maxPartners: 8 },
-  'claremont': { name: 'Claremont', city: 'Cape Town', province: 'Western Cape', maxPartners: 10 },
-  'stellenbosch': { name: 'Stellenbosch', city: 'Stellenbosch', province: 'Western Cape', maxPartners: 6 },
-  'durban-north': { name: 'Durban North', city: 'Durban', province: 'KwaZulu-Natal', maxPartners: 10 },
-  'umhlanga': { name: 'Umhlanga', city: 'Durban', province: 'KwaZulu-Natal', maxPartners: 12 },
-  'ballito': { name: 'Ballito', city: 'Durban', province: 'KwaZulu-Natal', maxPartners: 6 },
-  'port-elizabeth': { name: 'Port Elizabeth', city: 'Gqeberha', province: 'Eastern Cape', maxPartners: 8 },
-  'bloemfontein': { name: 'Bloemfontein', city: 'Bloemfontein', province: 'Free State', maxPartners: 6 },
-};
-
-function getZoneStatus(currentCount: number, maxPartners: number): 'open' | 'limited' | 'waitlist' {
-  const percentage = (currentCount / maxPartners) * 100;
-  if (percentage >= 100) return 'waitlist';
-  if (percentage >= 70) return 'limited';
-  return 'open';
-}
-
 function getPositionBenefits(position: number): { tier: string; benefits: string[]; profitSplit: string } {
   if (position <= 10) {
     return {
@@ -63,30 +36,10 @@ function getPositionBenefits(position: number): { tier: string; benefits: string
   };
 }
 
-// GET - Get zone stats and individual position
+// GET - Get zone stats
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email');
-  const zoneId = searchParams.get('zone');
-
-  // Get counts per zone
-  const { data: zoneCounts } = await supabase
-    .from('waitlist')
-    .select('zone_id')
-    .eq('type', 'zone_partner')
-    .not('zone_id', 'is', null);
-
-  // Calculate zone stats
-  const zoneStats = Object.entries(ZONE_CONFIG).map(([id, config]) => {
-    const count = zoneCounts?.filter(w => w.zone_id === id).length || 0;
-    return {
-      id,
-      ...config,
-      currentCount: count,
-      spotsLeft: Math.max(0, config.maxPartners - count),
-      status: getZoneStatus(count, config.maxPartners)
-    };
-  });
 
   // Get total partner waitlist count
   const { count: totalPartners } = await supabase
@@ -104,48 +57,33 @@ export async function GET(request: NextRequest) {
       .single();
 
     if (user) {
-      // Calculate position in their zone
-      const { count: aheadInZone } = await supabase
+      // Calculate position overall
+      const { count: ahead } = await supabase
         .from('waitlist')
         .select('*', { count: 'exact', head: true })
         .eq('type', 'zone_partner')
-        .eq('zone_id', user.zone_id)
-        .or(`referral_count.gt.${user.referral_count},and(referral_count.eq.${user.referral_count},position.lt.${user.position})`);
+        .lt('position', user.position);
 
-      const zonePosition = (aheadInZone || 0) + 1;
-      const benefits = getPositionBenefits(zonePosition);
+      const position = (ahead || 0) + 1;
+      const benefits = getPositionBenefits(position);
 
       return NextResponse.json({
         success: true,
         user: {
           email: user.email,
           zoneId: user.zone_id,
-          zoneName: ZONE_CONFIG[user.zone_id]?.name || user.zone_id,
-          position: zonePosition,
+          position,
           referralCode: user.referral_code,
           referralCount: user.referral_count,
           benefits
         },
-        zones: zoneStats,
         totalPartners: totalPartners || 0
       });
     }
   }
 
-  // If checking specific zone
-  if (zoneId && ZONE_CONFIG[zoneId]) {
-    const zone = zoneStats.find(z => z.id === zoneId);
-    return NextResponse.json({
-      success: true,
-      zone,
-      zones: zoneStats,
-      totalPartners: totalPartners || 0
-    });
-  }
-
   return NextResponse.json({
     success: true,
-    zones: zoneStats,
     totalPartners: totalPartners || 0
   });
 }
@@ -153,14 +91,14 @@ export async function GET(request: NextRequest) {
 // POST - Join Zone Partner waitlist
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, zone_id, whatsapp, referral_code } = await request.json();
+    const { email, name, phone, zone_id, message, referral_code } = await request.json();
 
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
     }
 
-    if (!zone_id || !ZONE_CONFIG[zone_id]) {
-      return NextResponse.json({ error: 'Valid zone required' }, { status: 400 });
+    if (!zone_id || zone_id.length < 3) {
+      return NextResponse.json({ error: 'Zone information required' }, { status: 400 });
     }
 
     const cleanEmail = email.toLowerCase().trim();
@@ -174,15 +112,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existing) {
-      // Calculate position
-      const { count: aheadInZone } = await supabase
+      const { count: ahead } = await supabase
         .from('waitlist')
         .select('*', { count: 'exact', head: true })
         .eq('type', 'zone_partner')
-        .eq('zone_id', existing.zone_id)
-        .or(`referral_count.gt.${existing.referral_count},and(referral_count.eq.${existing.referral_count},position.lt.${existing.position})`);
+        .lt('position', existing.position);
 
-      const zonePosition = (aheadInZone || 0) + 1;
+      const position = (ahead || 0) + 1;
 
       return NextResponse.json({
         success: true,
@@ -190,11 +126,10 @@ export async function POST(request: NextRequest) {
         user: {
           email: existing.email,
           zoneId: existing.zone_id,
-          zoneName: ZONE_CONFIG[existing.zone_id]?.name,
-          position: zonePosition,
+          position,
           referralCode: existing.referral_code,
           referralCount: existing.referral_count,
-          benefits: getPositionBenefits(zonePosition)
+          benefits: getPositionBenefits(position)
         }
       });
     }
@@ -218,7 +153,8 @@ export async function POST(request: NextRequest) {
         name: name || null,
         type: 'zone_partner',
         zone_id,
-        referred_by: referrerId
+        referred_by: referrerId,
+        metadata: { phone, message }
       })
       .select()
       .single();
@@ -229,22 +165,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate position
-    const { count: aheadInZone } = await supabase
+    const { count: ahead } = await supabase
       .from('waitlist')
       .select('*', { count: 'exact', head: true })
       .eq('type', 'zone_partner')
-      .eq('zone_id', zone_id)
       .lt('position', newEntry.position);
 
-    const zonePosition = (aheadInZone || 0) + 1;
+    const position = (ahead || 0) + 1;
 
     // Send welcome email (non-blocking)
     if (name) {
       sendZonePartnerWelcome({
         email: newEntry.email,
         name: name,
-        zone: ZONE_CONFIG[zone_id]?.name || zone_id,
-        position: zonePosition,
+        zone: zone_id,
+        position: position,
         referralCode: newEntry.referral_code
       }).catch(err => console.error('Zone partner email failed:', err));
     }
@@ -254,11 +189,10 @@ export async function POST(request: NextRequest) {
       user: {
         email: newEntry.email,
         zoneId: zone_id,
-        zoneName: ZONE_CONFIG[zone_id]?.name,
-        position: zonePosition,
+        position,
         referralCode: newEntry.referral_code,
         referralCount: 0,
-        benefits: getPositionBenefits(zonePosition),
+        benefits: getPositionBenefits(position),
         referredBy: !!referrerId
       }
     });
