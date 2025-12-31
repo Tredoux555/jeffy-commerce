@@ -172,11 +172,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create want' }, { status: 500 });
     }
 
-    // Add creator's vote
-    await supabase.from('want_votes').insert({
-      want_id: want.id,
-      voter_email: normalizedEmail
-    }).catch(() => {}); // Ignore if votes table doesn't exist
+    // Add creator's vote (ignore errors if table doesn't exist)
+    try {
+      await supabase.from('want_votes').insert({
+        want_id: want.id,
+        voter_email: normalizedEmail
+      });
+    } catch (e) {
+      // Ignore
+    }
 
     // Send verification email if user needs to set up account
     if (needsVerification && verificationToken) {
