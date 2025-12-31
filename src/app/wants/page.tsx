@@ -440,7 +440,7 @@ export default function WantsPage() {
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Want Created! 🎉</h3>
-                <p className="text-gray-500 mb-4">Share your link to get 10 verifications and earn your free product.</p>
+                <p className="text-gray-500 mb-4">Check your email to set up your account and track verifications.</p>
                 
                 {/* Share Link */}
                 <div className="bg-gray-50 rounded-xl p-4 mb-4">
@@ -453,35 +453,22 @@ export default function WantsPage() {
                   </div>
                 </div>
 
-                <button onClick={() => shareViaWhatsApp(submitMessage.want!)} className="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2 mb-6">
+                <button onClick={() => shareViaWhatsApp(submitMessage.want!)} className="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2 mb-4">
                   <MessageCircle className="h-5 w-5" /> Share on WhatsApp
                 </button>
 
-                {/* Divider */}
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400 uppercase">What&apos;s next?</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+                <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                  <p className="text-sm text-orange-800">
+                    📧 <strong>Check your email!</strong> We sent you a link to set up your password and track your verifications.
+                  </p>
                 </div>
 
-                {/* Two Options */}
-                <div className="space-y-3">
-                  <Link
-                    href="/my-wants"
-                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg flex items-center justify-center gap-2"
-                  >
-                    <Users className="h-5 w-5" /> Track My Progress
-                  </Link>
-                  <p className="text-xs text-gray-400">See verifications come in, get a dashboard</p>
-                  
-                  <button 
-                    onClick={() => { setShowForm(false); setSubmitMessage(null); }} 
-                    className="w-full py-3 border border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2"
-                  >
-                    Just Notify Me When I Hit 10
-                  </button>
-                  <p className="text-xs text-gray-400">We&apos;ll email you at {newWant.email || 'your email'}</p>
-                </div>
+                <button 
+                  onClick={() => { setShowForm(false); setSubmitMessage(null); }} 
+                  className="w-full py-3 mt-4 border border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50"
+                >
+                  Done
+                </button>
               </div>
             ) : submitMessage?.type === 'similar' ? (
               <div className="text-center">

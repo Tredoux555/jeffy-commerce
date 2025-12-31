@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { Resend } from 'resend';
+import { randomBytes } from 'crypto';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
+
+function generateToken(): string {
+  return randomBytes(32).toString('hex');
+}
 
 // GET - List public wants with vote counts
 export async function GET(request: NextRequest) {
@@ -77,10 +86,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product name and email required' }, { status: 400 });
     }
 
+    const normalizedEmail = user_email.toLowerCase().trim();
+
     // Check for duplicates
     const { data: existing } = await supabase
       .from('wants')
-      .select('id, product_name, vote_count')
+      .select('id, product_name, vote_count, verified_count, creator_referral_code')
       .ilike('product_name', `%${product_name}%`)
       .eq('is_public', true)
       .limit(5);
@@ -93,26 +104,48 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Get or create user
-    let userId = null;
+    // Check if user exists and is verified
     const { data: existingUser } = await supabase
       .from('users')
-      .select('id')
-      .eq('email', user_email.toLowerCase())
+      .select('id, email_verified, password_hash')
+      .eq('email', normalizedEmail)
       .single();
 
-    if (existingUser) {
-      userId = existingUser.id;
-    } else {
+    const isNewUser = !existingUser;
+    const needsVerification = !existingUser?.email_verified || !existingUser?.password_hash;
+
+    // Generate verification token for new/unverified users
+    const verificationToken = needsVerification ? generateToken() : null;
+    const verificationExpires = needsVerification ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null;
+
+    // Create or update user
+    let userId = existingUser?.id;
+    if (isNewUser) {
       const { data: newUser, error: userError } = await supabase
         .from('users')
-        .insert({ email: user_email.toLowerCase(), name: user_name || null })
+        .insert({ 
+          email: normalizedEmail, 
+          name: user_name || null,
+          verification_token: verificationToken,
+          verification_expires: verificationExpires?.toISOString(),
+          email_verified: false,
+        })
         .select('id')
         .single();
+      
       if (userError) {
         console.error('User insert error:', userError);
       }
       userId = newUser?.id;
+    } else if (needsVerification) {
+      // Update existing user with new token
+      await supabase
+        .from('users')
+        .update({
+          verification_token: verificationToken,
+          verification_expires: verificationExpires?.toISOString(),
+        })
+        .eq('id', existingUser.id);
     }
 
     // Create want
@@ -129,7 +162,7 @@ export async function POST(request: NextRequest) {
         status: 'voting',
         is_public: true,
         first_requester_rewarded: false,
-        creator_email: user_email.toLowerCase(),
+        creator_email: normalizedEmail,
       })
       .select('*, creator_referral_code')
       .single();
@@ -142,13 +175,98 @@ export async function POST(request: NextRequest) {
     // Add creator's vote
     await supabase.from('want_votes').insert({
       want_id: want.id,
-      voter_email: user_email.toLowerCase()
-    });
+      voter_email: normalizedEmail
+    }).catch(() => {}); // Ignore if votes table doesn't exist
+
+    // Send verification email if user needs to set up account
+    if (needsVerification && verificationToken) {
+      const verifyUrl = `${SITE_URL}/auth/verify?token=${verificationToken}`;
+      const shareUrl = `${SITE_URL}/want/${want.id}?ref=${want.creator_referral_code}`;
+
+      try {
+        await resend.emails.send({
+          from: 'Jeffy <hello@jeffy.co.za>',
+          to: normalizedEmail,
+          subject: `Your Want "${product_name}" is live! 🎉`,
+          html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <div style="max-width: 500px; margin: 0 auto; padding: 40px 20px;">
+    
+    <div style="text-align: center; margin-bottom: 32px;">
+      <h1 style="color: #f97316; font-size: 36px; font-weight: 900; margin: 0;">Jeffy</h1>
+    </div>
+
+    <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 24px; padding: 32px; border: 1px solid #334155;">
+      
+      <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 16px 0; text-align: center;">
+        Your Want is Live! 🎉
+      </h2>
+
+      <p style="color: #94a3b8; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0; text-align: center;">
+        You requested:
+      </p>
+      <p style="color: #ffffff; font-size: 20px; font-weight: 700; margin: 0 0 24px 0; text-align: center;">
+        "${product_name}"
+      </p>
+
+      <div style="background: rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid rgba(34, 197, 94, 0.3);">
+        <p style="color: #4ade80; font-size: 16px; font-weight: 600; margin: 0; text-align: center;">
+          🎁 Get 10 people to verify and it's yours FREE!
+        </p>
+      </div>
+
+      <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
+        Share your link with friends and family. When they verify they'd buy it too, you get closer to your free product!
+      </p>
+
+      <div style="background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 24px; word-break: break-all;">
+        <p style="color: #64748b; font-size: 12px; margin: 0 0 4px 0;">Your share link:</p>
+        <a href="${shareUrl}" style="color: #f97316; font-size: 14px; text-decoration: none;">${shareUrl}</a>
+      </div>
+
+      <div style="border-top: 1px solid #334155; padding-top: 24px; margin-top: 24px;">
+        <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
+          Want to track your verifications? Set up your account:
+        </p>
+        <div style="text-align: center;">
+          <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">
+            Set Up My Account →
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+      <p style="color: #64748b; font-size: 12px; margin: 0;">
+        You're receiving this because you created a Want on Jeffy.
+      </p>
+    </div>
+
+  </div>
+</body>
+</html>
+          `,
+        });
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Don't fail the request if email fails
+      }
+    }
 
     return NextResponse.json({
       success: true,
       want,
-      message: 'Product requested! Share it to get votes.'
+      message: needsVerification 
+        ? 'Want created! Check your email to set up your account and track verifications.'
+        : 'Product requested! Share it to get verifications.',
+      emailSent: needsVerification
     });
 
   } catch (error) {
