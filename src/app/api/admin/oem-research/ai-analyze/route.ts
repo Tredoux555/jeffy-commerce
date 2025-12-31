@@ -173,14 +173,24 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const truncatedText = research_text.slice(0, 50000);
+    // Limit to ~25K chars (~6K tokens) for faster response
+    const maxChars = 25000;
+    const truncatedText = research_text.slice(0, maxChars);
+    const wasTruncated = research_text.length > maxChars;
+    
+    console.log(`[AI Analyze] Starting analysis: ${truncatedText.length} chars${wasTruncated ? ` (truncated from ${research_text.length})` : ''}`);
     const client = getAnthropic();
+    
+    console.log('[AI Analyze] Calling Claude API...');
+    const startTime = Date.now();
     
     const message = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
+      max_tokens: 4096, // Reduced for faster response
       messages: [{ role: 'user', content: SA_SCORING_PROMPT + truncatedText }]
     });
+    
+    console.log(`[AI Analyze] Claude responded in ${Date.now() - startTime}ms`);
 
     const responseText = message.content
       .filter(block => block.type === 'text')
@@ -227,6 +237,8 @@ export async function POST(request: NextRequest) {
       : 0;
     const totalPotentialProfit = enrichedProducts.reduce((sum: number, p: any) => sum + (p.pricing?.marginZAR || 0), 0);
 
+    console.log(`[AI Analyze] Found ${enrichedProducts.length} products`);
+
     return NextResponse.json({
       success: true,
       summary: {
@@ -238,7 +250,10 @@ export async function POST(request: NextRequest) {
         avgScore,
         avgMargin,
         totalPotentialProfit,
-        categories: [...new Set(enrichedProducts.map((p: any) => p.category))]
+        categories: [...new Set(enrichedProducts.map((p: any) => p.category))],
+        wasTruncated,
+        charsAnalyzed: truncatedText.length,
+        originalChars: research_text.length
       },
       products: enrichedProducts,
       grouped: {
