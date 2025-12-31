@@ -1,16 +1,17 @@
 # JEFFY WANTS SYSTEM - HANDOFF DEC 31, 2025
 
 ## LATEST COMMIT
+`pending` - Fix verification API - use maybeSingle instead of single
+
+### Previous:
 `6bfdd6d` - Add debug logging to verification API + accept both voting and active status
 
 ## KNOWN ISSUES
 
-### 1. Verification API Failing (Screenshot: 20:48)
-- Error: "Failed to create verification"
-- 400 and 500 errors from `/api/wants/request-verification`
-- Added debug logging to track down issue
-- Also fixed: Now accepts both `voting` AND `active` status for backwards compatibility
-- **Check Railway logs** after next attempt to see actual error
+### 1. ~~Verification API Failing~~ FIXED ✓
+- **Root cause:** `.single()` was throwing when no existing verification found
+- **Fix:** Changed to `.maybeSingle()` - returns null instead of erroring
+- Commit and push to deploy the fix
 
 ### 2. Schema Mismatch (OLD vs NEW)
 - OLD: `title`, `current_agrees`, `threshold`, `status: 'active'`
@@ -77,20 +78,51 @@ CREATE INDEX IF NOT EXISTS idx_magic_links_expires ON magic_links(expires_at);
 
 ---
 
-## DEBUGGING THE VERIFICATION ERROR
+## BUG FIXED - DEC 31 (Claude Session)
 
-1. Try to verify again on `/want/[id]?ref=...`
-2. Check Railway logs in real-time
-3. Look for these log lines:
+### Root Cause Found:
+The `.single()` call on line 75 was throwing errors when no existing verification was found (expected case for new users). Supabase's `.single()` throws an error if 0 rows returned.
+
+### Fix Applied:
+Changed `.single()` to `.maybeSingle()` which returns `null` instead of erroring.
+
+```javascript
+// BEFORE (broken):
+const { data: existing } = await existingQuery.single();
+
+// AFTER (fixed):
+const { data: existing, error: existingError } = await existingQuery.maybeSingle();
+```
+
+Also added error handling if `want_verifications` table doesn't exist.
+
+---
+
+## NEXT STEPS
+
+1. **Commit and push** the fix:
+   ```bash
+   cd ~/Desktop/jeffy-mvp
+   git add .
+   git commit -m "Fix verification API - use maybeSingle instead of single"
+   git push
+   ```
+
+2. **Wait for Railway deploy** (~2 min)
+
+3. **Test verification** at `/want/[id]?ref=...`
+
+4. If still failing, check Railway logs for these lines:
    - `Verification request:` - shows what was received
-   - `Want lookup:` - shows if want was found and its status
+   - `Want lookup:` - shows if want was found and its status  
+   - `Check existing verification error:` - NEW: shows if query failed
    - `Insert verification error:` - shows DB error details
    - `Email send result:` - shows if Resend API failed
 
-Possible causes:
-- `want_verifications` table not created (run migration 007)
-- Resend API key missing or invalid
-- Email domain not verified in Resend
+### If still failing after fix:
+- Table missing: Run migration 007 in Supabase SQL editor
+- Resend error: Check RESEND_API_KEY in Railway env vars
+- Domain not verified: Check Resend dashboard for jeffy.co.za
 
 ---
 
@@ -107,7 +139,7 @@ Possible causes:
 ### Modified:
 - `/src/app/wants/page.tsx` - Hidden wants list, updated duplicate flow
 - `/src/app/admin/wants/page.tsx` - REVERTED to original  
-- `/src/app/api/wants/request-verification/route.ts` - Added logging, accepts voting+active
+- `/src/app/api/wants/request-verification/route.ts` - FIXED: maybeSingle(), added table existence check
 
 ---
 

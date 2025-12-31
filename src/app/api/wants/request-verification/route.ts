@@ -73,7 +73,19 @@ export async function POST(request: NextRequest) {
       ? supabase.from('want_verifications').select('id, verified_at').eq('want_id', want_id).eq('email', normalizedContact)
       : supabase.from('want_verifications').select('id, verified_at').eq('want_id', want_id).eq('phone', normalizedContact);
 
-    const { data: existing } = await existingQuery.single();
+    const { data: existing, error: existingError } = await existingQuery.maybeSingle();
+
+    // Log if there was a query error (not "not found" which is expected)
+    if (existingError) {
+      console.log('Check existing verification error:', existingError.message, existingError.code);
+      // If table doesn't exist, return clear error
+      if (existingError.code === '42P01' || existingError.message?.includes('does not exist')) {
+        return NextResponse.json({ 
+          error: 'Verification system not set up. Contact support.',
+          detail: 'want_verifications table missing'
+        }, { status: 500 });
+      }
+    }
 
     if (existing?.verified_at) {
       return NextResponse.json({ 
