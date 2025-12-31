@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Copy, Check, MessageCircle, Share2, Gift, Sparkles, ChevronRight, LogOut } from 'lucide-react';
+import { Loader2, Copy, Check, MessageCircle, Share2, Gift, Sparkles, ChevronRight, LogOut, X, Smartphone } from 'lucide-react';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
 
@@ -31,9 +31,15 @@ export default function MyWantsPage() {
   const [want, setWant] = useState<Want | null>(null);
   const [copied, setCopied] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
+  const [showPWATip, setShowPWATip] = useState(false);
 
   useEffect(() => {
     checkAuth();
+    // Show PWA tip if not dismissed before
+    const dismissed = localStorage.getItem('jeffy_pwa_tip_dismissed');
+    if (!dismissed) {
+      setShowPWATip(true);
+    }
   }, []);
 
   // Trigger confetti when they hit 10
@@ -48,6 +54,11 @@ export default function MyWantsPage() {
       });
     }
   }, [want, celebrated]);
+
+  const dismissPWATip = () => {
+    setShowPWATip(false);
+    localStorage.setItem('jeffy_pwa_tip_dismissed', 'true');
+  };
 
   const checkAuth = async () => {
     const token = localStorage.getItem('jeffy_session');
@@ -160,6 +171,20 @@ export default function MyWantsPage() {
           <LogOut className="h-5 w-5" />
         </button>
       </header>
+
+      {/* PWA Tip - Dismissible */}
+      {showPWATip && (
+        <div className="mx-4 mb-4 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3">
+          <Smartphone className="h-5 w-5 text-orange-400 shrink-0" />
+          <p className="text-slate-300 text-sm flex-1">
+            <span className="text-white font-medium">Track verifications easily:</span>{' '}
+            Tap <span className="text-orange-400">Share</span> → <span className="text-orange-400">Add to Home Screen</span>
+          </p>
+          <button onClick={dismissPWATip} className="text-slate-500 hover:text-slate-300 p-1">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col px-4 pb-4">
