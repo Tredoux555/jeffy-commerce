@@ -19,10 +19,14 @@ function generateOTP(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { want_id, ref_code, method, contact } = await request.json();
+    const body = await request.json();
+    const { want_id, ref_code, method, contact } = body;
+    
+    console.log('Verification request:', { want_id, ref_code, method, contact: contact?.substring(0, 5) + '...' });
 
     // Validate inputs
     if (!want_id || !method || !contact) {
+      console.log('Missing fields:', { want_id: !!want_id, method: !!method, contact: !!contact });
       return NextResponse.json({ 
         error: 'Missing required fields: want_id, method, contact' 
       }, { status: 400 });
@@ -41,11 +45,15 @@ export async function POST(request: NextRequest) {
       .eq('id', want_id)
       .single();
 
+    console.log('Want lookup:', { want: want?.id, status: want?.status, error: wantError?.message });
+
     if (wantError || !want) {
       return NextResponse.json({ error: 'Product request not found' }, { status: 404 });
     }
 
-    if (want.status !== 'voting') {
+    // Accept both 'voting' and 'active' status for backwards compatibility
+    if (want.status !== 'voting' && want.status !== 'active') {
+      console.log('Invalid status for verification:', want.status);
       return NextResponse.json({ 
         error: 'This product is no longer accepting verifications',
         status: want.status 
@@ -128,12 +136,12 @@ export async function POST(request: NextRequest) {
         .insert(verificationData);
 
       if (insertError) {
-        console.error('Insert verification error:', insertError);
+        console.error('Insert verification error:', insertError.message, insertError.code, insertError.details);
         // Check for unique constraint violation
         if (insertError.code === '23505') {
           return NextResponse.json({ error: 'Verification already pending' }, { status: 400 });
         }
-        return NextResponse.json({ error: 'Failed to create verification' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to create verification: ' + insertError.message }, { status: 500 });
       }
     }
 
@@ -146,6 +154,8 @@ export async function POST(request: NextRequest) {
         .eq('email', want.creator_email)
         .single();
 
+      console.log('Sending verification email to:', normalizedContact);
+      
       const result = await sendVerificationEmail({
         to: normalizedContact,
         creatorName: creator?.name || 'Someone',
@@ -155,8 +165,10 @@ export async function POST(request: NextRequest) {
         wantId: want_id,
       });
 
+      console.log('Email send result:', { success: result.success, error: result.error });
+
       if (!result.success) {
-        return NextResponse.json({ error: 'Failed to send verification email' }, { status: 500 });
+        return NextResponse.json({ error: 'Failed to send verification email. Please try again.' }, { status: 500 });
       }
 
       return NextResponse.json({
