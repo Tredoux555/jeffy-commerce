@@ -389,7 +389,9 @@ export default function OEMResearchPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'rocket' | 'star' | 'trending' | 'review'>('all');
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { fetchResearch(); }, []);
 
@@ -403,6 +405,33 @@ export default function OEMResearchPage() {
       console.error('Error fetching research:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set dragging false if we're leaving the drop zone entirely
+    if (dropZoneRef.current && !dropZoneRef.current.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      await handleFileUpload(file);
     }
   };
 
@@ -492,8 +521,17 @@ export default function OEMResearchPage() {
         <p className="text-gray-500 mt-1">Upload research → AI finds products → Get 1688 factory links</p>
       </div>
 
-      {/* Input Card */}
-      <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+      {/* Input Card with Drag & Drop */}
+      <div 
+        ref={dropZoneRef}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`bg-white rounded-2xl shadow-sm border-2 overflow-hidden transition-all ${
+          isDragging 
+            ? 'border-amber-500 border-dashed bg-amber-50 ring-4 ring-amber-100' 
+            : 'border-gray-200'
+        }`}>
         <div className="p-4 bg-gray-50 border-b flex items-center gap-3">
           <input type="text" value={researchName} onChange={(e) => setResearchName(e.target.value)}
             placeholder="Name this research (optional)" className="flex-1 px-4 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
@@ -505,9 +543,20 @@ export default function OEMResearchPage() {
           </button>
         </div>
         
-        <textarea value={researchText} onChange={(e) => setResearchText(e.target.value)} rows={6}
-          className="w-full px-4 py-3 border-0 resize-none focus:ring-0 text-gray-700"
-          placeholder="Paste your product research here... (trends, product ideas, competitor analysis, etc.)" />
+        <div className="relative">
+          {isDragging && (
+            <div className="absolute inset-0 bg-amber-50 flex items-center justify-center z-10 pointer-events-none">
+              <div className="text-center">
+                <Archive className="h-12 w-12 text-amber-500 mx-auto mb-2" />
+                <p className="text-amber-600 font-medium">Drop files here</p>
+                <p className="text-amber-500 text-sm">.zip, .docx, .pdf, .txt, .md, .csv, .json</p>
+              </div>
+            </div>
+          )}
+          <textarea value={researchText} onChange={(e) => setResearchText(e.target.value)} rows={6}
+            className="w-full px-4 py-3 border-0 resize-none focus:ring-0 text-gray-700"
+            placeholder="Paste your product research here or drag & drop files... (trends, product ideas, competitor analysis, etc.)" />
+        </div>
         
         <div className="p-4 bg-gray-50 border-t flex justify-between items-center">
           <span className="text-sm text-gray-400">
