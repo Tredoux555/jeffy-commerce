@@ -109,13 +109,17 @@ export default function WantsPage() {
       });
       
       const data = await res.json();
+      console.log('Upload response:', data);
+      
       if (data.success) {
         return data.url;
       } else {
-        throw new Error(data.error || 'Upload failed');
+        setSubmitMessage({ type: 'error', text: data.error || 'Upload failed' });
+        return null;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
+      setSubmitMessage({ type: 'error', text: `Upload error: ${error?.message || 'Unknown'}` });
       return null;
     } finally {
       setUploadingImage(false);
