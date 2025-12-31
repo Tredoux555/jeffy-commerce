@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendZonePartnerWelcome } from '@/lib/email/resend';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -236,6 +237,17 @@ export async function POST(request: NextRequest) {
       .lt('position', newEntry.position);
 
     const zonePosition = (aheadInZone || 0) + 1;
+
+    // Send welcome email (non-blocking)
+    if (name) {
+      sendZonePartnerWelcome({
+        email: newEntry.email,
+        name: name,
+        zone: ZONE_CONFIG[zone_id]?.name || zone_id,
+        position: zonePosition,
+        referralCode: newEntry.referral_code
+      }).catch(err => console.error('Zone partner email failed:', err));
+    }
 
     return NextResponse.json({
       success: true,
