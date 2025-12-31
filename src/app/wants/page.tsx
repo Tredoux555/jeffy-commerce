@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, ThumbsUp, Plus, Search, TrendingUp, Package, CheckCircle, Gift, ChevronUp, X, Share2, MessageCircle, Filter, Users, Link2, Copy, Check, HelpCircle } from 'lucide-react';
+import { Loader2, Plus, Package, CheckCircle, Gift, X, MessageCircle, Filter, Users, Link2, Copy, Check, HelpCircle, ThumbsUp, ArrowRight, Sparkles, Heart, Share2, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 interface Want {
@@ -73,11 +73,9 @@ export default function WantsPage() {
   };
 
   const handlePopularityClick = async (wantId: string) => {
-    // Fun engagement metric - just increment locally for now
     setWants(prev => prev.map(w => 
       w.id === wantId ? { ...w, popularity_clicks: (w.popularity_clicks || 0) + 1 } : w
     ));
-    // Could also send to server but it's just a fun metric
   };
 
   const handleSubmitWant = async (e: React.FormEvent) => {
@@ -101,7 +99,6 @@ export default function WantsPage() {
       const data = await res.json();
 
       if (data.success) {
-        const shareLink = `https://jeffy.co.za/want/${data.want.id}?ref=${data.want.creator_referral_code}`;
         setSubmitMessage({ 
           type: 'success', 
           text: 'Product requested! Share your link to get verifications.',
@@ -140,21 +137,194 @@ export default function WantsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Product Requests</h1>
-            <p className="text-sm text-gray-500">Get 10 verifications → Jeffy sources it → You get it FREE!</p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
+      
+      {/* ============ SPLASH HERO ============ */}
+      <section className="min-h-[60vh] flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+        {/* Background glow */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500 rounded-full blur-[150px] opacity-20" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-[150px] opacity-15" />
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+            This isn&apos;t a store.
+            <br />
+            <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
+              It&apos;s a movement.
+            </span>
+          </h1>
+
+          <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto">
+            Jeffy is what happens when you strip away everything that makes retail expensive.
+          </p>
+        </div>
+      </section>
+
+      {/* ============ CO-CREATOR SECTION ============ */}
+      <section className="px-4 py-16 relative">
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-400 text-sm font-medium mb-8">
+            <Heart className="h-4 w-4" />
+            Your role to play
           </div>
-          <div className="flex items-center gap-2">
-            <Link
-              href="/wants/what-is-this"
-              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition"
-            >
-              <HelpCircle className="h-4 w-4" /> <span className="hidden sm:inline">What is this?</span>
-            </Link>
+
+          <h2 className="text-3xl md:text-5xl font-black mb-6">
+            You&apos;re not a customer.
+            <br />
+            <span className="text-orange-400">You&apos;re a co-creator.</span>
+          </h2>
+
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-12">
+            You help us build the catalogue with products people <span className="italic">actually</span> want.
+            Not what some buyer in Johannesburg thinks you want. What <span className="text-white font-semibold">you</span> want.
+          </p>
+
+          {/* The reward */}
+          <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl p-8 border border-green-500/30 max-w-xl mx-auto">
+            <p className="text-slate-400 text-lg mb-2">For your help?</p>
+            <p className="text-3xl font-black text-white">
+              Your product. <span className="text-green-400">100% free.</span>
+            </p>
+            <p className="text-lg text-slate-400 mt-2">Gratis. No strings attached.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ HOW IT WORKS ============ */}
+      <section className="px-4 py-16">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">All you need to do</p>
+            <h2 className="text-3xl md:text-4xl font-black">Prove there&apos;s demand.</h2>
+            <p className="text-xl text-slate-400 mt-2">We do the rest.</p>
+          </div>
+
+          {/* Steps */}
+          <div className="space-y-4">
+            <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">1</div>
+              <div>
+                <h3 className="font-bold mb-1">Request any product you want</h3>
+                <p className="text-slate-400 text-sm">Something you saw on TikTok. Something a friend has. Anything.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">2</div>
+              <div>
+                <h3 className="font-bold mb-1">Get your unique link</h3>
+                <p className="text-slate-400 text-sm">Every verification through it counts toward your goal.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">3</div>
+              <div>
+                <h3 className="font-bold mb-1">Share it with 10 people</h3>
+                <p className="text-slate-400 text-sm">Friends. Family. Your WhatsApp group.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">4</div>
+              <div>
+                <h3 className="font-bold mb-1">They verify they&apos;re real</h3>
+                <p className="text-slate-400 text-sm">Email or phone. Proving they&apos;re actual people with real interest.</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl p-5 border border-green-500/30">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shrink-0">
+                <Gift className="h-5 w-5 text-black" />
+              </div>
+              <div>
+                <h3 className="font-bold mb-1 text-green-400">You get your product free. It gets added to the catalogue.</h3>
+                <p className="text-slate-300 text-sm">You proved there&apos;s a market. You earned it.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FOR YOUR FRIENDS ============ */}
+      <section className="px-4 py-12">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 text-center">
+            <Users className="h-8 w-8 text-blue-400 mx-auto mb-4" />
+            <h3 className="text-xl font-bold mb-3">And your friends?</h3>
+            <p className="text-slate-300">
+              They can <span className="text-white font-semibold">preorder at a discount</span> — or create their own Want and get theirs free.
+            </p>
+            <p className="text-lg text-white font-semibold mt-4">
+              The loop continues. The catalogue grows. Prices drop.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ CTA TO CREATE WANT ============ */}
+      <section className="px-4 py-16">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-black mb-4">
+            Ready to request something?
+          </h2>
+          <p className="text-slate-400 mb-8">
+            Create your want, get your 10 verifications, and it&apos;s yours — 100% free.
+          </p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold text-xl px-10 py-5 rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105"
+          >
+            <Plus className="h-6 w-6" />
+            Create Your Want
+          </button>
+        </div>
+      </section>
+
+      {/* ============ ZONE PARTNER BONUS ============ */}
+      <section className="px-4 py-16">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-3xl p-8 border border-purple-500/30 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-[100px] opacity-20 pointer-events-none" />
+            
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/30 rounded-full text-purple-300 text-sm font-medium mb-4">
+                <Sparkles className="h-4 w-4" />
+                Bonus for early believers
+              </div>
+              
+              <h3 className="text-2xl font-black mb-4">Want more than a free product?</h3>
+              
+              <p className="text-slate-300 mb-2">
+                <span className="text-white font-bold">Become a Zone Partner.</span> Secure your territory. Build something real.
+              </p>
+              <p className="text-xl text-white font-black mb-6">
+                This could change your life. <span className="text-purple-400">Your destiny.</span>
+              </p>
+              
+              <Link 
+                href="/partner"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold px-6 py-3 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all hover:scale-105"
+              >
+                <MapPin className="h-5 w-5" />
+                See Zone Partner Opportunities
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ CURRENT WANTS LIST ============ */}
+      <section className="bg-gray-50 text-gray-900 rounded-t-[3rem] mt-8">
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-2xl font-bold">Current Wants</h2>
+              <p className="text-sm text-gray-500">Products people are rallying for</p>
+            </div>
             <button
               onClick={() => setShowForm(true)}
               className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 transition"
@@ -162,187 +332,123 @@ export default function WantsPage() {
               <Plus className="h-4 w-4" /> Request
             </button>
           </div>
-        </div>
-      </header>
 
-      {/* Stats Bar */}
-      <div className="bg-white border-b">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex gap-4 overflow-x-auto">
-          {[
-            { key: 'voting', label: 'Voting', count: stats.voting, icon: Users, color: 'text-blue-600' },
-            { key: 'sourcing', label: 'Being Sourced', count: stats.sourcing, icon: Package, color: 'text-amber-600' },
-            { key: 'available', label: 'Available', count: stats.available, icon: CheckCircle, color: 'text-green-600' },
-          ].map(({ key, label, count, icon: Icon, color }) => (
+          {/* Stats Bar */}
+          <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
+            {[
+              { key: 'voting', label: 'Voting', count: stats.voting, color: 'text-blue-600' },
+              { key: 'sourcing', label: 'Being Sourced', count: stats.sourcing, color: 'text-amber-600' },
+              { key: 'available', label: 'Available', count: stats.available, color: 'text-green-600' },
+            ].map(({ key, label, count, color }) => (
+              <button
+                key={key}
+                onClick={() => setFilter(key as any)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition text-sm ${
+                  filter === key ? 'bg-gray-200 font-medium' : 'bg-white hover:bg-gray-100'
+                }`}
+              >
+                <span className={color}>{label}</span>
+                <span className="text-gray-400">({count})</span>
+              </button>
+            ))}
             <button
-              key={key}
-              onClick={() => setFilter(key as any)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition ${
-                filter === key ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'
+              onClick={() => setFilter('all')}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap transition text-sm ${
+                filter === 'all' ? 'bg-gray-200 font-medium' : 'bg-white hover:bg-gray-100'
               }`}
             >
-              <Icon className={`h-4 w-4 ${color}`} />
-              <span>{label}</span>
-              <span className="text-gray-400">({count})</span>
-            </button>
-          ))}
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg whitespace-nowrap transition ${
-              filter === 'all' ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'
-            }`}
-          >
-            All
-          </button>
-        </div>
-      </div>
-
-      {/* Sort */}
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-        <p className="text-sm text-gray-500">{wants.length} products</p>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-400" />
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="text-sm border-0 bg-transparent focus:ring-0 text-gray-600"
-          >
-            <option value="votes">Most Progress</option>
-            <option value="newest">Newest</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Wants List */}
-      <div className="max-w-4xl mx-auto px-4 pb-24">
-        {loading ? (
-          <div className="text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto" />
-          </div>
-        ) : wants.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-2xl border">
-            <Gift className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No products in this category yet.</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="mt-4 text-orange-600 font-medium hover:underline"
-            >
-              Be the first to request one!
+              All
             </button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {wants.map((want) => {
-              const status = STATUS_CONFIG[want.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.voting;
-              const StatusIcon = status.icon;
-              const verifiedCount = want.verified_count || 0;
-              const progress = Math.min((verifiedCount / 10) * 100, 100);
-              const remaining = Math.max(0, 10 - verifiedCount);
 
-              return (
-                <div
-                  key={want.id}
-                  className="bg-white rounded-xl border p-4 hover:shadow-sm transition"
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Verification Count Display */}
-                    <div className="flex flex-col items-center min-w-[70px] p-3 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-100">
-                      <Users className="h-4 w-4 text-orange-500 mb-1" />
-                      <span className="font-bold text-xl text-gray-900">{verifiedCount}</span>
-                      <span className="text-[10px] text-gray-500 uppercase tracking-wide">verified</span>
-                    </div>
+          {/* Wants List */}
+          {loading ? (
+            <div className="text-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto" />
+            </div>
+          ) : wants.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-2xl border">
+              <Gift className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-500">No products in this category yet.</p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="mt-4 text-orange-600 font-medium hover:underline"
+              >
+                Be the first to request one!
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {wants.map((want) => {
+                const status = STATUS_CONFIG[want.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.voting;
+                const StatusIcon = status.icon;
+                const verifiedCount = want.verified_count || 0;
+                const progress = Math.min((verifiedCount / 10) * 100, 100);
+                const remaining = Math.max(0, 10 - verifiedCount);
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{want.product_name}</h3>
-                          {want.description && (
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-2">{want.description}</p>
-                          )}
-                        </div>
-                        <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
-                          <StatusIcon className="h-3 w-3" />
-                          {status.label}
-                        </span>
+                return (
+                  <div key={want.id} className="bg-white rounded-xl border p-4 hover:shadow-sm transition">
+                    <div className="flex items-start gap-4">
+                      <div className="flex flex-col items-center min-w-[60px] p-2 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                        <Users className="h-4 w-4 text-orange-500 mb-1" />
+                        <span className="font-bold text-lg text-gray-900">{verifiedCount}</span>
+                        <span className="text-[9px] text-gray-500 uppercase tracking-wide">verified</span>
                       </div>
 
-                      {/* Progress to 10 verifications */}
-                      {want.status === 'voting' && (
-                        <div className="mt-3">
-                          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                            <span>{verifiedCount}/10 verifications to source</span>
-                            <span>{remaining > 0 ? `${remaining} more needed` : '🎉 Ready!'}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{want.product_name}</h3>
+                            {want.description && (
+                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{want.description}</p>
+                            )}
                           </div>
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all"
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
+                          <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
+                            <StatusIcon className="h-3 w-3" />
+                            {status.label}
+                          </span>
                         </div>
-                      )}
 
-                      {/* Actions */}
-                      <div className="flex items-center gap-3 mt-3 flex-wrap">
-                        <span className="text-xs text-gray-400">{want.category}</span>
-                        
-                        {/* Share buttons */}
-                        <button
-                          onClick={() => copyShareLink(want)}
-                          className="text-xs text-gray-500 hover:text-orange-600 flex items-center gap-1"
-                        >
-                          {copiedId === want.id ? (
-                            <><Check className="h-3 w-3 text-green-500" /> Copied!</>
-                          ) : (
-                            <><Link2 className="h-3 w-3" /> Copy Link</>
-                          )}
-                        </button>
-                        <button
-                          onClick={() => shareViaWhatsApp(want)}
-                          className="text-xs text-gray-500 hover:text-green-600 flex items-center gap-1"
-                        >
-                          <MessageCircle className="h-3 w-3" /> WhatsApp
-                        </button>
+                        {want.status === 'voting' && (
+                          <div className="mt-3">
+                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                              <span>{verifiedCount}/10 verifications</span>
+                              <span>{remaining > 0 ? `${remaining} more needed` : '🎉 Ready!'}</span>
+                            </div>
+                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all" style={{ width: `${progress}%` }} />
+                            </div>
+                          </div>
+                        )}
 
-                        {/* Fun popularity metric */}
-                        <button
-                          onClick={() => handlePopularityClick(want.id)}
-                          className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 ml-auto"
-                        >
-                          <ThumbsUp className="h-3 w-3" /> {want.popularity_clicks || 0}
-                        </button>
+                        <div className="flex items-center gap-3 mt-3 flex-wrap">
+                          <span className="text-xs text-gray-400">{want.category}</span>
+                          <button onClick={() => copyShareLink(want)} className="text-xs text-gray-500 hover:text-orange-600 flex items-center gap-1">
+                            {copiedId === want.id ? <><Check className="h-3 w-3 text-green-500" /> Copied!</> : <><Link2 className="h-3 w-3" /> Copy Link</>}
+                          </button>
+                          <button onClick={() => shareViaWhatsApp(want)} className="text-xs text-gray-500 hover:text-green-600 flex items-center gap-1">
+                            <MessageCircle className="h-3 w-3" /> WhatsApp
+                          </button>
+                          <button onClick={() => handlePopularityClick(want.id)} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 ml-auto">
+                            <ThumbsUp className="h-3 w-3" /> {want.popularity_clicks || 0}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* First Requester Banner */}
-      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 px-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Gift className="h-5 w-5" />
-            <span className="font-medium text-sm sm:text-base">10 friends verify = Jeffy sources it = YOU get it FREE!</span>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-1.5 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 transition text-sm"
-          >
-            Request
-          </button>
+                );
+              })}
+            </div>
+          )}
         </div>
-      </div>
+      </section>
 
-      {/* New Want Modal */}
+      {/* ============ NEW WANT MODAL ============ */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white text-gray-900 rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Request a Product</h2>
+              <h2 className="text-xl font-bold">Create Your Want</h2>
               <button onClick={() => { setShowForm(false); setSubmitMessage(null); }} className="p-2 hover:bg-gray-100 rounded-lg">
                 <X className="h-5 w-5" />
               </button>
@@ -353,41 +459,24 @@ export default function WantsPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Product Requested!</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Want Created!</h3>
                 <p className="text-gray-500 mb-4">Now share your link to get 10 verifications.</p>
                 
-                {/* Share Link */}
                 <div className="bg-gray-50 rounded-xl p-4 mb-4">
                   <p className="text-xs text-gray-500 mb-2">Your verification link:</p>
                   <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      readOnly
-                      value={getShareLink(submitMessage.want)}
-                      className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm"
-                    />
-                    <button
-                      onClick={() => copyShareLink(submitMessage.want!)}
-                      className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
-                    >
+                    <input type="text" readOnly value={getShareLink(submitMessage.want)} className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm" />
+                    <button onClick={() => copyShareLink(submitMessage.want!)} className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
                       <Copy className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => shareViaWhatsApp(submitMessage.want!)}
-                    className="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2"
-                  >
-                    <MessageCircle className="h-5 w-5" /> Share on WhatsApp
-                  </button>
-                </div>
+                <button onClick={() => shareViaWhatsApp(submitMessage.want!)} className="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2">
+                  <MessageCircle className="h-5 w-5" /> Share on WhatsApp
+                </button>
 
-                <button
-                  onClick={() => { setShowForm(false); setSubmitMessage(null); }}
-                  className="w-full mt-3 py-2 text-gray-500 hover:bg-gray-100 rounded-lg"
-                >
+                <button onClick={() => { setShowForm(false); setSubmitMessage(null); }} className="w-full mt-3 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">
                   Done
                 </button>
               </div>
@@ -398,19 +487,13 @@ export default function WantsPage() {
                   {submitMessage.similar?.map((s) => (
                     <div key={s.id} className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
                       <span className="font-medium">{s.product_name}</span>
-                      <button
-                        onClick={() => { shareViaWhatsApp(s); setShowForm(false); }}
-                        className="text-orange-600 font-medium text-sm"
-                      >
+                      <button onClick={() => { shareViaWhatsApp(s); setShowForm(false); }} className="text-orange-600 font-medium text-sm">
                         Share ({s.verified_count || 0}/10)
                       </button>
                     </div>
                   ))}
                 </div>
-                <button
-                  onClick={() => setSubmitMessage(null)}
-                  className="w-full py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-                >
+                <button onClick={() => setSubmitMessage(null)} className="w-full py-2 text-gray-600 hover:bg-gray-100 rounded-lg">
                   Request Anyway
                 </button>
               </div>
@@ -475,19 +558,13 @@ export default function WantsPage() {
                   <p className="text-sm text-red-600">{submitMessage.text}</p>
                 )}
 
-                <div className="bg-purple-50 rounded-xl p-4">
-                  <p className="text-sm text-purple-800">
-                    <strong>How it works:</strong> Request a product → Share your link with 10 friends → They verify → Jeffy sources it → You get it FREE!
-                  </p>
-                </div>
-
                 <button
                   type="submit"
                   disabled={submitting}
                   className="w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
-                  {submitting ? 'Submitting...' : 'Submit Request'}
+                  {submitting ? 'Creating...' : 'Create Want'}
                 </button>
               </form>
             )}
