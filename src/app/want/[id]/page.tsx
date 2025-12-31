@@ -13,6 +13,7 @@ interface Want {
   verified_count: number;
   status: string;
   creator_referral_code: string;
+  image_url?: string | null;
 }
 
 export default function WantVerificationPage() {
@@ -297,42 +298,57 @@ export default function WantVerificationPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-8">
-        {/* Product Card */}
-        <div className="bg-white rounded-2xl p-6 mb-6">
-          <div className="flex items-start gap-3 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center shrink-0">
-              <Gift className="h-6 w-6 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Someone wants your opinion on:</p>
-              <h1 className="text-xl font-bold text-gray-900">{want.product_name}</h1>
-              {want.description && (
-                <p className="text-gray-500 text-sm mt-1">{want.description}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Progress */}
-          <div className="bg-gray-50 rounded-xl p-4">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-gray-400" />
-                <span className="text-gray-600">Verification Progress</span>
-              </div>
-              <span className="font-bold text-gray-900">{want.verified_count}/10</span>
-            </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all"
-                style={{ width: `${progress}%` }}
+        {/* Product Card with Image */}
+        <div className="bg-white rounded-2xl overflow-hidden mb-6">
+          {/* Product Image */}
+          {want.image_url && (
+            <div className="w-full aspect-video bg-gray-100 relative">
+              <img 
+                src={want.image_url} 
+                alt={want.product_name}
+                className="w-full h-full object-contain"
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {remaining > 0 
-                ? `${remaining} more ${remaining === 1 ? 'person' : 'people'} needed to source this product`
-                : '🎉 Threshold reached! Being sourced now.'
-              }
-            </p>
+          )}
+          
+          <div className="p-6">
+            <div className="flex items-start gap-3 mb-4">
+              {!want.image_url && (
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center shrink-0">
+                  <Gift className="h-6 w-6 text-orange-600" />
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-gray-500 mb-1">Someone wants your opinion on:</p>
+                <h1 className="text-xl font-bold text-gray-900">{want.product_name}</h1>
+                {want.description && (
+                  <p className="text-gray-500 text-sm mt-1">{want.description}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Progress */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-gray-400" />
+                  <span className="text-gray-600">Verification Progress</span>
+                </div>
+                <span className="font-bold text-gray-900">{want.verified_count}/10</span>
+              </div>
+              <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {remaining > 0 
+                  ? `${remaining} more ${remaining === 1 ? 'person' : 'people'} needed to source this product`
+                  : '🎉 Threshold reached! Being sourced now.'
+                }
+              </p>
+            </div>
           </div>
         </div>
 

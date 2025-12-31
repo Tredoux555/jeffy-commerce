@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2, Plus, Package, CheckCircle, Gift, X, MessageCircle, Filter, Users, Link2, Copy, Check, HelpCircle, ThumbsUp, ArrowRight, Sparkles, Heart, Share2, MapPin } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Loader2, Plus, Package, CheckCircle, Gift, X, MessageCircle, Filter, Users, Link2, Copy, Check, HelpCircle, ThumbsUp, ArrowRight, Sparkles, Heart, Share2, MapPin, Camera, ImagePlus } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface Want {
   id: string;
@@ -14,6 +15,7 @@ interface Want {
   popularity_clicks: number;
   status: string;
   creator_referral_code: string;
+  image_url?: string;
   created_at: string;
 }
 
@@ -22,12 +24,6 @@ interface Stats {
   sourcing: number;
   available: number;
 }
-
-const STATUS_CONFIG = {
-  voting: { label: 'Voting', color: 'bg-blue-100 text-blue-700', icon: ThumbsUp },
-  sourcing: { label: 'Being Sourced', color: 'bg-amber-100 text-amber-700', icon: Package },
-  available: { label: 'Available!', color: 'bg-green-100 text-green-700', icon: CheckCircle },
-};
 
 export default function WantsPage() {
   const [wants, setWants] = useState<Want[]>([]);
@@ -40,8 +36,12 @@ export default function WantsPage() {
   // New want form
   const [showForm, setShowForm] = useState(false);
   const [newWant, setNewWant] = useState({ product_name: '', description: '', category: 'General', email: '' });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error' | 'similar'; text: string; similar?: Want[]; want?: Want } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load email from localStorage
   useEffect(() => {
@@ -72,20 +72,74 @@ export default function WantsPage() {
     }
   };
 
-  const handlePopularityClick = async (wantId: string) => {
-    setWants(prev => prev.map(w => 
-      w.id === wantId ? { ...w, popularity_clicks: (w.popularity_clicks || 0) + 1 } : w
-    ));
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setSubmitMessage({ type: 'error', text: 'Please select an image file' });
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setSubmitMessage({ type: 'error', text: 'Image must be under 5MB' });
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setSubmitMessage(null);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null;
+    
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', imageFile);
+      
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      const data = await res.json();
+      if (data.success) {
+        return data.url;
+      } else {
+        throw new Error(data.error || 'Upload failed');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleSubmitWant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWant.product_name || !newWant.email) return;
+    
+    // Require image
+    if (!imageFile) {
+      setSubmitMessage({ type: 'error', text: 'Please upload a photo of the product you want' });
+      return;
+    }
 
     setSubmitting(true);
     setSubmitMessage(null);
 
     try {
+      // Upload image first
+      const imageUrl = await uploadImage();
+      if (!imageUrl) {
+        setSubmitMessage({ type: 'error', text: 'Failed to upload image. Please try again.' });
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch('/api/wants/public', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,7 +147,8 @@ export default function WantsPage() {
           product_name: newWant.product_name,
           description: newWant.description,
           category: newWant.category,
-          user_email: newWant.email
+          user_email: newWant.email,
+          image_url: imageUrl
         })
       });
       const data = await res.json();
@@ -105,6 +160,8 @@ export default function WantsPage() {
           want: data.want
         });
         setNewWant({ product_name: '', description: '', category: 'General', email: newWant.email });
+        setImageFile(null);
+        setImagePreview(null);
         localStorage.setItem('jeffy_voter_email', newWant.email);
         fetchWants();
       } else if (data.similar) {
@@ -134,6 +191,13 @@ export default function WantsPage() {
     const link = getShareLink(want);
     const message = `🛒 I want "${want.product_name}" on Jeffy! If 10 people verify, they'll source it and I get mine FREE! Would you buy this too? ${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  const resetForm = () => {
+    setShowForm(false);
+    setSubmitMessage(null);
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   return (
@@ -290,136 +354,13 @@ export default function WantsPage() {
         </div>
       </section>
 
-      {/* ============ WANTS LIST - STORED FOR LATER USE ============ */}
-      {/* Moving to storage - page should end at Zone Partner bonus */}
-      {false && (stats.voting + stats.sourcing + stats.available > 0) && (
-      <section className="bg-gray-50 text-gray-900 rounded-t-[3rem] mt-8">
-        <div className="max-w-4xl mx-auto px-4 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">Wants</h2>
-              <p className="text-sm text-gray-500">Products people are rallying for</p>
-            </div>
-          </div>
-
-          {/* Stats Bar */}
-          <div className="flex gap-3 mb-6 overflow-x-auto pb-2">
-            {[
-              { key: 'voting', label: 'Voting', count: stats.voting, color: 'text-blue-600' },
-              { key: 'sourcing', label: 'Being Sourced', count: stats.sourcing, color: 'text-amber-600' },
-              { key: 'available', label: 'Available', count: stats.available, color: 'text-green-600' },
-            ].map(({ key, label, count, color }) => (
-              <button
-                key={key}
-                onClick={() => setFilter(key as any)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition text-sm ${
-                  filter === key ? 'bg-gray-200 font-medium' : 'bg-white hover:bg-gray-100'
-                }`}
-              >
-                <span className={color}>{label}</span>
-                <span className="text-gray-400">({count})</span>
-              </button>
-            ))}
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap transition text-sm ${
-                filter === 'all' ? 'bg-gray-200 font-medium' : 'bg-white hover:bg-gray-100'
-              }`}
-            >
-              All
-            </button>
-          </div>
-
-          {/* Wants List */}
-          {loading ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto" />
-            </div>
-          ) : wants.length === 0 ? (
-            <div className="text-center py-12 bg-white rounded-2xl border">
-              <Gift className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">No products in this category yet.</p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="mt-4 text-orange-600 font-medium hover:underline"
-              >
-                Be the first to request one!
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {wants.map((want) => {
-                const status = STATUS_CONFIG[want.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.voting;
-                const StatusIcon = status.icon;
-                const verifiedCount = want.verified_count || 0;
-                const progress = Math.min((verifiedCount / 10) * 100, 100);
-                const remaining = Math.max(0, 10 - verifiedCount);
-
-                return (
-                  <div key={want.id} className="bg-white rounded-xl border p-4 hover:shadow-sm transition">
-                    <div className="flex items-start gap-4">
-                      <div className="flex flex-col items-center min-w-[60px] p-2 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-100">
-                        <Users className="h-4 w-4 text-orange-500 mb-1" />
-                        <span className="font-bold text-lg text-gray-900">{verifiedCount}</span>
-                        <span className="text-[9px] text-gray-500 uppercase tracking-wide">verified</span>
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <h3 className="font-semibold text-gray-900">{want.product_name}</h3>
-                            {want.description && (
-                              <p className="text-sm text-gray-500 mt-1 line-clamp-2">{want.description}</p>
-                            )}
-                          </div>
-                          <span className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
-                            <StatusIcon className="h-3 w-3" />
-                            {status.label}
-                          </span>
-                        </div>
-
-                        {want.status === 'voting' && (
-                          <div className="mt-3">
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                              <span>{verifiedCount}/10 verifications</span>
-                              <span>{remaining > 0 ? `${remaining} more needed` : '🎉 Ready!'}</span>
-                            </div>
-                            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all" style={{ width: `${progress}%` }} />
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-3 mt-3 flex-wrap">
-                          <span className="text-xs text-gray-400">{want.category}</span>
-                          <button onClick={() => copyShareLink(want)} className="text-xs text-gray-500 hover:text-orange-600 flex items-center gap-1">
-                            {copiedId === want.id ? <><Check className="h-3 w-3 text-green-500" /> Copied!</> : <><Link2 className="h-3 w-3" /> Copy Link</>}
-                          </button>
-                          <button onClick={() => shareViaWhatsApp(want)} className="text-xs text-gray-500 hover:text-green-600 flex items-center gap-1">
-                            <MessageCircle className="h-3 w-3" /> WhatsApp
-                          </button>
-                          <button onClick={() => handlePopularityClick(want.id)} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 ml-auto">
-                            <ThumbsUp className="h-3 w-3" /> {want.popularity_clicks || 0}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </section>
-      )}
-
       {/* ============ NEW WANT MODAL ============ */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white text-gray-900 rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Create Your Want</h2>
-              <button onClick={() => { setShowForm(false); setSubmitMessage(null); }} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-lg">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -454,7 +395,7 @@ export default function WantsPage() {
                 </div>
 
                 <button 
-                  onClick={() => { setShowForm(false); setSubmitMessage(null); }} 
+                  onClick={resetForm} 
                   className="w-full py-3 mt-4 border border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50"
                 >
                   Done
@@ -482,20 +423,62 @@ export default function WantsPage() {
                   ))}
                 </div>
 
-                <Link
-                  href="/wants/explore"
-                  className="w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold rounded-xl hover:shadow-lg flex items-center justify-center gap-2 mb-3"
-                >
-                  <Sparkles className="h-5 w-5" /> Explore All Wants
-                </Link>
-                <p className="text-xs text-gray-400 mb-4">Vote on products, discover what others want</p>
-
                 <button onClick={() => setSubmitMessage(null)} className="w-full py-2 text-gray-500 hover:bg-gray-100 rounded-lg text-sm">
                   ← Request something different
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmitWant} className="space-y-4">
+                {/* Image Upload - Required */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Photo *</label>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="hidden"
+                  />
+                  
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-48 object-cover rounded-xl border-2 border-orange-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { setImageFile(null); setImagePreview(null); }}
+                        className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-md hover:bg-gray-100"
+                      >
+                        <X className="h-4 w-4 text-gray-600" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute bottom-2 right-2 px-3 py-1 bg-white/90 rounded-lg text-sm font-medium hover:bg-white"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full h-48 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center gap-3 hover:border-orange-400 hover:bg-orange-50/50 transition-colors"
+                    >
+                      <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                        <Camera className="h-6 w-6 text-orange-500" />
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium text-gray-700">Upload a screenshot</p>
+                        <p className="text-sm text-gray-500">Take a photo or screenshot of the product</p>
+                      </div>
+                    </button>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
                   <input
@@ -557,11 +540,20 @@ export default function WantsPage() {
 
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || uploadingImage}
                   className="w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
-                  {submitting ? 'Creating...' : 'Create Want'}
+                  {submitting || uploadingImage ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      {uploadingImage ? 'Uploading image...' : 'Creating...'}
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-5 w-5" />
+                      Create Want
+                    </>
+                  )}
                 </button>
               </form>
             )}

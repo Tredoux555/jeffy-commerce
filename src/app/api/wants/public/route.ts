@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
 // POST - Submit a new want
 export async function POST(request: NextRequest) {
   try {
-    const { product_name, description, category, user_email, user_name } = await request.json();
+    const { product_name, description, category, user_email, user_name, image_url } = await request.json();
 
     if (!product_name || !user_email) {
       return NextResponse.json({ error: 'Product name and email required' }, { status: 400 });
@@ -163,6 +163,7 @@ export async function POST(request: NextRequest) {
         is_public: true,
         first_requester_rewarded: false,
         creator_email: normalizedEmail,
+        image_url: image_url || null,
       })
       .select('*, creator_referral_code')
       .single();

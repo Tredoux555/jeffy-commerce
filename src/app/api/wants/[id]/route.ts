@@ -30,6 +30,7 @@ export async function GET(
         popularity_clicks,
         status,
         creator_referral_code,
+        image_url,
         created_at,
         is_public
       `)
@@ -63,6 +64,7 @@ export async function GET(
         popularity_clicks: want.popularity_clicks || 0,
         status: want.status,
         creator_referral_code: want.creator_referral_code,
+        image_url: want.image_url,
         created_at: want.created_at,
         remaining: Math.max(0, 10 - (want.verified_count || 0)),
         progress: Math.min(((want.verified_count || 0) / 10) * 100, 100),
