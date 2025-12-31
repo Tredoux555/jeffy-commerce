@@ -305,7 +305,7 @@ export default function WantsPage() {
         <div className="max-w-4xl mx-auto px-4 py-12">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold">Current Wants</h2>
+              <h2 className="text-2xl font-bold">Wants</h2>
               <p className="text-sm text-gray-500">Products people are rallying for</p>
             </div>
             <button
