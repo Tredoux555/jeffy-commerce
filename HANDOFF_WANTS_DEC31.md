@@ -1,7 +1,24 @@
 # JEFFY WANTS SYSTEM - HANDOFF DEC 31, 2025
 
 ## LATEST COMMIT
-`aa295de` - Revert admin/wants to working version
+`6bfdd6d` - Add debug logging to verification API + accept both voting and active status
+
+## KNOWN ISSUES
+
+### 1. Verification API Failing (Screenshot: 20:48)
+- Error: "Failed to create verification"
+- 400 and 500 errors from `/api/wants/request-verification`
+- Added debug logging to track down issue
+- Also fixed: Now accepts both `voting` AND `active` status for backwards compatibility
+- **Check Railway logs** after next attempt to see actual error
+
+### 2. Schema Mismatch (OLD vs NEW)
+- OLD: `title`, `current_agrees`, `threshold`, `status: 'active'`
+- NEW: `product_name`, `verified_count`, `status: 'voting'`  
+- Admin page uses OLD, public API uses NEW
+- Verification API now accepts BOTH statuses
+
+---
 
 ## WHAT'S LIVE AND WORKING
 
@@ -60,26 +77,20 @@ CREATE INDEX IF NOT EXISTS idx_magic_links_expires ON magic_links(expires_at);
 
 ---
 
-## SCHEMA MISMATCH ISSUE
+## DEBUGGING THE VERIFICATION ERROR
 
-There are TWO schemas in play:
+1. Try to verify again on `/want/[id]?ref=...`
+2. Check Railway logs in real-time
+3. Look for these log lines:
+   - `Verification request:` - shows what was received
+   - `Want lookup:` - shows if want was found and its status
+   - `Insert verification error:` - shows DB error details
+   - `Email send result:` - shows if Resend API failed
 
-**OLD Schema (admin page expects):**
-- `title` (product name)
-- `current_agrees` (verification count)
-- `threshold` (default 10)
-- `status: 'active'`
-
-**NEW Schema (public wants API uses):**
-- `product_name`
-- `verified_count`
-- `status: 'voting'`
-
-The `/admin/wants` page was broken because I tried to merge them. I reverted it to the old working version. 
-
-**TODO:** Either:
-1. Migrate all old data to new schema, OR
-2. Update admin page to handle both schemas properly (I attempted this but it broke)
+Possible causes:
+- `want_verifications` table not created (run migration 007)
+- Resend API key missing or invalid
+- Email domain not verified in Resend
 
 ---
 
@@ -95,17 +106,8 @@ The `/admin/wants` page was broken because I tried to merge them. I reverted it 
 
 ### Modified:
 - `/src/app/wants/page.tsx` - Hidden wants list, updated duplicate flow
-- `/src/app/admin/wants/page.tsx` - REVERTED to original
-
----
-
-## NEXT STEPS
-
-1. **Run the SQL** for magic_links table
-2. **Test `/my-wants`** flow end-to-end
-3. **Decide on schema migration** - new vs old
-4. **Admin wants page** needs to work with new schema
-5. **Success modal on mobile** still showing old version - may need cache clear or redeploy
+- `/src/app/admin/wants/page.tsx` - REVERTED to original  
+- `/src/app/api/wants/request-verification/route.ts` - Added logging, accepts voting+active
 
 ---
 
@@ -115,6 +117,7 @@ The `/admin/wants` page was broken because I tried to merge them. I reverted it 
 - Explore/vote: `https://jeffy.co.za/wants/explore`
 - User dashboard: `https://jeffy.co.za/my-wants`
 - Admin: `https://jeffy.co.za/admin/wants`
+- Verify want: `https://jeffy.co.za/want/[id]?ref=[code]`
 
 ---
 
