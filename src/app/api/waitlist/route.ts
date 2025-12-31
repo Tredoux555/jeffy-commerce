@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendWaitlistWelcome } from '@/lib/email/resend';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -128,6 +129,18 @@ export async function POST(request: NextRequest) {
       .from('waitlist')
       .select('*', { count: 'exact', head: true });
 
+    const rewardTier = getRewardTier(0);
+
+    // Send welcome email (non-blocking)
+    sendWaitlistWelcome({
+      email: newEntry.email,
+      name: name || undefined,
+      position: newEntry.position,
+      referralCode: newEntry.referral_code,
+      referralCount: 0,
+      rewardTier
+    }).catch(err => console.error('Email send failed:', err));
+
     return NextResponse.json({
       success: true,
       user: {
@@ -135,7 +148,7 @@ export async function POST(request: NextRequest) {
         position: newEntry.position,
         referralCode: newEntry.referral_code,
         referralCount: 0,
-        rewardTier: getRewardTier(0),
+        rewardTier,
         referredBy: referrerId ? true : false
       },
       totalWaitlist: totalCount || 0
