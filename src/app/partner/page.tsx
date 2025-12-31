@@ -11,7 +11,7 @@ export default function WhatIsJeffyPage() {
         {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500 rounded-full blur-[150px] opacity-20" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500 rounded-full blur-[150px] opacity-20" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-[150px] opacity-15" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto text-center">
@@ -23,15 +23,17 @@ export default function WhatIsJeffyPage() {
 
           {/* Main headline */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-            This isn&apos;t a store.
+            The system wasn&apos;t built for you.
             <br />
             <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              It&apos;s a movement.
+              So we built a new one.
             </span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-300 max-w-2xl mx-auto">
-            Jeffy is what happens when you strip away everything that makes retail expensive.
+          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            Jeffy is retail, rebuilt from the ground up. No middlemen. No corporate overhead. 
+            <br className="hidden md:block" />
+            <span className="text-white font-semibold">Just real people building real businesses in their communities.</span>
           </p>
         </div>
       </section>
