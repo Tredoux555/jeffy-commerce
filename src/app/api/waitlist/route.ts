@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Waitlist insert error:', error);
-      return NextResponse.json({ error: 'Failed to join waitlist', debug: error.message, code: error.code }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to join waitlist' }, { status: 500 });
     }
 
     // Get total count for position
