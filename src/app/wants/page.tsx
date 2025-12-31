@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, ThumbsUp, Plus, Search, TrendingUp, Package, CheckCircle, Gift, ChevronUp, X, Share2, MessageCircle, Filter } from 'lucide-react';
+import { Loader2, ThumbsUp, Plus, Search, TrendingUp, Package, CheckCircle, Gift, ChevronUp, X, Share2, MessageCircle, Filter, Users, Link2, Copy, Check, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
 
 interface Want {
   id: string;
@@ -9,7 +10,10 @@ interface Want {
   description: string | null;
   category: string;
   vote_count: number;
+  verified_count: number;
+  popularity_clicks: number;
   status: string;
+  creator_referral_code: string;
   created_at: string;
 }
 
@@ -31,26 +35,19 @@ export default function WantsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'voting' | 'sourcing' | 'available'>('voting');
   const [sortBy, setSortBy] = useState<'votes' | 'newest'>('votes');
-  const [voterEmail, setVoterEmail] = useState('');
-  const [votedIds, setVotedIds] = useState<Set<string>>(new Set());
-  const [voting, setVoting] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   
   // New want form
   const [showForm, setShowForm] = useState(false);
   const [newWant, setNewWant] = useState({ product_name: '', description: '', category: 'General', email: '' });
   const [submitting, setSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error' | 'similar'; text: string; similar?: Want[] } | null>(null);
+  const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error' | 'similar'; text: string; similar?: Want[]; want?: Want } | null>(null);
 
   // Load email from localStorage
   useEffect(() => {
     const stored = localStorage.getItem('jeffy_voter_email');
     if (stored) {
-      setVoterEmail(stored);
       setNewWant(prev => ({ ...prev, email: stored }));
-    }
-    const storedVotes = localStorage.getItem('jeffy_voted_wants');
-    if (storedVotes) {
-      setVotedIds(new Set(JSON.parse(storedVotes)));
     }
   }, []);
 
@@ -75,43 +72,12 @@ export default function WantsPage() {
     }
   };
 
-  const handleVote = async (wantId: string) => {
-    if (!voterEmail) {
-      // Prompt for email
-      const email = prompt('Enter your email to vote:');
-      if (!email || !email.includes('@')) return;
-      setVoterEmail(email);
-      localStorage.setItem('jeffy_voter_email', email);
-    }
-
-    setVoting(wantId);
-    try {
-      const res = await fetch('/api/wants/vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ want_id: wantId, voter_email: voterEmail })
-      });
-      const data = await res.json();
-
-      if (data.success) {
-        // Update local state
-        setWants(prev => prev.map(w => 
-          w.id === wantId ? { ...w, vote_count: data.want.vote_count, status: data.want.status } : w
-        ));
-        setVotedIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(wantId);
-          localStorage.setItem('jeffy_voted_wants', JSON.stringify([...newSet]));
-          return newSet;
-        });
-      } else if (data.alreadyVoted) {
-        setVotedIds(prev => new Set(prev).add(wantId));
-      }
-    } catch (error) {
-      console.error('Vote error:', error);
-    } finally {
-      setVoting(null);
-    }
+  const handlePopularityClick = async (wantId: string) => {
+    // Fun engagement metric - just increment locally for now
+    setWants(prev => prev.map(w => 
+      w.id === wantId ? { ...w, popularity_clicks: (w.popularity_clicks || 0) + 1 } : w
+    ));
+    // Could also send to server but it's just a fun metric
   };
 
   const handleSubmitWant = async (e: React.FormEvent) => {
@@ -135,12 +101,15 @@ export default function WantsPage() {
       const data = await res.json();
 
       if (data.success) {
-        setSubmitMessage({ type: 'success', text: 'Product requested! Share it to get votes.' });
+        const shareLink = `https://jeffy.co.za/want/${data.want.id}?ref=${data.want.creator_referral_code}`;
+        setSubmitMessage({ 
+          type: 'success', 
+          text: 'Product requested! Share your link to get verifications.',
+          want: data.want
+        });
         setNewWant({ product_name: '', description: '', category: 'General', email: newWant.email });
         localStorage.setItem('jeffy_voter_email', newWant.email);
-        setVoterEmail(newWant.email);
         fetchWants();
-        setTimeout(() => setShowForm(false), 2000);
       } else if (data.similar) {
         setSubmitMessage({ type: 'similar', text: data.message, similar: data.similar });
       } else {
@@ -153,9 +122,20 @@ export default function WantsPage() {
     }
   };
 
-  const shareWant = (want: Want) => {
-    const url = `https://jeffy.co.za/wants?highlight=${want.id}`;
-    const message = `🔥 I want "${want.product_name}" on Jeffy! Vote to help make it happen: ${url}`;
+  const getShareLink = (want: Want) => {
+    return `https://jeffy.co.za/want/${want.id}?ref=${want.creator_referral_code}`;
+  };
+
+  const copyShareLink = async (want: Want) => {
+    const link = getShareLink(want);
+    await navigator.clipboard.writeText(link);
+    setCopiedId(want.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const shareViaWhatsApp = (want: Want) => {
+    const link = getShareLink(want);
+    const message = `🛒 I want "${want.product_name}" on Jeffy! If 10 people verify, they'll source it and I get mine FREE! Would you buy this too? ${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -166,14 +146,22 @@ export default function WantsPage() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Product Requests</h1>
-            <p className="text-sm text-gray-500">Vote for products you want. First requester gets it FREE!</p>
+            <p className="text-sm text-gray-500">Get 10 verifications → Jeffy sources it → You get it FREE!</p>
           </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white font-medium rounded-xl hover:bg-amber-600 transition"
-          >
-            <Plus className="h-4 w-4" /> Request
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/wants/what-is-this"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 font-medium rounded-xl hover:bg-slate-200 transition"
+            >
+              <HelpCircle className="h-4 w-4" /> <span className="hidden sm:inline">What is this?</span>
+            </Link>
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white font-medium rounded-xl hover:bg-orange-600 transition"
+            >
+              <Plus className="h-4 w-4" /> Request
+            </button>
+          </div>
         </div>
       </header>
 
@@ -181,7 +169,7 @@ export default function WantsPage() {
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-3 flex gap-4 overflow-x-auto">
           {[
-            { key: 'voting', label: 'Voting', count: stats.voting, icon: ThumbsUp, color: 'text-blue-600' },
+            { key: 'voting', label: 'Voting', count: stats.voting, icon: Users, color: 'text-blue-600' },
             { key: 'sourcing', label: 'Being Sourced', count: stats.sourcing, icon: Package, color: 'text-amber-600' },
             { key: 'available', label: 'Available', count: stats.available, icon: CheckCircle, color: 'text-green-600' },
           ].map(({ key, label, count, icon: Icon, color }) => (
@@ -218,17 +206,17 @@ export default function WantsPage() {
             onChange={(e) => setSortBy(e.target.value as any)}
             className="text-sm border-0 bg-transparent focus:ring-0 text-gray-600"
           >
-            <option value="votes">Most Votes</option>
+            <option value="votes">Most Progress</option>
             <option value="newest">Newest</option>
           </select>
         </div>
       </div>
 
       {/* Wants List */}
-      <div className="max-w-4xl mx-auto px-4 pb-8">
+      <div className="max-w-4xl mx-auto px-4 pb-24">
         {loading ? (
           <div className="text-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-amber-500 mx-auto" />
+            <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto" />
           </div>
         ) : wants.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl border">
@@ -236,7 +224,7 @@ export default function WantsPage() {
             <p className="text-gray-500">No products in this category yet.</p>
             <button
               onClick={() => setShowForm(true)}
-              className="mt-4 text-amber-600 font-medium hover:underline"
+              className="mt-4 text-orange-600 font-medium hover:underline"
             >
               Be the first to request one!
             </button>
@@ -246,9 +234,9 @@ export default function WantsPage() {
             {wants.map((want) => {
               const status = STATUS_CONFIG[want.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.voting;
               const StatusIcon = status.icon;
-              const hasVoted = votedIds.has(want.id);
-              const isVoting = voting === want.id;
-              const progress = Math.min((want.vote_count / 10) * 100, 100);
+              const verifiedCount = want.verified_count || 0;
+              const progress = Math.min((verifiedCount / 10) * 100, 100);
+              const remaining = Math.max(0, 10 - verifiedCount);
 
               return (
                 <div
@@ -256,25 +244,12 @@ export default function WantsPage() {
                   className="bg-white rounded-xl border p-4 hover:shadow-sm transition"
                 >
                   <div className="flex items-start gap-4">
-                    {/* Vote Button */}
-                    <button
-                      onClick={() => !hasVoted && handleVote(want.id)}
-                      disabled={hasVoted || isVoting || want.status !== 'voting'}
-                      className={`flex flex-col items-center min-w-[60px] p-2 rounded-xl transition ${
-                        hasVoted
-                          ? 'bg-amber-100 text-amber-600'
-                          : want.status !== 'voting'
-                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          : 'bg-gray-100 text-gray-600 hover:bg-amber-100 hover:text-amber-600'
-                      }`}
-                    >
-                      {isVoting ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        <ChevronUp className={`h-5 w-5 ${hasVoted ? 'text-amber-600' : ''}`} />
-                      )}
-                      <span className="font-bold text-lg">{want.vote_count}</span>
-                    </button>
+                    {/* Verification Count Display */}
+                    <div className="flex flex-col items-center min-w-[70px] p-3 bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl border border-orange-100">
+                      <Users className="h-4 w-4 text-orange-500 mb-1" />
+                      <span className="font-bold text-xl text-gray-900">{verifiedCount}</span>
+                      <span className="text-[10px] text-gray-500 uppercase tracking-wide">verified</span>
+                    </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
@@ -291,16 +266,16 @@ export default function WantsPage() {
                         </span>
                       </div>
 
-                      {/* Progress to 50 votes */}
+                      {/* Progress to 10 verifications */}
                       {want.status === 'voting' && (
                         <div className="mt-3">
                           <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                            <span>{want.vote_count}/10 votes to source</span>
-                            <span>{Math.round(progress)}%</span>
+                            <span>{verifiedCount}/10 verifications to source</span>
+                            <span>{remaining > 0 ? `${remaining} more needed` : '🎉 Ready!'}</span>
                           </div>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-gradient-to-r from-amber-400 to-amber-500 transition-all"
+                              className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all"
                               style={{ width: `${progress}%` }}
                             />
                           </div>
@@ -308,13 +283,33 @@ export default function WantsPage() {
                       )}
 
                       {/* Actions */}
-                      <div className="flex items-center gap-3 mt-3">
+                      <div className="flex items-center gap-3 mt-3 flex-wrap">
                         <span className="text-xs text-gray-400">{want.category}</span>
+                        
+                        {/* Share buttons */}
                         <button
-                          onClick={() => shareWant(want)}
-                          className="text-xs text-gray-500 hover:text-amber-600 flex items-center gap-1"
+                          onClick={() => copyShareLink(want)}
+                          className="text-xs text-gray-500 hover:text-orange-600 flex items-center gap-1"
                         >
-                          <MessageCircle className="h-3 w-3" /> Share
+                          {copiedId === want.id ? (
+                            <><Check className="h-3 w-3 text-green-500" /> Copied!</>
+                          ) : (
+                            <><Link2 className="h-3 w-3" /> Copy Link</>
+                          )}
+                        </button>
+                        <button
+                          onClick={() => shareViaWhatsApp(want)}
+                          className="text-xs text-gray-500 hover:text-green-600 flex items-center gap-1"
+                        >
+                          <MessageCircle className="h-3 w-3" /> WhatsApp
+                        </button>
+
+                        {/* Fun popularity metric */}
+                        <button
+                          onClick={() => handlePopularityClick(want.id)}
+                          className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 ml-auto"
+                        >
+                          <ThumbsUp className="h-3 w-3" /> {want.popularity_clicks || 0}
                         </button>
                       </div>
                     </div>
@@ -331,13 +326,13 @@ export default function WantsPage() {
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Gift className="h-5 w-5" />
-            <span className="font-medium">First person to request a product gets it FREE when sourced!</span>
+            <span className="font-medium text-sm sm:text-base">10 friends verify = Jeffy sources it = YOU get it FREE!</span>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-1.5 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 transition"
+            className="px-4 py-1.5 bg-white text-purple-600 font-medium rounded-lg hover:bg-purple-50 transition text-sm"
           >
-            Request Now
+            Request
           </button>
         </div>
       </div>
@@ -345,15 +340,58 @@ export default function WantsPage() {
       {/* New Want Modal */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl w-full max-w-md p-6">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Request a Product</h2>
-              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+              <button onClick={() => { setShowForm(false); setSubmitMessage(null); }} className="p-2 hover:bg-gray-100 rounded-lg">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            {submitMessage?.type === 'similar' ? (
+            {submitMessage?.type === 'success' && submitMessage.want ? (
+              <div className="text-center">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Product Requested!</h3>
+                <p className="text-gray-500 mb-4">Now share your link to get 10 verifications.</p>
+                
+                {/* Share Link */}
+                <div className="bg-gray-50 rounded-xl p-4 mb-4">
+                  <p className="text-xs text-gray-500 mb-2">Your verification link:</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readOnly
+                      value={getShareLink(submitMessage.want)}
+                      className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm"
+                    />
+                    <button
+                      onClick={() => copyShareLink(submitMessage.want!)}
+                      className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => shareViaWhatsApp(submitMessage.want!)}
+                    className="flex-1 py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle className="h-5 w-5" /> Share on WhatsApp
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => { setShowForm(false); setSubmitMessage(null); }}
+                  className="w-full mt-3 py-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+                >
+                  Done
+                </button>
+              </div>
+            ) : submitMessage?.type === 'similar' ? (
               <div>
                 <p className="text-amber-600 mb-4">{submitMessage.text}</p>
                 <div className="space-y-2 mb-4">
@@ -361,10 +399,10 @@ export default function WantsPage() {
                     <div key={s.id} className="p-3 bg-gray-50 rounded-lg flex items-center justify-between">
                       <span className="font-medium">{s.product_name}</span>
                       <button
-                        onClick={() => { handleVote(s.id); setShowForm(false); }}
-                        className="text-amber-600 font-medium text-sm"
+                        onClick={() => { shareViaWhatsApp(s); setShowForm(false); }}
+                        className="text-orange-600 font-medium text-sm"
                       >
-                        Vote ({s.vote_count})
+                        Share ({s.verified_count || 0}/10)
                       </button>
                     </div>
                   ))}
@@ -385,7 +423,7 @@ export default function WantsPage() {
                     value={newWant.product_name}
                     onChange={(e) => setNewWant(prev => ({ ...prev, product_name: e.target.value }))}
                     placeholder="e.g., Stanley 40oz Tumbler Dupe"
-                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
                 </div>
@@ -397,7 +435,7 @@ export default function WantsPage() {
                     onChange={(e) => setNewWant(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Any specific features or details..."
                     rows={2}
-                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
                 </div>
 
@@ -406,7 +444,7 @@ export default function WantsPage() {
                   <select
                     value={newWant.category}
                     onChange={(e) => setNewWant(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   >
                     <option>General</option>
                     <option>Drinkware</option>
@@ -427,22 +465,26 @@ export default function WantsPage() {
                     value={newWant.email}
                     onChange={(e) => setNewWant(prev => ({ ...prev, email: e.target.value }))}
                     placeholder="you@example.com"
-                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">We&apos;ll notify you when it&apos;s available + you get it FREE!</p>
+                  <p className="text-xs text-gray-500 mt-1">We&apos;ll notify you when it&apos;s sourced + you get it FREE!</p>
                 </div>
 
-                {submitMessage && (
-                  <p className={`text-sm ${submitMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
-                    {submitMessage.text}
-                  </p>
+                {submitMessage?.type === 'error' && (
+                  <p className="text-sm text-red-600">{submitMessage.text}</p>
                 )}
+
+                <div className="bg-purple-50 rounded-xl p-4">
+                  <p className="text-sm text-purple-800">
+                    <strong>How it works:</strong> Request a product → Share your link with 10 friends → They verify → Jeffy sources it → You get it FREE!
+                  </p>
+                </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Plus className="h-5 w-5" />}
                   {submitting ? 'Submitting...' : 'Submit Request'}

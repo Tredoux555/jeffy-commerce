@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('wants')
-    .select('*')
+    .select('id, product_name, description, category, vote_count, verified_count, popularity_clicks, status, creator_referral_code, created_at, first_requester_rewarded')
     .eq('is_public', true);
 
   if (status !== 'all') {
@@ -124,11 +124,14 @@ export async function POST(request: NextRequest) {
         category: category || 'General',
         user_id: userId,
         vote_count: 1,
+        verified_count: 0,
+        popularity_clicks: 0,
         status: 'voting',
         is_public: true,
-        first_requester_rewarded: false
+        first_requester_rewarded: false,
+        creator_email: user_email.toLowerCase(),
       })
-      .select()
+      .select('*, creator_referral_code')
       .single();
 
     if (error) {
