@@ -90,6 +90,22 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = user_email.toLowerCase().trim();
 
+    // Check if user already has a want
+    const { data: existingWant } = await supabase
+      .from('wants')
+      .select('id, product_name')
+      .eq('creator_email', normalizedEmail)
+      .limit(1)
+      .single();
+
+    if (existingWant) {
+      return NextResponse.json({
+        success: false,
+        error: `You already have an active want: "${existingWant.product_name}". Get 10 verifications on it first!`,
+        existingWant
+      }, { status: 400 });
+    }
+
     // Check for duplicates
     const { data: existing } = await supabase
       .from('wants')
