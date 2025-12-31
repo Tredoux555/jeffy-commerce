@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No session' }, { status: 401 });
     }
 
-    // Find session
+    // Find session - FIXED: using user_sessions table
     const { data: session, error: sessionError } = await supabase
-      .from('sessions')
+      .from('user_sessions')
       .select('user_id, expires_at')
       .eq('token', token)
       .single();
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     // Check expiration
     if (new Date(session.expires_at) < new Date()) {
       // Delete expired session
-      await supabase.from('sessions').delete().eq('token', token);
+      await supabase.from('user_sessions').delete().eq('token', token);
       return NextResponse.json({ success: false, error: 'Session expired' }, { status: 401 });
     }
 
@@ -75,7 +75,7 @@ export async function DELETE(request: NextRequest) {
     const token = authHeader?.replace('Bearer ', '');
 
     if (token) {
-      await supabase.from('sessions').delete().eq('token', token);
+      await supabase.from('user_sessions').delete().eq('token', token);
     }
 
     return NextResponse.json({ success: true });

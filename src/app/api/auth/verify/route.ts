@@ -99,14 +99,19 @@ export async function POST(request: NextRequest) {
     const sessionToken = createHash('sha256').update(user.id + Date.now().toString() + Math.random()).digest('hex');
     const sessionExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
 
-    // Store session
-    await supabase
-      .from('sessions')
+    // Store session - FIXED: using user_sessions table with error handling
+    const { error: sessionError } = await supabase
+      .from('user_sessions')
       .insert({
         user_id: user.id,
         token: sessionToken,
         expires_at: sessionExpires.toISOString(),
       });
+
+    if (sessionError) {
+      console.error('Session creation failed:', sessionError);
+      return NextResponse.json({ success: false, error: 'Failed to create session' }, { status: 500 });
+    }
 
     return NextResponse.json({ 
       success: true, 
