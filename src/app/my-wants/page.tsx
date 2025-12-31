@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, CheckCircle, Users, Copy, MessageCircle, Gift, ArrowRight, Share2, LogOut, Package, ExternalLink } from 'lucide-react';
+import { Loader2, CheckCircle, Users, Copy, MessageCircle, Gift, ArrowRight, Share2, LogOut, Package, ExternalLink, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface Want {
@@ -28,35 +28,61 @@ export default function MyWantsPage() {
   const [user, setUser] = useState<User | null>(null);
   const [wants, setWants] = useState<Want[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   useEffect(() => {
     checkAuth();
   }, []);
 
   const checkAuth = async () => {
+    console.log('[MY-WANTS] Starting auth check...');
+    setDebugInfo('Checking auth...');
+    
     const token = localStorage.getItem('jeffy_session');
+    console.log('[MY-WANTS] Token from localStorage:', token ? token.substring(0, 10) + '...' : 'NONE');
     
     if (!token) {
-      router.push('/login');
+      console.log('[MY-WANTS] No token found, redirecting to login');
+      setAuthError('No session found');
+      setDebugInfo('No token in localStorage');
+      setTimeout(() => router.push('/login'), 2000);
       return;
     }
 
     try {
+      setDebugInfo('Calling /api/auth/me...');
+      console.log('[MY-WANTS] Calling /api/auth/me...');
+      
       const res = await fetch('/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          'Cache-Control': 'no-cache'
+        },
+        cache: 'no-store',
       });
+      
       const data = await res.json();
+      console.log('[MY-WANTS] Response:', data);
 
       if (data.success) {
+        console.log('[MY-WANTS] Auth successful, user:', data.user.email);
         setUser(data.user);
         setWants(data.wants || []);
+        setDebugInfo('');
       } else {
-        // Invalid session
+        console.log('[MY-WANTS] Auth failed:', data.error);
+        setAuthError(data.error || 'Invalid session');
+        setDebugInfo(`Auth failed: ${data.error}`);
+        // Clear invalid session
         localStorage.removeItem('jeffy_session');
-        router.push('/login');
+        setTimeout(() => router.push('/login'), 2000);
       }
-    } catch (err) {
-      router.push('/login');
+    } catch (err: any) {
+      console.error('[MY-WANTS] Fetch error:', err);
+      setAuthError('Connection error');
+      setDebugInfo(`Error: ${err.message}`);
+      setTimeout(() => router.push('/login'), 2000);
     } finally {
       setLoading(false);
     }
@@ -91,10 +117,31 @@ export default function MyWantsPage() {
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  // Show loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-orange-500 mx-auto mb-4" />
+          {debugInfo && <p className="text-slate-500 text-sm">{debugInfo}</p>}
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth error with details
+  if (authError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
+          <AlertCircle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">Session Issue</h1>
+          <p className="text-gray-500 mb-4">{authError}</p>
+          <p className="text-sm text-gray-400 mb-6">Redirecting to login...</p>
+          {debugInfo && (
+            <p className="text-xs text-gray-400 bg-gray-100 p-2 rounded">{debugInfo}</p>
+          )}
+        </div>
       </div>
     );
   }

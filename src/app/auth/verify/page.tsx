@@ -21,6 +21,7 @@ export default function VerifyPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     if (token) {
@@ -33,7 +34,10 @@ export default function VerifyPage() {
 
   const validateToken = async () => {
     try {
-      const res = await fetch(`/api/auth/verify?token=${token}`);
+      const res = await fetch(`/api/auth/verify?token=${token}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       const data = await res.json();
 
       if (data.success) {
@@ -66,28 +70,63 @@ export default function VerifyPage() {
     setError(null);
 
     try {
+      console.log('[VERIFY PAGE] Submitting password...');
+      
       const res = await fetch('/api/auth/verify', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
         body: JSON.stringify({ token, password }),
+        cache: 'no-store',
       });
 
       const data = await res.json();
+      console.log('[VERIFY PAGE] Response:', data);
 
       if (data.success) {
         // Store session token
-        localStorage.setItem('jeffy_session', data.sessionToken);
+        const sessionToken = data.sessionToken;
+        console.log('[VERIFY PAGE] Session token received:', sessionToken?.substring(0, 10) + '...');
+        
+        if (!sessionToken) {
+          console.error('[VERIFY PAGE] No session token in response!');
+          setError('Server error: No session token received');
+          return;
+        }
+
+        // Store in localStorage
+        localStorage.setItem('jeffy_session', sessionToken);
+        
+        // Verify it was stored
+        const storedToken = localStorage.getItem('jeffy_session');
+        console.log('[VERIFY PAGE] Token stored:', storedToken?.substring(0, 10) + '...');
+        console.log('[VERIFY PAGE] Token match:', storedToken === sessionToken);
+        
+        if (storedToken !== sessionToken) {
+          console.error('[VERIFY PAGE] Token storage mismatch!');
+          setError('Failed to save session. Please try again.');
+          return;
+        }
+
+        setDebugInfo(data.debug);
         setSuccess(true);
         
         // Redirect to my-wants after a moment
+        console.log('[VERIFY PAGE] Will redirect in 2 seconds...');
         setTimeout(() => {
+          // Double-check token is still there before redirect
+          const finalCheck = localStorage.getItem('jeffy_session');
+          console.log('[VERIFY PAGE] Final token check before redirect:', !!finalCheck);
           router.push('/my-wants');
         }, 2000);
       } else {
         setError(data.error || 'Failed to set password');
       }
-    } catch (err) {
-      setError('Server error');
+    } catch (err: any) {
+      console.error('[VERIFY PAGE] Error:', err);
+      setError('Server error: ' + (err.message || 'Unknown'));
     } finally {
       setSubmitting(false);
     }
@@ -126,6 +165,15 @@ export default function VerifyPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Account Verified! 🎉</h1>
           <p className="text-gray-500 mb-4">Redirecting to your dashboard...</p>
           <Loader2 className="h-6 w-6 animate-spin text-orange-500 mx-auto" />
+          
+          {/* Debug info */}
+          {debugInfo && (
+            <div className="mt-4 p-2 bg-gray-100 rounded text-xs text-left text-gray-600">
+              <p>Session created: {debugInfo.sessionCreated ? '✓' : '✗'}</p>
+              <p>Session verified: {debugInfo.sessionVerified ? '✓' : '✗'}</p>
+              <p>Token length: {debugInfo.tokenLength}</p>
+            </div>
+          )}
         </div>
       </div>
     );

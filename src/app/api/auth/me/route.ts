@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic - no caching
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -8,41 +12,65 @@ const supabase = createClient(
 
 // GET - Get current user from session token
 export async function GET(request: NextRequest) {
+  console.log('[AUTH/ME] Request received');
+  
   try {
     const authHeader = request.headers.get('authorization');
     const token = authHeader?.replace('Bearer ', '');
 
+    console.log('[AUTH/ME] Token:', token ? token.substring(0, 10) + '...' : 'MISSING');
+
     if (!token) {
-      return NextResponse.json({ success: false, error: 'No session' }, { status: 401 });
+      return createResponse({ success: false, error: 'No session' }, 401);
     }
 
-    // Find session - FIXED: using user_sessions table
+    // Find session
+    console.log('[AUTH/ME] Looking up session in user_sessions...');
     const { data: session, error: sessionError } = await supabase
       .from('user_sessions')
       .select('user_id, expires_at')
       .eq('token', token)
       .single();
 
+    console.log('[AUTH/ME] Session lookup:', { 
+      found: !!session, 
+      userId: session?.user_id,
+      error: sessionError?.message,
+      errorCode: sessionError?.code
+    });
+
     if (sessionError || !session) {
-      return NextResponse.json({ success: false, error: 'Invalid session' }, { status: 401 });
+      // Log more details about the error
+      console.log('[AUTH/ME] Session not found. Token length:', token.length);
+      
+      // Try to see if ANY sessions exist
+      const { count } = await supabase
+        .from('user_sessions')
+        .select('*', { count: 'exact', head: true });
+      console.log('[AUTH/ME] Total sessions in table:', count);
+      
+      return createResponse({ success: false, error: 'Invalid session' }, 401);
     }
 
     // Check expiration
     if (new Date(session.expires_at) < new Date()) {
-      // Delete expired session
+      console.log('[AUTH/ME] Session expired');
       await supabase.from('user_sessions').delete().eq('token', token);
-      return NextResponse.json({ success: false, error: 'Session expired' }, { status: 401 });
+      return createResponse({ success: false, error: 'Session expired' }, 401);
     }
 
     // Get user
+    console.log('[AUTH/ME] Looking up user:', session.user_id);
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, email, name')
       .eq('id', session.user_id)
       .single();
 
+    console.log('[AUTH/ME] User lookup:', { found: !!user, error: userError?.message });
+
     if (userError || !user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 });
+      return createResponse({ success: false, error: 'User not found' }, 404);
     }
 
     // Get user's wants
@@ -52,7 +80,9 @@ export async function GET(request: NextRequest) {
       .eq('creator_email', user.email)
       .order('created_at', { ascending: false });
 
-    return NextResponse.json({ 
+    console.log('[AUTH/ME] Success! User:', user.email, 'Wants:', wants?.length || 0);
+
+    return createResponse({ 
       success: true, 
       user: {
         id: user.id,
@@ -60,11 +90,11 @@ export async function GET(request: NextRequest) {
         name: user.name
       },
       wants: wants || []
-    });
+    }, 200);
 
-  } catch (error) {
-    console.error('Me error:', error);
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+  } catch (error: any) {
+    console.error('[AUTH/ME] Fatal error:', error);
+    return createResponse({ success: false, error: 'Server error' }, 500);
   }
 }
 
@@ -78,8 +108,17 @@ export async function DELETE(request: NextRequest) {
       await supabase.from('user_sessions').delete().eq('token', token);
     }
 
-    return NextResponse.json({ success: true });
+    return createResponse({ success: true }, 200);
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+    return createResponse({ success: false, error: 'Server error' }, 500);
   }
+}
+
+// Helper to create response with no-cache headers
+function createResponse(data: any, status: number) {
+  const response = NextResponse.json(data, { status });
+  response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  response.headers.set('Pragma', 'no-cache');
+  response.headers.set('Expires', '0');
+  return response;
 }
