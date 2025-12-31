@@ -82,6 +82,8 @@ export async function POST(request: NextRequest) {
   try {
     const { product_name, description, category, user_email, user_name, image_url } = await request.json();
 
+    console.log('Creating want:', { product_name, user_email, image_url: !!image_url });
+
     if (!product_name || !user_email) {
       return NextResponse.json({ error: 'Product name and email required' }, { status: 400 });
     }
@@ -113,6 +115,8 @@ export async function POST(request: NextRequest) {
 
     const isNewUser = !existingUser;
     const needsVerification = !existingUser?.email_verified || !existingUser?.password_hash;
+
+    console.log('User status:', { isNewUser, needsVerification, existingUserId: existingUser?.id });
 
     // Generate verification token for new/unverified users
     const verificationToken = needsVerification ? generateToken() : null;
@@ -173,6 +177,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create want' }, { status: 500 });
     }
 
+    console.log('Want created:', want.id);
+
     // Add creator's vote (ignore errors if table doesn't exist)
     try {
       await supabase.from('want_votes').insert({
@@ -183,17 +189,19 @@ export async function POST(request: NextRequest) {
       // Ignore
     }
 
-    // Send verification email if user needs to set up account
-    if (needsVerification && verificationToken) {
-      const verifyUrl = `${SITE_URL}/auth/verify?token=${verificationToken}`;
-      const shareUrl = `${SITE_URL}/want/${want.id}?ref=${want.creator_referral_code}`;
+    // ALWAYS send email - different content based on user status
+    const shareUrl = `${SITE_URL}/want/${want.id}?ref=${want.creator_referral_code}`;
+    const verifyUrl = verificationToken ? `${SITE_URL}/auth/verify?token=${verificationToken}` : null;
+    const dashboardUrl = `${SITE_URL}/my-wants`;
 
-      try {
-        await resend.emails.send({
-          from: 'Jeffy <hello@jeffy.co.za>',
-          to: normalizedEmail,
-          subject: `Your Want "${product_name}" is live! 🎉`,
-          html: `
+    try {
+      console.log('Sending email to:', normalizedEmail);
+      
+      const emailResult = await resend.emails.send({
+        from: 'Jeffy <hello@jeffy.co.za>',
+        to: normalizedEmail,
+        subject: `Your Want "${product_name}" is live! 🎉`,
+        html: `
 <!DOCTYPE html>
 <html>
 <head>
@@ -236,14 +244,25 @@ export async function POST(request: NextRequest) {
       </div>
 
       <div style="border-top: 1px solid #334155; padding-top: 24px; margin-top: 24px;">
+        ${needsVerification ? `
         <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
-          Want to track your verifications? Set up your account:
+          Set up your account to track verifications:
         </p>
         <div style="text-align: center;">
           <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">
             Set Up My Account →
           </a>
         </div>
+        ` : `
+        <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
+          Track your verifications in your dashboard:
+        </p>
+        <div style="text-align: center;">
+          <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">
+            View My Wants →
+          </a>
+        </div>
+        `}
       </div>
 
     </div>
@@ -257,12 +276,13 @@ export async function POST(request: NextRequest) {
   </div>
 </body>
 </html>
-          `,
-        });
-      } catch (emailError) {
-        console.error('Failed to send verification email:', emailError);
-        // Don't fail the request if email fails
-      }
+        `,
+      });
+      
+      console.log('Email sent:', emailResult);
+    } catch (emailError) {
+      console.error('Failed to send email:', emailError);
+      // Don't fail the request if email fails
     }
 
     return NextResponse.json({
@@ -270,8 +290,8 @@ export async function POST(request: NextRequest) {
       want,
       message: needsVerification 
         ? 'Want created! Check your email to set up your account and track verifications.'
-        : 'Product requested! Share it to get verifications.',
-      emailSent: needsVerification
+        : 'Product requested! Check your email for your share link.',
+      emailSent: true
     });
 
   } catch (error) {
