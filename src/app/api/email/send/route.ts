@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY || '');
+  }
+  return resend;
+}
 
 // Email templates
 const TEMPLATES = {
@@ -264,7 +271,7 @@ export async function POST(request: NextRequest) {
 
     const template = TEMPLATES[type as TemplateType](data);
 
-    const { data: result, error } = await resend.emails.send({
+    const { data: result, error } = await getResend().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'Jeffy Commerce <noreply@jeffy.co.za>',
       to: [to],
       subject: template.subject,
