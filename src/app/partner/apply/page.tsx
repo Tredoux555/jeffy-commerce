@@ -4,44 +4,114 @@ import { useState } from 'react';
 import { ArrowLeft, Check, Loader2, MapPin, Shield, Award, GraduationCap } from 'lucide-react';
 import Link from 'next/link';
 
-const ZONES = [
-  { id: 'jhb-north', name: 'Johannesburg North', region: 'Gauteng' },
-  { id: 'jhb-south', name: 'Johannesburg South', region: 'Gauteng' },
-  { id: 'sandton', name: 'Sandton', region: 'Gauteng' },
-  { id: 'soweto', name: 'Soweto', region: 'Gauteng' },
-  { id: 'pretoria', name: 'Pretoria', region: 'Gauteng' },
-  { id: 'east-rand', name: 'East Rand', region: 'Gauteng' },
-  { id: 'west-rand', name: 'West Rand', region: 'Gauteng' },
-  { id: 'cpt-cbd', name: 'Cape Town CBD', region: 'Western Cape' },
-  { id: 'cape-flats', name: 'Cape Flats', region: 'Western Cape' },
-  { id: 'cpt-northern', name: 'Northern Suburbs', region: 'Western Cape' },
-  { id: 'winelands', name: 'Winelands', region: 'Western Cape' },
-  { id: 'dbn-central', name: 'Durban Central', region: 'KwaZulu-Natal' },
-  { id: 'dbn-north', name: 'Durban North', region: 'KwaZulu-Natal' },
-  { id: 'pmb', name: 'Pietermaritzburg', region: 'KwaZulu-Natal' },
-  { id: 'pe', name: 'Port Elizabeth', region: 'Eastern Cape' },
-  { id: 'bloem', name: 'Bloemfontein', region: 'Free State' },
-  { id: 'polokwane', name: 'Polokwane', region: 'Limpopo' },
+const PROVINCES = [
+  { id: 'gauteng', name: 'Gauteng' },
+  { id: 'western-cape', name: 'Western Cape' },
+  { id: 'kwazulu-natal', name: 'KwaZulu-Natal' },
+  { id: 'eastern-cape', name: 'Eastern Cape' },
+  { id: 'free-state', name: 'Free State' },
+  { id: 'limpopo', name: 'Limpopo' },
+  { id: 'mpumalanga', name: 'Mpumalanga' },
+  { id: 'north-west', name: 'North West' },
+  { id: 'northern-cape', name: 'Northern Cape' },
 ];
 
-// Group zones by region
-const groupedZones = ZONES.reduce((acc, zone) => {
-  if (!acc[zone.region]) acc[zone.region] = [];
-  acc[zone.region].push(zone);
-  return acc;
-}, {} as Record<string, typeof ZONES>);
+const CITIES: Record<string, { id: string; name: string }[]> = {
+  'gauteng': [
+    { id: 'johannesburg', name: 'Johannesburg' },
+    { id: 'pretoria', name: 'Pretoria' },
+    { id: 'soweto', name: 'Soweto' },
+    { id: 'sandton', name: 'Sandton' },
+    { id: 'midrand', name: 'Midrand' },
+    { id: 'centurion', name: 'Centurion' },
+    { id: 'benoni', name: 'Benoni' },
+    { id: 'boksburg', name: 'Boksburg' },
+    { id: 'germiston', name: 'Germiston' },
+    { id: 'roodepoort', name: 'Roodepoort' },
+    { id: 'krugersdorp', name: 'Krugersdorp' },
+    { id: 'randburg', name: 'Randburg' },
+    { id: 'other-gauteng', name: 'Other' },
+  ],
+  'western-cape': [
+    { id: 'cape-town', name: 'Cape Town' },
+    { id: 'stellenbosch', name: 'Stellenbosch' },
+    { id: 'paarl', name: 'Paarl' },
+    { id: 'george', name: 'George' },
+    { id: 'worcester', name: 'Worcester' },
+    { id: 'somerset-west', name: 'Somerset West' },
+    { id: 'bellville', name: 'Bellville' },
+    { id: 'other-wc', name: 'Other' },
+  ],
+  'kwazulu-natal': [
+    { id: 'durban', name: 'Durban' },
+    { id: 'pietermaritzburg', name: 'Pietermaritzburg' },
+    { id: 'newcastle', name: 'Newcastle' },
+    { id: 'richards-bay', name: 'Richards Bay' },
+    { id: 'ballito', name: 'Ballito' },
+    { id: 'umhlanga', name: 'Umhlanga' },
+    { id: 'other-kzn', name: 'Other' },
+  ],
+  'eastern-cape': [
+    { id: 'port-elizabeth', name: 'Port Elizabeth / Gqeberha' },
+    { id: 'east-london', name: 'East London' },
+    { id: 'mthatha', name: 'Mthatha' },
+    { id: 'grahamstown', name: 'Grahamstown / Makhanda' },
+    { id: 'other-ec', name: 'Other' },
+  ],
+  'free-state': [
+    { id: 'bloemfontein', name: 'Bloemfontein' },
+    { id: 'welkom', name: 'Welkom' },
+    { id: 'kroonstad', name: 'Kroonstad' },
+    { id: 'other-fs', name: 'Other' },
+  ],
+  'limpopo': [
+    { id: 'polokwane', name: 'Polokwane' },
+    { id: 'tzaneen', name: 'Tzaneen' },
+    { id: 'mokopane', name: 'Mokopane' },
+    { id: 'musina', name: 'Musina' },
+    { id: 'other-lp', name: 'Other' },
+  ],
+  'mpumalanga': [
+    { id: 'nelspruit', name: 'Nelspruit / Mbombela' },
+    { id: 'witbank', name: 'Witbank / Emalahleni' },
+    { id: 'secunda', name: 'Secunda' },
+    { id: 'other-mp', name: 'Other' },
+  ],
+  'north-west': [
+    { id: 'rustenburg', name: 'Rustenburg' },
+    { id: 'potchefstroom', name: 'Potchefstroom' },
+    { id: 'klerksdorp', name: 'Klerksdorp' },
+    { id: 'mahikeng', name: 'Mahikeng' },
+    { id: 'other-nw', name: 'Other' },
+  ],
+  'northern-cape': [
+    { id: 'kimberley', name: 'Kimberley' },
+    { id: 'upington', name: 'Upington' },
+    { id: 'other-nc', name: 'Other' },
+  ],
+};
 
 export default function ApplyPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    zone: '',
+    province: '',
+    city: '',
+    area: '',
     why: ''
   });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
+
+  const handleProvinceChange = (province: string) => {
+    setFormData({ ...formData, province, city: '', area: '' });
+  };
+
+  const handleCityChange = (city: string) => {
+    setFormData({ ...formData, city, area: '' });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +121,8 @@ export default function ApplyPage() {
     setError('');
 
     try {
+      const zoneDescription = `${formData.province} > ${formData.city} > ${formData.area}`;
+      
       const res = await fetch('/api/zone-partners', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,7 +130,7 @@ export default function ApplyPage() {
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          zone_id: formData.zone,
+          zone_id: zoneDescription,
           message: formData.why
         })
       });
@@ -88,8 +160,7 @@ export default function ApplyPage() {
             Application Received
           </h1>
           <p className="text-slate-300 text-lg mb-8">
-            We&apos;ll review your application carefully. If you&apos;re selected, 
-            we&apos;ll be in touch soon.
+            We&apos;ll review your application and contact you to discuss the specifics of your zone.
           </p>
           <p className="text-slate-400 mb-8">
             Not everyone will be accepted. Zone Partners are chosen, not just registered.
@@ -195,30 +266,61 @@ export default function ApplyPage() {
               />
             </div>
 
-            {/* Zone Selection */}
+            {/* Province */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Preferred Zone</label>
+              <label className="block text-sm font-semibold mb-2">Province</label>
               <select
-                value={formData.zone}
-                onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
+                value={formData.province}
+                onChange={(e) => handleProvinceChange(e.target.value)}
                 className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
                 required
               >
-                <option value="">Select a zone...</option>
-                {Object.entries(groupedZones).map(([region, zones]) => (
-                  <optgroup key={region} label={region}>
-                    {zones.map((zone) => (
-                      <option key={zone.id} value={zone.id}>
-                        {zone.name}
-                      </option>
-                    ))}
-                  </optgroup>
+                <option value="">Select a province...</option>
+                {PROVINCES.map((province) => (
+                  <option key={province.id} value={province.id}>
+                    {province.name}
+                  </option>
                 ))}
               </select>
-              <p className="text-xs text-slate-500 mt-2">
-                Zones are first-come, first-served. Early applicants get first pick.
-              </p>
             </div>
+
+            {/* City/Town */}
+            {formData.province && (
+              <div>
+                <label className="block text-sm font-semibold mb-2">City / Town</label>
+                <select
+                  value={formData.city}
+                  onChange={(e) => handleCityChange(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  required
+                >
+                  <option value="">Select a city/town...</option>
+                  {CITIES[formData.province]?.map((city) => (
+                    <option key={city.id} value={city.id}>
+                      {city.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Area */}
+            {formData.city && (
+              <div>
+                <label className="block text-sm font-semibold mb-2">Area / Suburb</label>
+                <input
+                  type="text"
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                  className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all"
+                  placeholder="e.g., Bryanston, Sea Point, Umhlanga Rocks..."
+                  required
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  We&apos;ll contact you to discuss the specific boundaries of your zone.
+                </p>
+              </div>
+            )}
 
             {/* Why */}
             <div>
