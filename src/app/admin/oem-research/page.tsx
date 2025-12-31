@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Factory, Save, Zap, Trash2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, FileText, Upload, File, Archive, Loader2 } from 'lucide-react';
+import { Factory, Save, Zap, Trash2, Copy, Check, ExternalLink, ChevronDown, ChevronUp, FileText, Upload, File, Archive, Loader2, Brain, TrendingUp, DollarSign } from 'lucide-react';
 
 interface OEMResearch {
   id: string;
@@ -13,12 +13,31 @@ interface OEMResearch {
   tags: string[] | null;
 }
 
-interface AnalyzedProduct {
+interface ExtractedProduct {
   name: string;
+  chineseKeyword: string;
+  chineseKeywordAlt: string;
   category: string;
-  chineseKeywords: string[];
-  searchUrls: { url: string; keyword: string }[];
-  priceRange: { margin: string } | null;
+  estimatedRetailUSD: string;
+  estimated1688CostUSD: string;
+  marginPercent: number;
+  demandSignals: string[];
+  moqEstimate: string;
+  competitionLevel: string;
+  recommendation: string;
+  searchUrls: {
+    primary: string;
+    factory: string;
+    oem: string;
+  };
+}
+
+interface AnalysisSummary {
+  totalProducts: number;
+  categories: string[];
+  averageMargin: number;
+  highMarginCount: number;
+  totalSearchLinks: number;
 }
 
 interface ExtractedFileInfo {
@@ -35,7 +54,7 @@ export default function OEMResearchPage() {
   const [researchName, setResearchName] = useState('');
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState<string | null>(null);
-  const [analyzedResults, setAnalyzedResults] = useState<Record<string, AnalyzedProduct[]>>({});
+  const [analyzedResults, setAnalyzedResults] = useState<Record<string, { products: ExtractedProduct[]; summary: AnalysisSummary }>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -127,10 +146,10 @@ export default function OEMResearchPage() {
     }
   };
 
-  const handleAnalyze = async (id: string, text: string) => {
+  const handleAIAnalyze = async (id: string, text: string) => {
     setAnalyzing(id);
     try {
-      const res = await fetch('/api/admin/oem-research/analyze', {
+      const res = await fetch('/api/admin/oem-research/ai-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ research_text: text }),
@@ -138,11 +157,17 @@ export default function OEMResearchPage() {
 
       const data = await res.json();
       if (data.success) {
-        setAnalyzedResults(prev => ({ ...prev, [id]: data.products }));
+        setAnalyzedResults(prev => ({ 
+          ...prev, 
+          [id]: { products: data.products, summary: data.summary }
+        }));
         setExpandedId(id);
+      } else {
+        alert(`Analysis failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error analyzing:', error);
+      alert('Analysis failed - check console');
     } finally {
       setAnalyzing(null);
     }
@@ -169,12 +194,37 @@ export default function OEMResearchPage() {
     setTimeout(() => setCopiedUrl(null), 2000);
   };
 
-  const copyAllLinks = async (products: AnalyzedProduct[]) => {
+  const copyAllLinks = async (products: ExtractedProduct[]) => {
     const allLinks = products
-      .flatMap(p => p.searchUrls.map(u => u.url))
+      .flatMap(p => [p.searchUrls.primary, p.searchUrls.factory, p.searchUrls.oem])
       .join('\n');
     await navigator.clipboard.writeText(allLinks);
-    alert(`Copied ${products.flatMap(p => p.searchUrls).length} links!`);
+    alert(`Copied ${products.length * 3} links!`);
+  };
+
+  const exportToCSV = (products: ExtractedProduct[]) => {
+    const headers = ['Product', 'Chinese Keyword', 'Category', 'Retail USD', '1688 Cost', 'Margin %', 'Competition', 'MOQ', 'Primary URL', 'Factory URL', 'OEM URL'];
+    const rows = products.map(p => [
+      p.name,
+      p.chineseKeyword,
+      p.category,
+      p.estimatedRetailUSD,
+      p.estimated1688CostUSD,
+      p.marginPercent,
+      p.competitionLevel,
+      p.moqEstimate,
+      p.searchUrls.primary,
+      p.searchUrls.factory,
+      p.searchUrls.oem
+    ]);
+    
+    const csv = [headers, ...rows].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `1688-products-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
   };
 
   // Drag and drop handlers
@@ -192,14 +242,12 @@ export default function OEMResearchPage() {
     e.preventDefault();
     setIsDragging(false);
     
-    // Handle text drops
     const text = e.dataTransfer.getData('text/plain');
     if (text) {
       setResearchText(prev => prev + (prev ? '\n\n' : '') + text);
       return;
     }
     
-    // Handle file drops
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       handleFileUpload(files[0]);
@@ -213,6 +261,18 @@ export default function OEMResearchPage() {
     }
   };
 
+  const getMarginColor = (margin: number) => {
+    if (margin >= 60) return 'bg-green-100 text-green-700';
+    if (margin >= 40) return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+  };
+
+  const getCompetitionColor = (level: string) => {
+    if (level === 'low') return 'bg-green-100 text-green-700';
+    if (level === 'medium') return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -220,9 +280,12 @@ export default function OEMResearchPage() {
         <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
           <Factory className="h-7 w-7 text-amber-500" />
           OEM Research → 1688 Links
+          <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex items-center gap-1">
+            <Brain className="h-3 w-3" /> AI Powered
+          </span>
         </h1>
         <p className="text-gray-600 mt-1">
-          Upload files (.zip, .docx, .pdf, .txt, .md) or paste research to extract 1688 factory links
+          Upload research files → AI extracts products with Chinese keywords → Get 1688 factory links
         </p>
       </div>
 
@@ -241,7 +304,7 @@ export default function OEMResearchPage() {
               type="text"
               value={researchName}
               onChange={(e) => setResearchName(e.target.value)}
-              placeholder="Research name (optional - auto-generates if empty)"
+              placeholder="Research name (optional)"
               className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
             />
             <input
@@ -270,13 +333,12 @@ export default function OEMResearchPage() {
             </button>
           </div>
           
-          {/* Extracted Files Info */}
           {extractedFiles.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {extractedFiles.map((f, i) => (
                 <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded text-sm">
                   <File className="h-3 w-3" />
-                  {f.name} ({(f.contentLength / 1000).toFixed(1)}k chars)
+                  {f.name} ({(f.contentLength / 1000).toFixed(1)}k)
                 </span>
               ))}
             </div>
@@ -286,23 +348,24 @@ export default function OEMResearchPage() {
         <textarea
           value={researchText}
           onChange={(e) => setResearchText(e.target.value)}
-          rows={12}
+          rows={10}
           className="w-full px-4 py-3 focus:outline-none focus:ring-0 border-0 resize-none font-mono text-sm"
           placeholder={isDragging 
-            ? "Drop your files or text here..." 
-            : `Drop files here or paste research text...
+            ? "Drop files here..." 
+            : `Drop files or paste research...
 
-Supported formats:
-• ZIP files (extracts all readable files inside)
-• Documents: .docx, .pdf, .rtf
-• Text: .txt, .md, .csv, .json, .html
+Supported: .zip, .docx, .pdf, .txt, .md, .csv, .json
 
-The analyzer extracts products and generates 1688 search links in Chinese.`}
+AI will extract:
+• Product names & Chinese keywords
+• Pricing estimates & margins
+• Demand signals & competition
+• 1688 factory search links`}
         />
         
         <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-xl flex justify-between items-center">
           <span className="text-sm text-gray-500">
-            {researchText.length > 0 ? `${researchText.length.toLocaleString()} characters` : 'Drop files or paste text'}
+            {researchText.length > 0 ? `${researchText.length.toLocaleString()} chars` : 'Drop files or paste'}
           </span>
           <div className="flex gap-2">
             {researchText && (
@@ -316,19 +379,10 @@ The analyzer extracts products and generates 1688 search links in Chinese.`}
             <button
               onClick={handleSave}
               disabled={saving || !researchText.trim()}
-              className="flex items-center gap-2 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+              className="flex items-center gap-2 px-6 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition disabled:opacity-50 font-semibold"
             >
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  Save Research
-                </>
-              )}
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save
             </button>
           </div>
         </div>
@@ -347,7 +401,7 @@ The analyzer extracts products and generates 1688 search links in Chinese.`}
           </div>
         ) : research.length === 0 ? (
           <div className="bg-white rounded-lg border p-8 text-center text-gray-500">
-            No research saved yet. Upload files or paste your first deep dive above!
+            No research saved yet. Upload files or paste research above!
           </div>
         ) : (
           research.map((item) => (
@@ -363,19 +417,19 @@ The analyzer extracts products and generates 1688 search links in Chinese.`}
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => item.raw_research && handleAnalyze(item.id, item.raw_research)}
+                    onClick={() => item.raw_research && handleAIAnalyze(item.id, item.raw_research)}
                     disabled={analyzing === item.id || !item.raw_research}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 font-medium"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition disabled:opacity-50 font-medium shadow-sm"
                   >
                     {analyzing === item.id ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Analyzing...
+                        AI Analyzing...
                       </>
                     ) : (
                       <>
-                        <Zap className="h-4 w-4" />
-                        Analyze → 1688 Links
+                        <Brain className="h-4 w-4" />
+                        AI Extract → 1688
                       </>
                     )}
                   </button>
@@ -383,11 +437,7 @@ The analyzer extracts products and generates 1688 search links in Chinese.`}
                     onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
                     className="p-2 hover:bg-gray-100 rounded-lg transition"
                   >
-                    {expandedId === item.id ? (
-                      <ChevronUp className="h-5 w-5 text-gray-500" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-500" />
-                    )}
+                    {expandedId === item.id ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
                   </button>
                   <button
                     onClick={() => handleDelete(item.id)}
@@ -402,8 +452,8 @@ The analyzer extracts products and generates 1688 search links in Chinese.`}
               {expandedId === item.id && (
                 <div className="border-t">
                   {/* Raw Research Preview */}
-                  {item.raw_research && (
-                    <div className="p-4 bg-gray-50 border-b max-h-48 overflow-y-auto">
+                  {item.raw_research && !analyzedResults[item.id] && (
+                    <div className="p-4 bg-gray-50 max-h-48 overflow-y-auto">
                       <pre className="text-xs text-gray-600 whitespace-pre-wrap font-mono">
                         {item.raw_research.slice(0, 2000)}
                         {item.raw_research.length > 2000 && '...'}
@@ -411,58 +461,136 @@ The analyzer extracts products and generates 1688 search links in Chinese.`}
                     </div>
                   )}
 
-                  {/* Analyzed Results */}
-                  {analyzedResults[item.id] && analyzedResults[item.id].length > 0 && (
+                  {/* AI Analysis Results */}
+                  {analyzedResults[item.id] && (
                     <div className="p-4">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-semibold text-green-700">
-                          ✓ Found {analyzedResults[item.id].length} products → {analyzedResults[item.id].reduce((sum, p) => sum + p.searchUrls.length, 0)} 1688 links
-                        </h4>
+                      {/* Summary Stats */}
+                      <div className="grid grid-cols-4 gap-4 mb-4">
+                        <div className="bg-purple-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-purple-700">{analyzedResults[item.id].summary.totalProducts}</div>
+                          <div className="text-xs text-purple-600">Products Found</div>
+                        </div>
+                        <div className="bg-green-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-green-700">{analyzedResults[item.id].summary.averageMargin}%</div>
+                          <div className="text-xs text-green-600">Avg Margin</div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-blue-700">{analyzedResults[item.id].summary.highMarginCount}</div>
+                          <div className="text-xs text-blue-600">High Margin (50%+)</div>
+                        </div>
+                        <div className="bg-amber-50 rounded-lg p-3 text-center">
+                          <div className="text-2xl font-bold text-amber-700">{analyzedResults[item.id].summary.totalSearchLinks}</div>
+                          <div className="text-xs text-amber-600">1688 Links</div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 mb-4">
                         <button
-                          onClick={() => copyAllLinks(analyzedResults[item.id])}
-                          className="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded text-sm transition"
+                          onClick={() => copyAllLinks(analyzedResults[item.id].products)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded text-sm transition"
                         >
-                          <Copy className="h-4 w-4" />
-                          Copy All Links
+                          <Copy className="h-4 w-4" /> Copy All Links
+                        </button>
+                        <button
+                          onClick={() => exportToCSV(analyzedResults[item.id].products)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded text-sm transition"
+                        >
+                          <FileText className="h-4 w-4" /> Export CSV
                         </button>
                       </div>
 
-                      <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {analyzedResults[item.id].map((product, i) => (
-                          <div key={i} className="bg-gray-50 rounded-lg p-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-medium text-gray-900">{product.name}</span>
-                              <span className="text-xs px-2 py-0.5 bg-gray-200 rounded">{product.category}</span>
-                              {product.priceRange?.margin && (
-                                <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded">
-                                  {product.priceRange.margin}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              {product.searchUrls.map((url, j) => (
-                                <div key={j} className="flex items-center gap-1">
-                                  <span className="text-xs text-amber-700 bg-amber-50 px-2 py-1 rounded font-mono">
-                                    {url.keyword}
+                      {/* Product Cards */}
+                      <div className="space-y-3 max-h-[600px] overflow-y-auto">
+                        {analyzedResults[item.id].products.map((product, i) => (
+                          <div key={i} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                            {/* Product Header */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <h4 className="font-semibold text-gray-900">{product.name}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs px-2 py-0.5 bg-gray-200 rounded">{product.category}</span>
+                                  <span className={`text-xs px-2 py-0.5 rounded ${getMarginColor(product.marginPercent)}`}>
+                                    {product.marginPercent}% margin
                                   </span>
-                                  <button
-                                    onClick={() => copyToClipboard(url.url)}
-                                    className={`p-1 rounded transition ${
-                                      copiedUrl === url.url ? 'bg-green-100 text-green-600' : 'hover:bg-gray-200'
-                                    }`}
-                                  >
-                                    {copiedUrl === url.url ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                                  </button>
-                                  <a
-                                    href={url.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1 bg-red-500 text-white rounded hover:bg-red-600 transition"
-                                  >
-                                    <ExternalLink className="h-3 w-3" />
-                                  </a>
+                                  <span className={`text-xs px-2 py-0.5 rounded ${getCompetitionColor(product.competitionLevel)}`}>
+                                    {product.competitionLevel} competition
+                                  </span>
                                 </div>
-                              ))}
+                              </div>
+                              <div className="text-right text-sm">
+                                <div className="text-gray-500">Retail: <span className="text-gray-900 font-medium">{product.estimatedRetailUSD}</span></div>
+                                <div className="text-gray-500">1688: <span className="text-green-600 font-medium">{product.estimated1688CostUSD}</span></div>
+                              </div>
+                            </div>
+
+                            {/* Chinese Keywords */}
+                            <div className="mb-3">
+                              <div className="text-xs text-gray-500 mb-1">Chinese Keywords:</div>
+                              <div className="flex gap-2">
+                                <span className="px-2 py-1 bg-red-50 text-red-700 rounded font-mono text-sm">{product.chineseKeyword}</span>
+                                {product.chineseKeywordAlt && (
+                                  <span className="px-2 py-1 bg-orange-50 text-orange-700 rounded font-mono text-sm">{product.chineseKeywordAlt}</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Demand Signals */}
+                            {product.demandSignals?.length > 0 && (
+                              <div className="mb-3">
+                                <div className="text-xs text-gray-500 mb-1">Demand Signals:</div>
+                                <div className="flex flex-wrap gap-1">
+                                  {product.demandSignals.map((signal, j) => (
+                                    <span key={j} className="text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded">{signal}</span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Recommendation */}
+                            {product.recommendation && (
+                              <div className="mb-3 text-sm text-gray-600 italic">
+                                💡 {product.recommendation}
+                              </div>
+                            )}
+
+                            {/* 1688 Links */}
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
+                              <a
+                                href={product.searchUrls.primary}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition"
+                              >
+                                <ExternalLink className="h-3 w-3" /> 1688 Search
+                              </a>
+                              <a
+                                href={product.searchUrls.factory}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-orange-500 text-white rounded text-sm hover:bg-orange-600 transition"
+                              >
+                                <TrendingUp className="h-3 w-3" /> Top Sellers
+                              </a>
+                              <a
+                                href={product.searchUrls.oem}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 px-3 py-1.5 bg-amber-500 text-white rounded text-sm hover:bg-amber-600 transition"
+                              >
+                                <Factory className="h-3 w-3" /> OEM Factories
+                              </a>
+                              <button
+                                onClick={() => copyToClipboard(product.chineseKeyword)}
+                                className={`flex items-center gap-1 px-3 py-1.5 rounded text-sm transition ${
+                                  copiedUrl === product.chineseKeyword 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-gray-200 hover:bg-gray-300'
+                                }`}
+                              >
+                                {copiedUrl === product.chineseKeyword ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                Copy 中文
+                              </button>
                             </div>
                           </div>
                         ))}
