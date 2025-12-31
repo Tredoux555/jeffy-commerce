@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = user_email.toLowerCase().trim();
 
-    // Check if user already has a want
+    // Check if user already has a want (one per person, ever)
     const { data: existingWant } = await supabase
       .from('wants')
       .select('id, product_name')
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     if (existingWant) {
       return NextResponse.json({
         success: false,
-        error: `You already have an active want: "${existingWant.product_name}". Get 10 verifications on it first!`,
+        error: `You've already created a want: "${existingWant.product_name}". One free product per person!`,
         existingWant
       }, { status: 400 });
     }
