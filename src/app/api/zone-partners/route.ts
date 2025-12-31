@@ -103,15 +103,55 @@ export async function POST(request: NextRequest) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check if already exists
+    // Check if already exists (any type - email is unique across all)
     const { data: existing } = await supabase
       .from('waitlist')
       .select('*')
       .eq('email', cleanEmail)
-      .eq('type', 'zone_partner')
       .single();
 
     if (existing) {
+      // If they exist but not as zone partner, update them to zone partner
+      if (existing.type !== 'zone_partner') {
+        const { data: updated, error: updateError } = await supabase
+          .from('waitlist')
+          .update({ 
+            type: 'zone_partner', 
+            zone_id: zone_id,
+            name: name || existing.name,
+            whatsapp: phone || existing.whatsapp
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          return NextResponse.json({ error: 'Failed to update application', details: updateError.message }, { status: 500 });
+        }
+
+        const { count: ahead } = await supabase
+          .from('waitlist')
+          .select('*', { count: 'exact', head: true })
+          .eq('type', 'zone_partner')
+          .lt('position', updated.position);
+
+        const position = (ahead || 0) + 1;
+
+        return NextResponse.json({
+          success: true,
+          upgraded: true,
+          user: {
+            email: updated.email,
+            zoneId: updated.zone_id,
+            position,
+            referralCode: updated.referral_code,
+            referralCount: updated.referral_count,
+            benefits: getPositionBenefits(position)
+          }
+        });
+      }
+
+      // Already a zone partner
       const { count: ahead } = await supabase
         .from('waitlist')
         .select('*', { count: 'exact', head: true })
@@ -145,21 +185,22 @@ export async function POST(request: NextRequest) {
       referrerId = referrer?.id;
     }
 
-    // Insert new entry - store phone in name field temporarily, message in zone_id notes
+    // Insert new entry
     const { data: newEntry, error } = await supabase
       .from('waitlist')
       .insert({
         email: cleanEmail,
-        name: name ? `${name} | Phone: ${phone || 'N/A'}` : null,
+        name: name || null,
         type: 'zone_partner',
-        zone_id: `${zone_id} | Why: ${message || 'N/A'}`
+        zone_id: zone_id,
+        whatsapp: phone || null
       })
       .select()
       .single();
 
     if (error) {
       console.error('Zone partner insert error:', error);
-      return NextResponse.json({ error: 'Failed to join waitlist' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to join waitlist', details: error.message }, { status: 500 });
     }
 
     // Calculate position
