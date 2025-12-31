@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors
+let supabase: SupabaseClient | null = null;
+function getSupabase() {
+  if (!supabase) {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    );
+  }
+  return supabase;
+}
 
 // Common product translations for 1688 searching
 const PRODUCT_TRANSLATIONS: Record<string, string> = {
@@ -334,7 +341,7 @@ export async function POST(request: NextRequest) {
     // Optionally save to database
     if (save_to_db && products.length > 0) {
       // Save the analysis as a research entry
-      const { error } = await supabase
+      const { error } = await getSupabase()
         .from('oem_research')
         .insert({
           product_name: `Research Analysis - ${new Date().toLocaleDateString()}`,

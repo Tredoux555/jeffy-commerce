@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Use service role for admin operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors
+let supabase: SupabaseClient | null = null;
+function getSupabase() {
+  if (!supabase) {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    );
+  }
+  return supabase;
+}
 
 // GET - Fetch all research or single entry
 export async function GET(request: NextRequest) {
@@ -15,9 +21,11 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
     
+    const db = getSupabase();
+    
     // Single entry fetch
     if (id) {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('oem_research')
         .select('*')
         .eq('id', id)
@@ -30,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
     
     // List fetch with filters
-    let query = supabase
+    let query = db
       .from('oem_research')
       .select('*')
       .order('priority', { ascending: false })
@@ -51,7 +59,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     
-    return NextResponse.json({ data });
+    return NextResponse.json({ data: data || [] });
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -62,8 +70,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const db = getSupabase();
     
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('oem_research')
       .insert([body])
       .select()
@@ -86,12 +95,13 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...updateData } = body;
+    const db = getSupabase();
     
     if (!id) {
       return NextResponse.json({ error: 'ID required' }, { status: 400 });
     }
     
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('oem_research')
       .update(updateData)
       .eq('id', id)
@@ -115,12 +125,13 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const db = getSupabase();
     
     if (!id) {
       return NextResponse.json({ error: 'ID required' }, { status: 400 });
     }
     
-    const { error } = await supabase
+    const { error } = await db
       .from('oem_research')
       .delete()
       .eq('id', id);

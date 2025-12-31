@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors
+let supabase: SupabaseClient | null = null;
+function getSupabase() {
+  if (!supabase) {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    );
+  }
+  return supabase;
+}
 
 // GET - Fetch notes for a research entry
 export async function GET(request: NextRequest) {
@@ -16,7 +23,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'research_id required' }, { status: 400 });
     }
     
-    const { data, error } = await supabase
+    const db = getSupabase();
+    const { data, error } = await db
       .from('oem_research_notes')
       .select('*')
       .eq('research_id', researchId)
@@ -36,8 +44,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const db = getSupabase();
     
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('oem_research_notes')
       .insert([body])
       .select()
@@ -58,12 +67,13 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
+    const db = getSupabase();
     
     if (!id) {
       return NextResponse.json({ error: 'ID required' }, { status: 400 });
     }
     
-    const { error } = await supabase
+    const { error } = await db
       .from('oem_research_notes')
       .delete()
       .eq('id', id);
