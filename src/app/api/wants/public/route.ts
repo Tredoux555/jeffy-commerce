@@ -104,11 +104,15 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       userId = existingUser.id;
     } else {
-      const { data: newUser } = await supabase
+      const { data: newUser, error: userError } = await supabase
         .from('users')
         .insert({ email: user_email.toLowerCase(), name: user_name || null })
         .select('id')
         .single();
+      if (userError) {
+        console.error('User insert error:', userError);
+        return NextResponse.json({ error: 'Failed to create user', debug: userError.message, code: userError.code }, { status: 500 });
+      }
       userId = newUser?.id;
     }
 
@@ -130,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Want insert error:', error);
-      return NextResponse.json({ error: 'Failed to create want' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to create want', debug: error.message, code: error.code }, { status: 500 });
     }
 
     // Add creator's vote
