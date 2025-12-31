@@ -165,6 +165,15 @@ export default function WantsPage() {
             Not what some buyer in Johannesburg thinks you want. What <span className="text-white font-semibold">you</span> want.
           </p>
 
+          {/* CTA Button */}
+          <button
+            onClick={() => setShowForm(true)}
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold text-xl px-10 py-5 rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105 mb-8"
+          >
+            <Plus className="h-6 w-6" />
+            Create Your Want
+          </button>
+
           {/* The reward */}
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl p-8 border border-green-500/30 max-w-xl mx-auto">
             <p className="text-slate-400 text-lg mb-2">For your help?</p>
@@ -245,25 +254,6 @@ export default function WantsPage() {
               The loop continues. The catalogue grows. Prices drop.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* ============ CTA TO CREATE WANT ============ */}
-      <section className="px-4 py-16">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-black mb-4">
-            Ready to request something?
-          </h2>
-          <p className="text-slate-400 mb-8">
-            Create your want, get your 10 verifications, and it&apos;s yours — 100% free.
-          </p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold text-xl px-10 py-5 rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105"
-          >
-            <Plus className="h-6 w-6" />
-            Create Your Want
-          </button>
         </div>
       </section>
 

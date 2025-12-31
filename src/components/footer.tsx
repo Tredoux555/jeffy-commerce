@@ -5,7 +5,7 @@ import { NewsletterSignup } from '@/components/newsletter-signup';
 
 export function Footer() {
   return (
-    <footer className="bg-[#0f172a] text-white py-12 mt-16">
+    <footer className="bg-[#0f172a] text-white py-12">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
           <div>
