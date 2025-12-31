@@ -5,10 +5,14 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 let supabase: SupabaseClient | null = null;
 function getSupabase() {
   if (!supabase) {
-    supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    );
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!url || !key) {
+      throw new Error(`Missing Supabase config: URL=${!!url}, KEY=${!!key}`);
+    }
+    
+    supabase = createClient(url, key);
   }
   return supabase;
 }
@@ -32,7 +36,8 @@ export async function GET(request: NextRequest) {
         .single();
       
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('GET single error:', error);
+        return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: 500 });
       }
       return NextResponse.json({ data });
     }
@@ -55,14 +60,16 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching research:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('GET list error:', error);
+      return NextResponse.json({ error: error.message, code: error.code, details: error.details }, { status: 500 });
     }
     
     return NextResponse.json({ data: data || [] });
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Internal server error' 
+    }, { status: 500 });
   }
 }
 
@@ -70,6 +77,8 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('POST body:', JSON.stringify(body, null, 2));
+    
     const db = getSupabase();
     
     const { data, error } = await db
@@ -79,14 +88,21 @@ export async function POST(request: NextRequest) {
       .single();
     
     if (error) {
-      console.error('Error creating research:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('POST error:', error);
+      return NextResponse.json({ 
+        error: error.message, 
+        code: error.code, 
+        details: error.details,
+        hint: error.hint 
+      }, { status: 500 });
     }
     
     return NextResponse.json({ data }, { status: 201 });
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Internal server error' 
+    }, { status: 500 });
   }
 }
 
@@ -109,14 +125,16 @@ export async function PUT(request: NextRequest) {
       .single();
     
     if (error) {
-      console.error('Error updating research:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('PUT error:', error);
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
     }
     
     return NextResponse.json({ data });
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Internal server error' 
+    }, { status: 500 });
   }
 }
 
@@ -137,13 +155,15 @@ export async function DELETE(request: NextRequest) {
       .eq('id', id);
     
     if (error) {
-      console.error('Error deleting research:', error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('DELETE error:', error);
+      return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
     }
     
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: error instanceof Error ? error.message : 'Internal server error' 
+    }, { status: 500 });
   }
 }
