@@ -1,53 +1,54 @@
 'use client';
 
-import { ArrowRight, ArrowLeft, Search, Share2, Users, FlaskConical, Gift, Zap, ShieldCheck, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowRight, ArrowLeft, MessageSquare, Search, CheckCircle, Package, MapPin, Rocket, Zap, FlaskConical, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WhatIsWantsPage() {
   const steps = [
     {
       number: '01',
-      icon: Search,
-      title: 'Request',
-      description: 'See something online you wish was cheaper? A TikTok product? Something your friend has?',
-      highlight: 'Request it on Jeffy. Takes 10 seconds.',
-      detail: 'You get a personal share link the moment you submit.',
+      icon: MessageSquare,
+      title: 'Wants',
+      description: 'See something you want? A TikTok product? Something a friend has? Request it. If 10 other people verify they\'d buy it too — we source it.',
+      highlight: 'The person who requested it first? Gets it FREE.',
+      detail: 'That\'s not marketing. That\'s proof we only stock what people actually want.',
       color: 'amber'
     },
     {
       number: '02',
-      icon: Share2,
-      title: 'Share',
-      description: 'Share your link with friends, family, your WhatsApp group.',
-      highlight: 'Rally your people.',
-      detail: 'Every person who clicks your link and verifies counts toward your 10.',
-      color: 'orange'
+      icon: FlaskConical,
+      title: 'Testing',
+      description: 'Every single product that hits 10 verifications goes through me personally.',
+      highlight: 'I order 3 samples. Test them. Use them. Check quality.',
+      detail: 'If it\'s not good enough for my family, it\'s not good enough for Jeffy. No alibaba lottery. No mystery quality. Guaranteed.',
+      color: 'cyan'
     },
     {
       number: '03',
-      icon: Users,
-      title: 'Verify',
-      description: 'When 10 real people verify they\'d buy it too, we know it\'s worth sourcing.',
-      highlight: 'Not clicks. Verified emails or phone numbers.',
-      detail: 'This proves real demand — not internet noise.',
+      icon: Package,
+      title: 'Catalog',
+      description: 'Products that pass get added to the Jeffy catalog.',
+      highlight: 'Real demand. Proven quality. Factory prices.',
+      detail: 'No guessing what might sell. Every product earned its place.',
       color: 'blue'
     },
     {
       number: '04',
-      icon: FlaskConical,
-      title: 'We Test',
-      description: 'I personally order 3 variations from different suppliers.',
-      highlight: 'Test quality. Check durability. Use it myself.',
-      detail: 'If it\'s not good enough for my family, it doesn\'t make the cut. Only the best ships to you.',
-      color: 'cyan'
+      icon: MapPin,
+      title: 'Zone Partners',
+      description: 'Products ship through our network of Zone Partners — local entrepreneurs who deliver in their area.',
+      highlight: 'Faster delivery. Local accountability. Real people.',
+      detail: 'Interested in running your own zone? Each territory is exclusive — one partner only.',
+      color: 'purple',
+      link: { href: '/partner', text: 'See Zone Partner opportunities →' }
     },
     {
       number: '05',
-      icon: Gift,
-      title: 'You Win',
-      description: 'Quality-tested product gets added to Jeffy. Everyone can buy it.',
-      highlight: 'And YOU — the first requester — get yours FREE.',
-      detail: 'You did the work. You proved the demand. That\'s worth something.',
+      icon: RefreshCw,
+      title: 'The Loop',
+      description: 'You request. We test. Quality ships. You\'re happy. You request more.',
+      highlight: 'This is commerce that actually works.',
+      detail: 'No middlemen inflating prices. No corporate overhead. Just quality products at prices that make sense for South Africans.',
       color: 'green'
     }
   ];
@@ -55,9 +56,9 @@ export default function WhatIsWantsPage() {
   const getColorClasses = (color: string) => {
     const colors: Record<string, { bg: string; text: string; border: string; glow: string }> = {
       amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30', glow: 'shadow-amber-500/20' },
-      orange: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30', glow: 'shadow-orange-500/20' },
-      blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', glow: 'shadow-blue-500/20' },
       cyan: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30', glow: 'shadow-cyan-500/20' },
+      blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', glow: 'shadow-blue-500/20' },
+      purple: { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30', glow: 'shadow-purple-500/20' },
       green: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', glow: 'shadow-green-500/20' },
     };
     return colors[color] || colors.amber;
@@ -80,7 +81,7 @@ export default function WhatIsWantsPage() {
           </Link>
 
           <div className="text-center">
-            <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">How Wants Work</p>
+            <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">How it works</p>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6">
               Can&apos;t find it?
               <br />
@@ -89,9 +90,9 @@ export default function WhatIsWantsPage() {
               </span>
             </h1>
             <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              This isn&apos;t dropshipping. We don&apos;t forward orders to China and hope for the best.
+              This isn&apos;t another dropshipping site. We don&apos;t guess what you want and hope it sells.
               <br /><br />
-              <span className="text-white font-semibold">We test everything personally. You get quality.</span>
+              <span className="text-white font-semibold">We ask. You tell us. We deliver quality.</span>
             </p>
           </div>
         </div>
@@ -126,6 +127,14 @@ export default function WhatIsWantsPage() {
                       <p className="text-lg text-slate-300 mb-3">{step.description}</p>
                       <p className={`text-xl font-bold ${colors.text} mb-3`}>{step.highlight}</p>
                       <p className="text-slate-400">{step.detail}</p>
+                      {step.link && (
+                        <Link 
+                          href={step.link.href}
+                          className={`inline-flex items-center gap-2 mt-4 ${colors.text} hover:underline font-medium`}
+                        >
+                          {step.link.text}
+                        </Link>
+                      )}
                     </div>
                   </div>
 
@@ -140,89 +149,20 @@ export default function WhatIsWantsPage() {
         </div>
       </section>
 
-      {/* Not Dropshipping Comparison */}
-      <section className="px-4 py-20 bg-slate-900/50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <ShieldCheck className="h-12 w-12 text-cyan-400 mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-black mb-4">
-              This isn&apos;t dropshipping.
-            </h2>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Dropshipping */}
-            <div className="bg-slate-800/30 rounded-3xl p-8 border border-red-500/30">
-              <div className="flex items-center gap-3 mb-6">
-                <XCircle className="h-8 w-8 text-red-400" />
-                <h3 className="text-xl font-bold text-red-400">Typical Dropshipping</h3>
-              </div>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">Order forwarded directly to China</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">No quality control</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">Mystery box — hope it&apos;s good</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-red-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-slate-400">Cheap knockoffs common</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Jeffy Wants */}
-            <div className="bg-slate-800/50 rounded-3xl p-8 border border-green-500/30">
-              <div className="flex items-center gap-3 mb-6">
-                <CheckCircle className="h-8 w-8 text-green-400" />
-                <h3 className="text-xl font-bold text-green-400">Jeffy Wants</h3>
-              </div>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">3 samples personally tested</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">Only best quality ships</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">You know exactly what you&apos;re getting</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mt-2 shrink-0" />
-                  <span className="text-white font-medium">Real person stands behind it</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Summary */}
       <section className="px-4 py-20">
         <div className="max-w-4xl mx-auto">
           <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 md:p-12 border border-slate-700 text-center">
             <Zap className="h-12 w-12 text-orange-400 mx-auto mb-6" />
             <h2 className="text-2xl md:text-4xl font-black mb-6">
-              Why 10 verifications?
+              Simple, right?
             </h2>
             <div className="text-lg text-slate-300 space-y-4 max-w-2xl mx-auto">
               <p>
-                Testing 3 product variations costs money. Shipping samples takes time.
-              </p>
-              <p>
-                We only make that investment for products with <span className="text-orange-400 font-semibold">proven demand.</span>
+                People tell us what they want. We find it. We test it. Quality ships.
               </p>
               <p className="text-xl text-white font-semibold">
-                10 verified people = real interest = we invest in quality.
+                No guessing. No waste. No bullshit.
               </p>
             </div>
           </div>
