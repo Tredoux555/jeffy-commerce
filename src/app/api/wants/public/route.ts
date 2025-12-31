@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
         .single();
       if (userError) {
         console.error('User insert error:', userError);
+        return NextResponse.json({ error: 'Failed to create user', debug: userError.message }, { status: 500 });
       }
       userId = newUser?.id;
     }
@@ -133,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Want insert error:', error);
-      return NextResponse.json({ error: 'Failed to create want' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to create want', debug: error.message }, { status: 500 });
     }
 
     // Add creator's vote
