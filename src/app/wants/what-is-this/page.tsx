@@ -1,188 +1,252 @@
 'use client';
 
-import { ArrowRight, ArrowLeft, MessageSquare, Search, CheckCircle, Package, MapPin, Rocket, Zap, FlaskConical, RefreshCw } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Sparkles, Users, Share2, CheckCircle, Gift, MapPin, Zap, Heart } from 'lucide-react';
 import Link from 'next/link';
 
 export default function WhatIsWantsPage() {
-  const steps = [
-    {
-      number: '01',
-      icon: MessageSquare,
-      title: 'Wants',
-      description: 'See something you want? A TikTok product? Something a friend has? Request it. If 10 other people verify they\'d buy it too — we source it.',
-      highlight: 'The person who requested it first? Gets it FREE.',
-      detail: 'That\'s not marketing. That\'s proof we only stock what people actually want.',
-      color: 'amber'
-    },
-    {
-      number: '02',
-      icon: FlaskConical,
-      title: 'Testing',
-      description: 'Every single product that hits 10 verifications goes through me personally.',
-      highlight: 'I order 3 samples. Test them. Use them. Check quality.',
-      detail: 'If it\'s not good enough for my family, it\'s not good enough for Jeffy. No alibaba lottery. No mystery quality. Guaranteed.',
-      color: 'cyan'
-    },
-    {
-      number: '03',
-      icon: Package,
-      title: 'Catalog',
-      description: 'Products that pass get added to the Jeffy catalog.',
-      highlight: 'Real demand. Proven quality. Factory prices.',
-      detail: 'No guessing what might sell. Every product earned its place.',
-      color: 'blue'
-    },
-    {
-      number: '04',
-      icon: MapPin,
-      title: 'Zone Partners',
-      description: 'Products ship through our network of Zone Partners — local entrepreneurs who deliver in their area.',
-      highlight: 'Faster delivery. Local accountability. Real people.',
-      detail: 'Interested in running your own zone? Each territory is exclusive — one partner only.',
-      color: 'purple',
-      link: { href: '/partner', text: 'See Zone Partner opportunities →' }
-    },
-    {
-      number: '05',
-      icon: RefreshCw,
-      title: 'The Loop',
-      description: 'You request. We test. Quality ships. You\'re happy. You request more.',
-      highlight: 'This is commerce that actually works.',
-      detail: 'No middlemen inflating prices. No corporate overhead. Just quality products at prices that make sense for South Africans.',
-      color: 'green'
-    }
-  ];
-
-  const getColorClasses = (color: string) => {
-    const colors: Record<string, { bg: string; text: string; border: string; glow: string }> = {
-      amber: { bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/30', glow: 'shadow-amber-500/20' },
-      cyan: { bg: 'bg-cyan-500/20', text: 'text-cyan-400', border: 'border-cyan-500/30', glow: 'shadow-cyan-500/20' },
-      blue: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', glow: 'shadow-blue-500/20' },
-      purple: { bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/30', glow: 'shadow-purple-500/20' },
-      green: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', glow: 'shadow-green-500/20' },
-    };
-    return colors[color] || colors.amber;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
       {/* Hero */}
-      <section className="px-4 py-20 relative overflow-hidden">
+      <section className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden">
+        {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-orange-500 rounded-full blur-[200px] opacity-10" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-500 rounded-full blur-[200px] opacity-10" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-orange-500 rounded-full blur-[150px] opacity-20" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-[150px] opacity-15" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
           {/* Back link */}
           <Link href="/wants" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-12 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Back to Wants
           </Link>
 
-          <div className="text-center">
-            <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">How it works</p>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6">
-              Can&apos;t find it?
-              <br />
-              <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
-                Get it sourced.
-              </span>
-            </h1>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-              This isn&apos;t another dropshipping site. We don&apos;t guess what you want and hope it sells.
-              <br /><br />
-              <span className="text-white font-semibold">We ask. You tell us. We deliver quality.</span>
-            </p>
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500/20 border border-orange-500/30 rounded-full text-orange-400 text-sm font-medium mb-8">
+            <Heart className="h-4 w-4" />
+            Your role to play
           </div>
+
+          {/* Main headline */}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+            You&apos;re not a customer.
+            <br />
+            <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
+              You&apos;re a co-creator.
+            </span>
+          </h1>
+
+          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            We&apos;re reverse engineering retail. Building a system that actually works for South Africans.
+            <br /><br />
+            <span className="text-white font-semibold">And we need your help to do it.</span>
+          </p>
         </div>
       </section>
 
-      {/* Steps */}
-      <section className="px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="space-y-8">
-            {steps.map((step, index) => {
-              const colors = getColorClasses(step.color);
-              const Icon = step.icon;
-              return (
-                <div 
-                  key={step.number}
-                  className={`relative ${colors.bg} ${colors.border} border rounded-3xl p-8 md:p-10 backdrop-blur transition-all hover:scale-[1.01] hover:shadow-xl ${colors.glow}`}
-                >
-                  {/* Step number */}
-                  <div className={`absolute -top-4 -left-4 w-12 h-12 ${colors.text} bg-slate-900 rounded-full flex items-center justify-center font-black text-xl border-2 ${colors.border}`}>
-                    {step.number}
-                  </div>
-
-                  <div className="flex flex-col md:flex-row md:items-start gap-6">
-                    {/* Icon */}
-                    <div className={`w-16 h-16 ${colors.bg} rounded-2xl flex items-center justify-center flex-shrink-0`}>
-                      <Icon className={`h-8 w-8 ${colors.text}`} />
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-black mb-3">{step.title}</h3>
-                      <p className="text-lg text-slate-300 mb-3">{step.description}</p>
-                      <p className={`text-xl font-bold ${colors.text} mb-3`}>{step.highlight}</p>
-                      <p className="text-slate-400">{step.detail}</p>
-                      {step.link && (
-                        <Link 
-                          href={step.link.href}
-                          className={`inline-flex items-center gap-2 mt-4 ${colors.text} hover:underline font-medium`}
-                        >
-                          {step.link.text}
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Connector line */}
-                  {index < steps.length - 1 && (
-                    <div className="hidden md:block absolute -bottom-8 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gradient-to-b from-slate-600 to-transparent" />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Summary */}
+      {/* Your Role Section */}
       <section className="px-4 py-20">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-8 md:p-12 border border-slate-700 text-center">
-            <Zap className="h-12 w-12 text-orange-400 mx-auto mb-6" />
-            <h2 className="text-2xl md:text-4xl font-black mb-6">
-              Simple, right?
+          <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 rounded-3xl p-8 md:p-12 border border-orange-500/20">
+            <Sparkles className="h-12 w-12 text-orange-400 mb-6" />
+            <h2 className="text-3xl md:text-4xl font-black mb-6">
+              You help us build the catalogue.
             </h2>
-            <div className="text-lg text-slate-300 space-y-4 max-w-2xl mx-auto">
+            <div className="space-y-4 text-lg md:text-xl text-slate-300">
               <p>
-                People tell us what they want. We find it. We test it. Quality ships.
+                Not what some buyer in Johannesburg <span className="italic text-slate-400">thinks</span> you want.
               </p>
-              <p className="text-xl text-white font-semibold">
-                No guessing. No waste. No bullshit.
+              <p className="text-white font-semibold text-2xl">
+                What <span className="text-orange-400">you</span> want.
+              </p>
+            </div>
+            
+            {/* The reward */}
+            <div className="mt-10 pt-10 border-t border-slate-700">
+              <p className="text-slate-400 text-lg mb-3">For your help?</p>
+              <p className="text-3xl md:text-4xl font-black text-white">
+                Your product. <span className="text-green-400">100% free.</span>
+              </p>
+              <p className="text-xl text-slate-400 mt-2">
+                Gratis. No strings attached.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="px-4 py-20 bg-black">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-black mb-4">
-            Ready to request something?
+      {/* How It Works */}
+      <section className="px-4 py-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">All you need to do</p>
+            <h2 className="text-3xl md:text-4xl font-black">
+              Prove there&apos;s demand.
+            </h2>
+            <p className="text-xl text-slate-400 mt-4">We do the rest.</p>
+          </div>
+
+          {/* Steps */}
+          <div className="space-y-6">
+            {/* Step 1 */}
+            <div className="flex items-start gap-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
+                1
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">Request any product you want</h3>
+                <p className="text-slate-400">Something you saw on TikTok. Something a friend has. Anything.</p>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex items-start gap-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
+                2
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">Get your unique link</h3>
+                <p className="text-slate-400">It&apos;s yours. Every verification through it counts toward your goal.</p>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex items-start gap-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
+                3
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">Share it with 10 people</h3>
+                <p className="text-slate-400">Friends. Family. Your WhatsApp group. Anyone who&apos;d want this product too.</p>
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="flex items-start gap-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
+              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
+                4
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1">They verify they&apos;re real</h3>
+                <p className="text-slate-400">Email or phone number. Proving they&apos;re actual people. Proving the demand is real.</p>
+              </div>
+            </div>
+
+            {/* Step 5 - The Payoff */}
+            <div className="flex items-start gap-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl p-6 border border-green-500/30">
+              <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
+                <Gift className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-1 text-green-400">You get your product free. It gets added to the catalogue.</h3>
+                <p className="text-slate-300">You proved there&apos;s a market. You earned it. That&apos;s it.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Track progress note */}
+          <div className="mt-8 text-center">
+            <p className="text-slate-500">
+              Keep track of your progress on your profile →
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* For Your Friends */}
+      <section className="px-4 py-20 bg-slate-900/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <Users className="h-12 w-12 text-blue-400 mx-auto mb-4" />
+            <h2 className="text-3xl md:text-4xl font-black mb-4">
+              And your friends?
+            </h2>
+          </div>
+
+          <div className="bg-slate-800/50 rounded-3xl p-8 md:p-10 border border-slate-700">
+            <div className="space-y-6 text-lg text-slate-300">
+              <p>
+                Everyone who verifies can <span className="text-white font-semibold">preorder at a substantial discount</span> — first in line when it arrives.
+              </p>
+              <p>
+                Or they can create their own Want and get <span className="text-white font-semibold">theirs</span> free.
+              </p>
+              <div className="pt-6 border-t border-slate-700">
+                <p className="text-xl text-white font-semibold">
+                  The loop continues. The catalogue grows. Prices drop.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Zone Partner Bonus */}
+      <section className="px-4 py-24">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-purple-500/20 to-indigo-500/20 rounded-3xl p-8 md:p-12 border border-purple-500/30 relative overflow-hidden">
+            {/* Glow effect */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500 rounded-full blur-[100px] opacity-20 pointer-events-none" />
+            
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-500/30 rounded-full text-purple-300 text-sm font-medium mb-6">
+                <Sparkles className="h-4 w-4" />
+                Bonus for early believers
+              </div>
+              
+              <h2 className="text-3xl md:text-4xl font-black mb-6">
+                Want more than a free product?
+              </h2>
+              
+              <div className="space-y-4 text-lg text-slate-300 mb-8">
+                <p>
+                  <span className="text-white font-bold">Become a Zone Partner.</span> Secure your territory. Build something real.
+                </p>
+                <p>
+                  This isn&apos;t just about saving money.
+                </p>
+                <p className="text-2xl text-white font-black">
+                  This could change your life. <span className="text-purple-400">Your destiny.</span>
+                </p>
+              </div>
+              
+              <Link 
+                href="/partner"
+                className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-lg px-8 py-4 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all hover:scale-105"
+              >
+                <MapPin className="h-5 w-5" />
+                See Zone Partner Opportunities
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final Splash - The Movement */}
+      <section className="px-4 py-32 bg-black relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-orange-500 rounded-full blur-[200px] opacity-10" />
+        </div>
+
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6">
+            This isn&apos;t a store.
+            <br />
+            <span className="bg-gradient-to-r from-orange-400 to-amber-500 bg-clip-text text-transparent">
+              It&apos;s a movement.
+            </span>
           </h2>
-          <p className="text-slate-400 mb-8">
-            Find a product you want, request it, and rally your people.
+          
+          <p className="text-2xl text-slate-300 mb-12">
+            And you&apos;re part of it now.
           </p>
+          
           <Link 
             href="/wants"
-            className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold text-lg px-8 py-4 rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold text-xl px-10 py-5 rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105"
           >
-            Request a Product <ArrowRight className="h-5 w-5" />
+            Request Your First Product <ArrowRight className="h-6 w-6" />
           </Link>
         </div>
       </section>
