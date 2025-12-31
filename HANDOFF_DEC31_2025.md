@@ -1,200 +1,192 @@
-# JEFFY COMMERCE HANDOFF
-## Date: December 31, 2025
-## Status: PRE-LAUNCH READY 🚀
+# JEFFY HANDOFF - December 31, 2025
+
+## SESSION SUMMARY
+Zone Partner journey built (4 pages), coming-soon redesigned, application system working.
 
 ---
 
-## ✅ WHAT'S LIVE NOW
+## TASK #1 (PRIORITY): Verification System for Wants
 
-### Public Pages (all working)
+### The Problem
+Currently the voting system is broken/missing. Need TWO separate systems:
+
+### System A: Popularity Clicks (Fun Metric)
+- The upvote button on `/wants` page
+- Anyone can click unlimited times
+- No login, no verification
+- Just increments a counter for engagement feel
+- Admin can see it but it's NOT official
+- **Status:** Needs to be decoupled from verification
+
+### System B: Real Verification (Serious - THE ACTUAL SYSTEM)
+- Creator of a Want gets a PERSONAL link with unique code
+- Example: `jeffy.co.za/want/[want-id]?ref=[CREATOR_CODE]`
+- Creator shares this link with friends/family
+- When friend clicks:
+  1. See the want details
+  2. MUST enter phone OR email
+  3. Phone/email MUST be verified (OTP or email confirmation link)
+  4. Only THEN does it count as 1 verification
+- **10 verified people = Tredoux sources the product**
+- **First requester gets it FREE**
+
+### Database Schema Needed
+```sql
+-- Verifications table (the real votes)
+CREATE TABLE want_verifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  want_id UUID REFERENCES wants(id) ON DELETE CASCADE,
+  email TEXT,
+  phone TEXT,
+  verification_code TEXT,
+  verified_at TIMESTAMPTZ,
+  referred_by_code TEXT, -- creator's referral code
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Add to wants table
+ALTER TABLE wants ADD COLUMN creator_referral_code TEXT UNIQUE;
+ALTER TABLE wants ADD COLUMN verified_count INTEGER DEFAULT 0;
+ALTER TABLE wants ADD COLUMN popularity_clicks INTEGER DEFAULT 0;
+```
+
+### Pages/Components Needed
+1. **Want Detail Page** `/want/[id]` - Shows want, verification form if `?ref=` present
+2. **Verification Form** - Phone or email input → sends OTP/link
+3. **OTP/Email Verification** - Confirms and increments verified_count
+4. **Creator Dashboard** - See their wants, share links, track verifications
+5. **Admin Overview** - See all wants, popularity vs real verifications
+
+### Flow Diagram
+```
+Creator creates Want
+    ↓
+Gets personal link: jeffy.co.za/want/xyz?ref=MYCODE
+    ↓
+Shares with 10 friends
+    ↓
+Friend clicks → Enters phone → Gets OTP → Verifies
+    ↓
+verified_count++
+    ↓
+At 10 verifications → Tredoux notified → Sources product
+    ↓
+First requester gets it FREE
+```
+
+---
+
+## COMPLETED TODAY
+
+### Zone Partner Journey (4 pages)
 | Page | URL | Status |
 |------|-----|--------|
-| Customer Waitlist | https://jeffy.co.za/coming-soon | ✅ Live |
-| Product Wants | https://jeffy.co.za/wants | ✅ Live |
-| Zone Partners | https://jeffy.co.za/zone-partners | ✅ Live |
+| What is Jeffy | `/partner` | ✅ Live |
+| How It Works | `/partner/how-it-works` | ✅ Live |
+| Why It Works | `/partner/why-it-works` | ✅ Live |
+| Apply | `/partner/apply` | ✅ Live |
 
-### Email System ✅ WORKING
-- **From:** hello@jeffy.co.za
-- **Provider:** Resend (verified)
-- **Templates:** Waitlist welcome, Zone Partner welcome
-- **Status:** Sending successfully!
+### Coming Soon Page
+- `/coming-soon` - Two paths: Create a Want / Become Zone Partner
+- Dark slate theme, premium exclusive feel
+- "This isn't for everyone" energy
+- **THIS IS THE AESTHETIC TO MAINTAIN**
 
-### APIs (all working)
-| Endpoint | Status | Notes |
-|----------|--------|-------|
-| `POST /api/waitlist` | ✅ Working | Email confirmations enabled |
-| `GET /api/waitlist` | ✅ Working | Stats + user lookup |
-| `POST /api/zone-partners` | ✅ Working | Email confirmations enabled |
-| `GET /api/zone-partners` | ✅ Working | Zone stats |
-| `GET /api/wants/public` | ✅ Working | Public wants list |
-| `POST /api/wants/public` | ✅ Working | Submit new want |
-
-### Features Working
-- ✅ Waitlist signup with referral codes
-- ✅ 5-tier reward system (3/5/10/25/50 referrals)
-- ✅ Referral tracking + position movement
-- ✅ Zone Partner waitlist with position-based benefits
-- ✅ Product voting system (50 votes = sourcing)
-- ✅ Launch countdown timer (Jan 20, 2025)
-- ✅ Impact bar showing mission
-- ✅ WhatsApp share integration
-- ✅ Email confirmations (Resend) - pending DNS verification
+### Key Changes
+1. **50 votes → 10 verifications** for Wants
+2. **Zone selection**: Province → City → Area (cascading dropdowns)
+3. **School messaging**: "Jeffy builds commerce empire → commerce builds school empire"
+4. **API fixed**: Handles existing waitlist emails (upgrades to zone partner)
+5. **Phone stored** in zone_id field (temporary)
+6. **R200 → R500** markup example on why-it-works page
 
 ---
 
-## 📧 EMAIL SYSTEM
+## DATABASE NOTES
 
-### Status: Configured, pending DNS verification
+### Waitlist Table
+- Zone partners stored with `type: 'zone_partner'`
+- `zone_id` format: `western-cape > cape-town > Camps Bay | Phone: 0761234567`
+- Email is UNIQUE across all waitlist types
+- Existing customers auto-upgrade to zone partner if they apply
 
-**Resend Setup:**
-- Account: tredoux555
-- Domain: jeffy.co.za (pending verification)
-- API Key: In Railway as `RESEND_API_KEY`
-
-**DNS Records Added to GoDaddy:**
-1. TXT `resend._domainkey` → DKIM key
-2. MX `send` → feedback-smtp.eu-west-1.amazonses.com
-3. TXT `send` → SPF record
-4. TXT `_dmarc` → DMARC policy
-
-**To verify:** Go to https://resend.com/domains and click Verify/Restart
-
-**Emails implemented:**
-- `sendWaitlistWelcome()` - Position, referral link, WhatsApp share, reward tiers
-- `sendZonePartnerWelcome()` - Zone, position, benefits, referral link
+### Wants Table
+- Currently has `vote_count` but this needs to split into:
+  - `popularity_clicks` (fun metric, meaningless)
+  - `verified_count` (real verifications, serious)
 
 ---
 
-## 🗄️ DATABASE
+## DESIGN PHILOSOPHY
 
-### Tables
-| Table | Purpose |
-|-------|---------|
-| `users` | Basic user records |
-| `waitlist` | Customer + Zone Partner waitlist |
-| `wants` | Product requests |
-| `want_votes` | Votes on wants |
+### Two Vibes, Same Brand
+| Audience | Vibe | Colors |
+|----------|------|--------|
+| Customers (Homepage) | "Eish, These Prices!" | Orange energy, gray-950 |
+| Partners/Believers | "This is a movement" | Slate dark, premium, exclusive |
 
-### Key Fixes Applied
-1. Created missing `wants` and `users` tables
-2. Granted sequence permissions (`waitlist_position_seq`)
-3. RLS policies set to public access
+The contrast IS the design. Don't make them look the same.
 
 ---
 
-## 📁 KEY FILE LOCATIONS
+## NOT BUILT YET (Phase 2+)
+
+- [ ] **Verification system** (Task #1 above)
+- [ ] Digital zone mapping tool
+- [ ] Zone boundary visualization  
+- [ ] Google Places autocomplete for areas
+- [ ] Separate phone column in database
+- [ ] OTP service integration (consider Twilio, Africa's Talking, or local SA provider)
+
+---
+
+## FILES MODIFIED TODAY
+
+### New Files
+- `src/app/partner/page.tsx` - What is Jeffy
+- `src/app/partner/how-it-works/page.tsx`
+- `src/app/partner/why-it-works/page.tsx`
+- `src/app/partner/apply/page.tsx` - Zone application form
+- `src/app/partner/layout.tsx`
+
+### Modified Files
+- `src/app/coming-soon/page.tsx` - Redesigned with two paths
+- `src/app/coming-soon/opengraph-image.tsx` - New OG image
+- `src/app/wants/page.tsx` - Changed 50→10 threshold
+- `src/app/api/zone-partners/route.ts` - Fixed unique email handling
+
+---
+
+## URLS FOR TESTING
 
 ```
-jeffy-mvp/
-├── src/app/
-│   ├── coming-soon/page.tsx      ← Waitlist UI + countdown
-│   ├── wants/page.tsx            ← Product voting UI
-│   ├── zone-partners/page.tsx    ← Partner recruitment UI
-│   └── api/
-│       ├── waitlist/route.ts     ← Waitlist API + email
-│       ├── zone-partners/route.ts← Zone API + email
-│       └── wants/public/route.ts ← Public wants API
-├── src/lib/
-│   └── email/resend.ts           ← Email templates
-├── supabase/migrations/
-│   └── 005_prelaunch_FIXED.sql   ← Complete migration
-└── HANDOFF_DEC31_2025.md         ← This file
+https://jeffy.co.za/coming-soon          <- Entry point (share this)
+https://jeffy.co.za/partner              <- Zone partner journey start
+https://jeffy.co.za/partner/how-it-works
+https://jeffy.co.za/partner/why-it-works  
+https://jeffy.co.za/partner/apply        <- Application form
+https://jeffy.co.za/wants                <- Product requests
+https://jeffy.co.za                      <- Main store
 ```
 
 ---
 
-## 🔑 ENVIRONMENT VARIABLES (Railway)
+## NEXT SESSION PRIORITIES
 
-```
-NEXT_PUBLIC_SUPABASE_URL=https://inhrgiakjyprabxluppv.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-RESEND_API_KEY=re_... (rotate this - was exposed in chat)
-NEXT_PUBLIC_SITE_URL=https://jeffy.co.za
-```
+1. **BUILD VERIFICATION SYSTEM** (described above)
+2. Delete test wants from database
+3. Test full flow: Create want → Get link → Share → Friend verifies → Count increments
+4. Admin view for verifications vs popularity
 
 ---
 
-## 📊 CURRENT STATS
+## REPO & DEPLOYMENT
 
-As of Dec 31, 2025:
-- Waitlist: 5 signups
-- Zone Partners: 0
-- Product Wants: 0
-- Referral system: Verified working
-
----
-
-## 🚀 NEXT PRIORITIES
-
-### Immediate (Today)
-1. ⏳ Verify Resend domain (check DNS propagation)
-2. ⏳ Test email delivery end-to-end
-3. ⏳ Rotate Resend API key (exposed in chat)
-
-### This Week
-1. **Milestone emails** - Congrats when hitting reward tiers
-2. **Weekly position updates** - Keep waitlist engaged
-3. **Product seeding** - Add 5-10 sample product wants
-
-### Before Launch (Jan 20)
-1. First Zone Partner onboarding
-2. Influencer outreach (letters ready in /outreach)
-3. Payment integration (PayFast ready)
+- **Repo:** github.com/Tredoux555/jeffy-commerce
+- **Hosting:** Railway
+- **Branch:** main (auto-deploys)
+- **Build time:** ~90 seconds
 
 ---
 
-## 🧪 QUICK TEST COMMANDS
-
-```bash
-# Check all pages
-curl -s -o /dev/null -w "%{http_code}" https://jeffy.co.za/coming-soon
-curl -s -o /dev/null -w "%{http_code}" https://jeffy.co.za/wants
-curl -s -o /dev/null -w "%{http_code}" https://jeffy.co.za/zone-partners
-
-# Test waitlist signup
-curl -X POST https://jeffy.co.za/api/waitlist \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com"}'
-
-# Check waitlist stats
-curl https://jeffy.co.za/api/waitlist
-
-# Test referral (use actual referral code)
-curl -X POST https://jeffy.co.za/api/waitlist \
-  -H "Content-Type: application/json" \
-  -d '{"email":"friend@example.com", "referral_code":"dc52c14b"}'
-```
-
----
-
-## ⚠️ KNOWN ISSUES
-
-1. **Email DNS pending** - Resend domain verification in progress
-2. **API key exposed** - Rotate `RESEND_API_KEY` after session
-
----
-
-## 📝 SESSION SUMMARY (Dec 31)
-
-**Fixed:**
-- Database migration (missing tables)
-- Sequence permissions
-- TypeScript build errors (_future folder)
-- Zone partners 404
-
-**Built:**
-- Launch countdown timer
-- Impact bar
-- Founder pricing urgency
-- Email welcome templates
-- Zone Partner email integration
-
-**Verified:**
-- Referral system working (count increments, position moves)
-- All 3 pages live and functional
-- All APIs responding correctly
-
----
-
-*Last updated: Dec 31, 2025, 03:55 UTC*
+*Handoff created: Dec 31, 2025 @ 17:00 SAST*
