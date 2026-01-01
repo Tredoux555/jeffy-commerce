@@ -196,6 +196,17 @@ export default function AdminLayout({
               <Factory className="h-5 w-5" />
               OEM Research
             </Link>
+            <Link
+              href="/admin/factories"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/factories' 
+                  ? 'bg-orange-500 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Factory className="h-5 w-5" />
+              1688 Factories
+            </Link>
             
             {/* Growth Section */}
             <div className="my-2 border-t border-gray-200 pt-2">
