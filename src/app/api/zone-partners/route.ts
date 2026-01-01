@@ -206,40 +206,66 @@ export async function POST(request: NextRequest) {
       const firstName = name.split(' ')[0];
       try {
         await resend.emails.send({
-          from: 'Jeffy <hello@jeffy.co.za>',
+          from: 'Tredoux from Jeffy <hello@jeffy.co.za>',
+          replyTo: 'tredoux@gmail.com',
           to: cleanEmail,
-          subject: `Zone Partner Application Received 🎯`,
+          subject: `You're in 🎯 (But read this first)`,
           html: `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 20px;">
     <tr><td align="center">
-      <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden;">
-        <tr><td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 24px;">Application Received! 🎯</h1>
-          <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9);">Jeffy Zone Partner Program</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+        
+        <!-- Header -->
+        <tr><td style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 32px 30px; text-align: center;">
+          <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900;">Jeffy</h1>
         </td></tr>
+        
+        <!-- Body -->
         <tr><td style="padding: 40px 30px;">
-          <p style="margin: 0 0 20px; color: #374151; font-size: 18px;">Hey ${firstName}! 👋</p>
-          <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
-            We've received your application for <strong>${zone_id}</strong>.
-          </p>
-          <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
-            <p style="margin: 0 0 10px; color: #166534; font-size: 14px; font-weight: 600;">WHAT HAPPENS NEXT</p>
-            <ol style="margin: 0; padding-left: 20px; color: #166534; font-size: 14px; line-height: 1.8;">
-              <li>We review your application (1-3 business days)</li>
-              <li>If approved, you'll receive disclosure documents</li>
-              <li>14-day consideration period (legally required)</li>
-              <li>Sign agreement & complete training</li>
-              <li>Start earning in your zone! 🚀</li>
-            </ol>
+          <p style="margin: 0 0 24px; color: #1e293b; font-size: 18px; line-height: 1.6;">Hey ${firstName},</p>
+          
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">Got your application for <strong>${zone_id}</strong>.</p>
+          
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">Here's the honest truth: Jeffy isn't launching next month. We're not even launching in 6 months. We're building something that's meant to last, and that takes time.</p>
+          
+          <!-- Why Apply Now Box -->
+          <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 20px; margin: 28px 0;">
+            <p style="margin: 0 0 12px; color: #92400e; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Why apply now then?</p>
+            <p style="margin: 0; color: #78350f; font-size: 15px; line-height: 1.6;">Because the first 50 Zone Partners aren't just delivery drivers. They're founders. They get:</p>
+            <ul style="margin: 12px 0 0; padding-left: 20px; color: #78350f; font-size: 15px; line-height: 1.8;">
+              <li>Locked-in territory (forever, not a lease)</li>
+              <li>Better profit splits than anyone who joins later</li>
+              <li>A seat at the table when decisions get made</li>
+              <li>Priority school placement for their families (when we build that)</li>
+            </ul>
           </div>
-          <p style="margin: 0; color: #6b7280; font-size: 14px;">Questions? Just reply to this email.</p>
+          
+          <!-- What Happens Section -->
+          <p style="margin: 0 0 12px; color: #64748b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">What happens between now and launch?</p>
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">We're going to build the tech properly, set up supply chains that actually work, test everything in small pilots before scaling, and keep you updated on progress.</p>
+          
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">You'll hear from us. Not with corporate newsletters, but with real updates about what we're building and when your zone is ready.</p>
+          
+          <!-- One Thing Box -->
+          <div style="background-color: #f1f5f9; border-radius: 8px; padding: 20px; margin: 28px 0;">
+            <p style="margin: 0 0 8px; color: #334155; font-size: 15px;"><strong>One thing:</strong></p>
+            <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6;">We're selective. Not everyone who applies becomes a Zone Partner. We're looking for people who want to build something, not people looking for a quick gig.</p>
+            <p style="margin: 12px 0 0; color: #334155; font-size: 15px;">If that's you, you're in the right place.</p>
+          </div>
+          
+          <p style="margin: 0 0 8px; color: #1e293b; font-size: 16px;">Talk soon,</p>
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px;"><strong>Tredoux</strong><br><span style="color: #64748b;">Founder, Jeffy</span></p>
+          
+          <p style="margin: 24px 0 0; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 14px;">P.S. — Reply to this email anytime. I read them.</p>
         </td></tr>
-        <tr><td style="background-color: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
-          <p style="margin: 0; color: #9ca3af; font-size: 12px;">Jeffy Commerce • Building SA's community delivery network</p>
+        
+        <!-- Footer -->
+        <tr><td style="background-color: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
+          <p style="margin: 0; color: #94a3b8; font-size: 12px;">Jeffy Commerce • South Africa</p>
         </td></tr>
       </table>
     </td></tr>
