@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,105 +16,104 @@ export async function POST(request: NextRequest) {
     }
 
     const agreementDate = new Date(acceptedAt);
+    const firstName = fullName.split(' ')[0];
 
-    const emailTemplate = `
+    // Send confirmation email via Resend
+    const { data, error } = await resend.emails.send({
+      from: 'Jeffy <hello@jeffy.co.za>',
+      to: email,
+      subject: `✓ Zone Partner Agreement Confirmed - ${zoneName}`,
+      html: `
 <!DOCTYPE html>
 <html>
 <head>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: linear-gradient(135deg, #f97316 0%, #eab308 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
-    .header h1 { margin: 0; font-size: 24px; }
-    .content { background: #f9fafb; padding: 30px; }
-    .section { margin-bottom: 20px; }
-    .section h2 { color: #f97316; font-size: 18px; margin-top: 0; }
-    .info-box { background: white; padding: 15px; border-left: 4px solid #f97316; margin: 15px 0; }
-    .footer { background: #fff; padding: 20px; border-radius: 0 0 8px 8px; font-size: 12px; color: #666; text-align: center; }
-    ul { margin: 10px 0; padding-left: 20px; }
-    li { margin: 8px 0; }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>✓ Agreement Accepted!</h1>
-      <p>Welcome to the Jeffy Zone Partner network, ${fullName}</p>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, #f97316 0%, #eab308 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; text-align: center;">
+      <h1 style="margin: 0; font-size: 24px;">✓ Agreement Accepted!</h1>
+      <p style="margin: 10px 0 0; opacity: 0.9;">Welcome to the Jeffy Zone Partner network</p>
     </div>
     
-    <div class="content">
-      <div class="section">
-        <h2>Your Zone Partner Agreement is Confirmed</h2>
-        <p>This email confirms that you have accepted the Zone Partner Agreement on <strong>${agreementDate.toLocaleDateString()}</strong> at <strong>${agreementDate.toLocaleTimeString()}</strong></p>
+    <!-- Content -->
+    <div style="background: #f9fafb; padding: 30px;">
+      
+      <p style="font-size: 18px;">Hey ${firstName}! 🎉</p>
+      
+      <p>This email confirms that you have accepted the Zone Partner Agreement on <strong>${agreementDate.toLocaleDateString()}</strong> at <strong>${agreementDate.toLocaleTimeString()}</strong></p>
+
+      <!-- Details Box -->
+      <div style="background: white; padding: 15px; border-left: 4px solid #f97316; margin: 20px 0;">
+        <p style="margin: 5px 0;"><strong>Zone:</strong> ${zoneName}</p>
+        <p style="margin: 5px 0;"><strong>Name:</strong> ${fullName}</p>
+        <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+        <p style="margin: 5px 0;"><strong>Agreement Accepted:</strong> ${agreementDate.toLocaleString()}</p>
       </div>
 
-      <div class="info-box">
-        <strong>Your Details:</strong>
-        <p><strong>Zone:</strong> ${zoneName}</p>
-        <p><strong>Name:</strong> ${fullName}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Agreement Accepted:</strong> ${agreementDate.toLocaleString()}</p>
-      </div>
+      <h2 style="color: #f97316; font-size: 18px; margin-top: 30px;">What's Next?</h2>
+      <p>You're now an active Zone Partner! Here's what happens next:</p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Tomorrow:</strong> Access your Zone Partner Dashboard</li>
+        <li><strong>This week:</strong> Start receiving delivery requests in your zone</li>
+        <li><strong>Weekly:</strong> Earn 50% commission on every delivery</li>
+        <li><strong>Every Wednesday:</strong> Receive payouts to your bank account</li>
+      </ul>
 
-      <div class="section">
-        <h2>What's Next?</h2>
-        <p>You're now an active Zone Partner! Here's what happens next:</p>
-        <ul>
-          <li><strong>Tomorrow:</strong> Access your Zone Partner Dashboard</li>
-          <li><strong>This week:</strong> Start receiving delivery requests in your zone</li>
-          <li><strong>Weekly:</strong> Earn 50% commission on every delivery you complete</li>
-          <li><strong>Every Wednesday:</strong> Receive payouts to your bank account</li>
-        </ul>
-      </div>
+      <h2 style="color: #f97316; font-size: 18px; margin-top: 30px;">Important Reminders</h2>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>✓ Maintain active Public Liability Insurance</li>
+        <li>✓ Register with SARS as self-employed if you haven't</li>
+        <li>✓ Keep records of business expenses for tax purposes</li>
+        <li>✓ Maintain 90%+ delivery completion and 4.0+ star rating</li>
+        <li>✓ Respond to customer issues within 24 hours</li>
+      </ul>
 
-      <div class="section">
-        <h2>Important Reminders</h2>
-        <ul>
-          <li>✓ You must have active Public Liability Insurance</li>
-          <li>✓ Register with SARS as self-employed if you haven't already</li>
-          <li>✓ Keep records of your business expenses for tax purposes</li>
-          <li>✓ Maintain 90%+ delivery completion and 4.0+ star rating</li>
-          <li>✓ Respond to customer issues within 24 hours</li>
-        </ul>
-      </div>
+      <h2 style="color: #f97316; font-size: 18px; margin-top: 30px;">Tax Information</h2>
+      <p>As an independent contractor, you are responsible for:</p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Declaring all Jeffy earnings on your annual ITR12</li>
+        <li>Paying provisional tax if you earn over R91,250 annually</li>
+        <li>Registering for VAT if you earn over R1 million annually</li>
+      </ul>
+      <p style="font-style: italic; color: #666;">We recommend consulting with an accountant for proper record-keeping.</p>
 
-      <div class="section">
-        <h2>Tax Information</h2>
-        <p>As an independent contractor, you are responsible for:</p>
-        <ul>
-          <li>Declaring all Jeffy earnings on your annual ITR12</li>
-          <li>Paying provisional tax if you earn over R91,250 annually</li>
-          <li>Registering for VAT if you earn over R1 million annually</li>
-        </ul>
-        <p><em>We recommend consulting with an accountant to set up proper record-keeping.</em></p>
-      </div>
-
-      <div class="section">
-        <h2>Need Help?</h2>
-        <p>Our partner support team is here to help:</p>
-        <ul>
-          <li><strong>Email:</strong> partners@jeffy.co.za</li>
-          <li><strong>Hours:</strong> Monday-Friday, 09:00-17:00 SAST</li>
-        </ul>
-      </div>
+      <h2 style="color: #f97316; font-size: 18px; margin-top: 30px;">Need Help?</h2>
+      <p>Our partner support team is here:</p>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Email:</strong> partners@jeffy.co.za</li>
+        <li><strong>Hours:</strong> Monday-Friday, 09:00-17:00 SAST</li>
+      </ul>
     </div>
 
-    <div class="footer">
-      <p><strong>Jeffy Commerce</strong></p>
-      <p>This is your confirmation copy of the Zone Partner Agreement. Please keep this email for your records.</p>
-      <p>&copy; ${new Date().getFullYear()} Jeffy Commerce. All rights reserved.</p>
+    <!-- Footer -->
+    <div style="background: #fff; padding: 20px; border-radius: 0 0 8px 8px; font-size: 12px; color: #666; text-align: center; border-top: 1px solid #e5e7eb;">
+      <p style="margin: 0;"><strong>Jeffy Commerce</strong></p>
+      <p style="margin: 5px 0 0;">This is your confirmation copy of the Zone Partner Agreement. Please keep this email for your records.</p>
+      <p style="margin: 10px 0 0;">© ${new Date().getFullYear()} Jeffy Commerce. All rights reserved.</p>
     </div>
+
   </div>
 </body>
 </html>
-    `;
+      `,
+    });
 
-    // For now, just log and return success
-    // Email sending can be configured later with Resend or SendGrid
-    console.log('Confirmation email would be sent to:', email);
+    if (error) {
+      console.error('Resend error:', error);
+      return NextResponse.json(
+        { error: 'Failed to send email', details: error.message },
+        { status: 500 }
+      );
+    }
+
+    console.log('Partner confirmation email sent:', data?.id);
 
     return NextResponse.json(
-      { success: true, message: 'Confirmation email sent', email },
+      { success: true, message: 'Confirmation email sent', email, messageId: data?.id },
       { status: 200 }
     );
   } catch (error: any) {
@@ -122,7 +124,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
-
-
-

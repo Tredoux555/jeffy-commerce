@@ -3,18 +3,22 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, TrendingUp, Package, Truck, DollarSign, RefreshCw, MapPin, LogOut, User } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Package, Truck, DollarSign, RefreshCw, MapPin, LogOut, User, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
 interface PartnerData {
   id: string;
-  full_legal_name: string;
+  full_name?: string;
+  full_legal_name?: string;
   email: string;
   zone_name?: string;
-  application_status: string;
+  zone_id?: string;
+  status?: string;
+  application_status?: string;
   agreed_to_terms: boolean;
+  is_active: boolean;
 }
 
 interface EarningsData {
@@ -46,6 +50,7 @@ export default function PartnerDashboardPage() {
   const [data, setData] = useState<EarningsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadPartner();
@@ -55,50 +60,85 @@ export default function PartnerDashboardPage() {
     try {
       const supabase = createClient();
       
-      // Get current user
+      // First try: Get partner ID from localStorage (set after agreement signing)
+      const storedPartnerId = localStorage.getItem('zonePartnerId');
+      
+      if (storedPartnerId) {
+        // Load partner by ID
+        const { data: partnerData, error: partnerError } = await supabase
+          .from('zone_partners')
+          .select('*')
+          .eq('id', storedPartnerId)
+          .single();
+
+        if (partnerData && !partnerError) {
+          // Check if they've agreed to terms
+          if (!partnerData.agreed_to_terms) {
+            router.push(`/partner/agreement/${partnerData.id}`);
+            return;
+          }
+
+          setPartner(partnerData);
+          await fetchEarnings(partnerData.id);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Second try: Check if logged in via Supabase Auth
       const { data: { user } } = await supabase.auth.getUser();
       
-      if (!user) {
-        router.push('/auth/login?redirect=/partner/dashboard');
-        return;
+      if (user) {
+        // Try to find partner by user_id
+        const { data: partnerByUserId } = await supabase
+          .from('zone_partners')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (partnerByUserId) {
+          if (!partnerByUserId.agreed_to_terms) {
+            router.push(`/partner/agreement/${partnerByUserId.id}`);
+            return;
+          }
+
+          localStorage.setItem('zonePartnerId', partnerByUserId.id);
+          setPartner(partnerByUserId);
+          await fetchEarnings(partnerByUserId.id);
+          setLoading(false);
+          return;
+        }
+
+        // Try to find by email
+        const { data: partnerByEmail } = await supabase
+          .from('zone_partners')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+
+        if (partnerByEmail) {
+          if (!partnerByEmail.agreed_to_terms) {
+            router.push(`/partner/agreement/${partnerByEmail.id}`);
+            return;
+          }
+
+          localStorage.setItem('zonePartnerId', partnerByEmail.id);
+          setPartner(partnerByEmail);
+          await fetchEarnings(partnerByEmail.id);
+          setLoading(false);
+          return;
+        }
       }
 
-      // Get their zone partner record
-      const { data: partnerData, error } = await supabase
-        .from('zone_partners')
-        .select('id, full_legal_name, email, zone_name, application_status, agreed_to_terms')
-        .eq('user_id', user.id)
-        .single();
+      // No partner found - show apply prompt
+      setError('Partner account not found');
+      setLoading(false);
 
-      if (error || !partnerData) {
-        // Not a partner yet - redirect to apply
-        router.push('/partner/apply');
-        return;
-      }
-
-      // Check if they've agreed to terms
-      if (!partnerData.agreed_to_terms) {
-        router.push(`/partner/agreement/${partnerData.id}`);
-        return;
-      }
-
-      // Check if approved
-      if (partnerData.application_status !== 'approved' && partnerData.application_status !== 'pending') {
-        setLoading(false);
-        return;
-      }
-
-      setPartner(partnerData);
-      
-      // Store in localStorage for other pages
-      localStorage.setItem('zonePartnerId', partnerData.id);
-      
-      // Fetch earnings
-      await fetchEarnings(partnerData.id);
     } catch (err) {
       console.error('Error loading partner:', err);
+      setError('Failed to load partner data');
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchEarnings = async (partnerId: string) => {
@@ -115,9 +155,7 @@ export default function PartnerDashboardPage() {
     setRefreshing(false);
   };
 
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+  const handleLogout = () => {
     localStorage.removeItem('zonePartnerId');
     router.push('/');
   };
@@ -130,22 +168,51 @@ export default function PartnerDashboardPage() {
     );
   }
 
-  if (!partner) {
+  if (error || !partner) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-8">
+        <AlertCircle className="h-12 w-12 text-orange-500 mb-4" />
         <h1 className="text-2xl font-bold mb-4">Zone Partner Dashboard</h1>
-        <p className="text-gray-400 mb-6">You need to be an approved Zone Partner to access this page</p>
-        <div className="space-y-3">
-        <Link href="/partner/apply">
-            <Button className="w-full bg-orange-500">Apply to be a Zone Partner</Button>
+        <p className="text-gray-400 mb-6 text-center max-w-md">
+          {error || 'You need to be an approved Zone Partner to access this page.'}
+        </p>
+        <div className="space-y-3 w-full max-w-xs">
+          <Link href="/partner/apply">
+            <Button className="w-full bg-orange-500 hover:bg-orange-600">
+              Apply to be a Zone Partner
+            </Button>
           </Link>
-          <Link href="/auth/login?redirect=/partner/dashboard">
-            <Button variant="outline" className="w-full">Login</Button>
-        </Link>
+          <Link href="/">
+            <Button variant="outline" className="w-full">
+              Back to Home
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
+
+  // Check status
+  const status = partner.status || partner.application_status;
+  if (status === 'pending') {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-8">
+        <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mb-6">
+          <Package className="h-10 w-10 text-yellow-400" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Application Under Review</h1>
+        <p className="text-gray-400 mb-6 text-center max-w-md">
+          We're reviewing your application for <strong>{partner.zone_name || partner.zone_id}</strong>. 
+          You'll receive an email once approved.
+        </p>
+        <Link href="/">
+          <Button variant="outline">Back to Home</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const displayName = partner.full_legal_name || partner.full_name || 'Partner';
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -159,17 +226,17 @@ export default function PartnerDashboardPage() {
               </Button>
             </Link>
             <div>
-            <h1 className="font-bold text-xl">Partner Dashboard</h1>
-              <p className="text-sm text-gray-400">{partner.zone_name || 'Zone Partner'}</p>
+              <h1 className="font-bold text-xl">Partner Dashboard</h1>
+              <p className="text-sm text-gray-400">{partner.zone_name || partner.zone_id || 'Zone Partner'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => fetchEarnings(partner.id)} variant="outline" size="sm" disabled={refreshing}>
+            <Button onClick={() => partner && fetchEarnings(partner.id)} variant="outline" size="sm" disabled={refreshing}>
               <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
             </Button>
             <Button onClick={handleLogout} variant="ghost" size="sm" className="text-gray-400">
               <LogOut className="h-4 w-4" />
-          </Button>
+            </Button>
           </div>
         </div>
       </div>
@@ -183,10 +250,21 @@ export default function PartnerDashboardPage() {
             </div>
             <div>
               <p className="text-white/80 text-sm">Welcome back,</p>
-              <h2 className="text-xl font-bold text-white">{partner.full_legal_name}</h2>
+              <h2 className="text-xl font-bold text-white">{displayName}</h2>
             </div>
           </div>
         </div>
+
+        {/* Status Banner - if not active yet */}
+        {!partner.is_active && (
+          <div className="bg-blue-500/20 border border-blue-500/30 rounded-xl p-4">
+            <p className="text-blue-400 font-medium">🚀 Almost there!</p>
+            <p className="text-sm text-gray-300">Complete your onboarding to start receiving orders.</p>
+            <Link href="/partner/onboarding" className="text-blue-400 text-sm hover:underline mt-2 inline-block">
+              View Onboarding Steps →
+            </Link>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

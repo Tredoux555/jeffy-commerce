@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { signIn } from '@/lib/auth/actions';
 
+// NOTE: This is for STORE accounts (Supabase auth)
+// For WANTS accounts, use /login instead
+
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -46,7 +49,7 @@ export default function LoginPage() {
               <LogIn className="h-8 w-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-            <p className="text-gray-600 mt-2">Sign in to your Jeffy account</p>
+            <p className="text-gray-600 mt-2">Sign in to your Jeffy store account</p>
           </div>
 
           {error && (
@@ -123,6 +126,16 @@ export default function LoginPage() {
               Don't have an account?{' '}
               <Link href="/auth/register" className="text-orange-600 hover:text-orange-700 font-medium">
                 Sign up
+              </Link>
+            </p>
+          </div>
+          
+          {/* Link to wants login */}
+          <div className="mt-4 pt-4 border-t text-center">
+            <p className="text-gray-500 text-sm">
+              Created a Want?{' '}
+              <Link href="/login" className="text-orange-600 hover:text-orange-700 font-medium">
+                Login to track it
               </Link>
             </p>
           </div>
