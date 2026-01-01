@@ -12,8 +12,12 @@ import {
   Edit2,
   X,
   Save,
-  Filter,
-  Package
+  Package,
+  Globe,
+  Copy,
+  Check,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 
 interface FactoryRecord {
@@ -39,8 +43,32 @@ const CATEGORIES = [
   'Toys & Games',
   'Office & Stationery',
   'Food & Beverage',
+  'Bags & Luggage',
+  'Jewelry & Watches',
+  'Baby & Kids',
+  'Pet Supplies',
+  'Auto & Motorcycle',
   'Other'
 ];
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'Beauty & Personal Care': 'bg-pink-100 text-pink-700 border-pink-200',
+  'Electronics': 'bg-blue-100 text-blue-700 border-blue-200',
+  'Home & Kitchen': 'bg-amber-100 text-amber-700 border-amber-200',
+  'Fashion & Accessories': 'bg-purple-100 text-purple-700 border-purple-200',
+  'Tools & Hardware': 'bg-gray-100 text-gray-700 border-gray-200',
+  'Health & Wellness': 'bg-green-100 text-green-700 border-green-200',
+  'Sports & Outdoors': 'bg-orange-100 text-orange-700 border-orange-200',
+  'Toys & Games': 'bg-red-100 text-red-700 border-red-200',
+  'Office & Stationery': 'bg-slate-100 text-slate-700 border-slate-200',
+  'Food & Beverage': 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  'Bags & Luggage': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  'Jewelry & Watches': 'bg-rose-100 text-rose-700 border-rose-200',
+  'Baby & Kids': 'bg-sky-100 text-sky-700 border-sky-200',
+  'Pet Supplies': 'bg-teal-100 text-teal-700 border-teal-200',
+  'Auto & Motorcycle': 'bg-zinc-100 text-zinc-700 border-zinc-200',
+  'Other': 'bg-gray-100 text-gray-600 border-gray-200',
+};
 
 export default function AdminFactoriesPage() {
   const [factories, setFactories] = useState<FactoryRecord[]>([]);
@@ -51,8 +79,9 @@ export default function AdminFactoriesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [tableExists, setTableExists] = useState(true);
   
-  // Form state
   const [formData, setFormData] = useState({
     name: '',
     url: '',
@@ -69,9 +98,18 @@ export default function AdminFactoriesPage() {
       const { data, error } = await supabase
         .from('factories')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('quality_rating', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('permission denied') || error.code === '42P01') {
+          setTableExists(false);
+          setError(null);
+        } else {
+          throw error;
+        }
+        return;
+      }
+      setTableExists(true);
       setFactories(data || []);
     } catch (err: any) {
       setError(err.message);
@@ -85,8 +123,7 @@ export default function AdminFactoriesPage() {
   }, []);
 
   const extractFactoryName = (url: string): string => {
-    // Extract factory name from 1688 URL like https://www.1688.com/factory/goldhdshiny.html
-    const match = url.match(/1688\.com\/factory\/([^\/\.]+)/);
+    const match = url.match(/1688\.com\/(?:factory|winport)\/([^\/\.]+)/);
     return match ? match[1] : '';
   };
 
@@ -144,18 +181,20 @@ export default function AdminFactoriesPage() {
           .eq('id', editingId);
         
         if (error) throw error;
-        setSuccess('Factory updated!');
+        setSuccess('Factory updated successfully!');
       } else {
         const { error } = await supabase
           .from('factories')
           .insert([payload]);
         
         if (error) throw error;
-        setSuccess('Factory saved!');
+        setSuccess('Factory saved successfully!');
       }
 
       resetForm();
       fetchFactories();
+      
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       setError(err.message);
     }
@@ -172,10 +211,11 @@ export default function AdminFactoriesPage() {
     });
     setEditingId(factory.id);
     setShowAddForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this factory?')) return;
+    if (!confirm('Delete this factory? This cannot be undone.')) return;
 
     try {
       const { error } = await supabase
@@ -186,12 +226,18 @@ export default function AdminFactoriesPage() {
       if (error) throw error;
       setSuccess('Factory deleted');
       fetchFactories();
+      setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
       setError(err.message);
     }
   };
 
-  // Filter factories
+  const copyUrl = (url: string, id: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const filteredFactories = factories.filter(f => {
     const matchesSearch = 
       f.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,8 +249,105 @@ export default function AdminFactoriesPage() {
     return matchesSearch && matchesCategory;
   });
 
-  // Get unique categories from saved factories
   const usedCategories = [...new Set(factories.map(f => f.category))];
+  const topRated = factories.filter(f => f.quality_rating === 5).length;
+  const totalProducts = factories.reduce((sum, f) => sum + f.products.length, 0);
+
+  const renderStars = (rating: number, interactive = false, onChange?: (r: number) => void) => {
+    return (
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type={interactive ? 'button' : undefined}
+            onClick={interactive && onChange ? () => onChange(star) : undefined}
+            className={interactive ? 'cursor-pointer hover:scale-110 transition' : 'cursor-default'}
+            disabled={!interactive}
+          >
+            <Star 
+              className={`h-4 w-4 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} 
+            />
+          </button>
+        ))}
+      </div>
+    );
+  };
+
+  // Table doesn't exist - show setup instructions
+  if (!tableExists) {
+    return (
+      <div className="max-w-3xl mx-auto">
+        <div className="flex items-center gap-3 mb-6">
+          <Factory className="h-8 w-8 text-orange-500" />
+          <div>
+            <h1 className="text-2xl font-bold">1688 Factory Tracker</h1>
+            <p className="text-gray-500">Save and organize your favorite Chinese suppliers</p>
+          </div>
+        </div>
+
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 mb-6">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-800">Database Setup Required</h3>
+              <p className="text-amber-700 mt-1">
+                The factories table needs to be created in your Supabase database.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border p-6">
+          <h3 className="font-semibold mb-4">Run this SQL in Supabase:</h3>
+          <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+            <pre className="text-green-400 text-sm font-mono whitespace-pre-wrap">{`-- Create factories table
+CREATE TABLE IF NOT EXISTS factories (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  url TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'Other',
+  products TEXT[] DEFAULT '{}',
+  notes TEXT,
+  quality_rating INTEGER DEFAULT 3 
+    CHECK (quality_rating >= 1 AND quality_rating <= 5),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_factories_category 
+  ON factories(category);
+CREATE INDEX IF NOT EXISTS idx_factories_name 
+  ON factories(name);
+
+-- Enable RLS
+ALTER TABLE factories ENABLE ROW LEVEL SECURITY;
+
+-- Allow all operations
+CREATE POLICY "Allow all" ON factories
+  FOR ALL USING (true) WITH CHECK (true);`}</pre>
+          </div>
+          <div className="mt-4 flex gap-3">
+            <a 
+              href="https://supabase.com/dashboard" 
+              target="_blank"
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open Supabase Dashboard
+            </a>
+            <button 
+              onClick={fetchFactories}
+              className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50 transition"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -215,19 +358,19 @@ export default function AdminFactoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+          <h1 className="text-2xl font-bold flex items-center gap-3">
             <Factory className="h-7 w-7 text-orange-500" />
             1688 Factory Tracker
           </h1>
-          <p className="text-slate-400 mt-1">Save and organize your favorite 1688 suppliers</p>
+          <p className="text-gray-500 mt-1">Save and organize your favorite Chinese suppliers</p>
         </div>
         <button
           onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition font-medium"
         >
           <Plus className="h-5 w-5" />
           Add Factory
@@ -236,24 +379,26 @@ export default function AdminFactoriesPage() {
 
       {/* Messages */}
       {error && (
-        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 flex items-center gap-2">
+          <AlertCircle className="h-5 w-5" />
           {error}
         </div>
       )}
       {success && (
-        <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400">
+        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl text-green-600 flex items-center gap-2">
+          <Check className="h-5 w-5" />
           {success}
         </div>
       )}
 
       {/* Add/Edit Form */}
       {showAddForm && (
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <div className="bg-white border rounded-xl p-6 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">
+            <h2 className="text-lg font-semibold">
               {editingId ? 'Edit Factory' : 'Add New Factory'}
             </h2>
-            <button onClick={resetForm} className="text-slate-400 hover:text-white">
+            <button onClick={resetForm} className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -261,28 +406,28 @@ export default function AdminFactoriesPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  1688 Factory URL *
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  1688 Factory URL <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="url"
                   value={formData.url}
                   onChange={(e) => handleUrlChange(e.target.value)}
-                  placeholder="https://www.1688.com/factory/..."
-                  className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="https://shop1234567890.1688.com or https://www.1688.com/factory/..."
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Factory Name *
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Factory Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Factory name"
-                  className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  placeholder="e.g., Goldshine Beauty Tools"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                   required
                 />
               </div>
@@ -290,13 +435,13 @@ export default function AdminFactoriesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Category
                 </label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 >
                   {CATEGORIES.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -304,67 +449,53 @@ export default function AdminFactoriesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Quality Rating
                 </label>
-                <div className="flex items-center gap-1 py-2">
-                  {[1, 2, 3, 4, 5].map(rating => (
-                    <button
-                      key={rating}
-                      type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, quality_rating: rating }))}
-                      className="focus:outline-none"
-                    >
-                      <Star
-                        className={`h-6 w-6 ${
-                          rating <= formData.quality_rating
-                            ? 'text-yellow-400 fill-yellow-400'
-                            : 'text-slate-600'
-                        }`}
-                      />
-                    </button>
-                  ))}
+                <div className="flex items-center gap-3 h-[42px]">
+                  {renderStars(formData.quality_rating, true, (r) => setFormData(prev => ({ ...prev, quality_rating: r })))}
+                  <span className="text-sm text-gray-500">({formData.quality_rating}/5)</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Products (comma-separated)
               </label>
               <input
                 type="text"
                 value={formData.products}
                 onChange={(e) => setFormData(prev => ({ ...prev, products: e.target.value }))}
-                placeholder="nail scissors, tweezers, cuticle pushers"
-                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="e.g., nail scissors, tweezers, cuticle pushers"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Notes
               </label>
               <textarea
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Quality observations, pricing notes, communication experience..."
-                rows={3}
-                className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                placeholder="MOQ, communication quality, shipping notes..."
+                rows={2}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-2">
               <button
                 type="button"
                 onClick={resetForm}
-                className="px-4 py-2 text-slate-400 hover:text-white transition-colors"
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-6 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition font-medium"
               >
                 <Save className="h-4 w-4" />
                 {editingId ? 'Update' : 'Save'} Factory
@@ -374,139 +505,173 @@ export default function AdminFactoriesPage() {
         </div>
       )}
 
-      {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search factories or products..."
-            className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-5 w-5 text-slate-400" />
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            <option value="all">All Categories</option>
-            {usedCategories.map(cat => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white"
+        >
+          <option value="all">All Categories</option>
+          {usedCategories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
-          <p className="text-slate-400 text-sm">Total Factories</p>
-          <p className="text-2xl font-bold text-white">{factories.length}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white rounded-xl border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-orange-100 rounded-lg">
+              <Factory className="h-5 w-5 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{factories.length}</p>
+              <p className="text-sm text-gray-500">Total Factories</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
-          <p className="text-slate-400 text-sm">Categories</p>
-          <p className="text-2xl font-bold text-white">{usedCategories.length}</p>
+        <div className="bg-white rounded-xl border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Globe className="h-5 w-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{usedCategories.length}</p>
+              <p className="text-sm text-gray-500">Categories</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
-          <p className="text-slate-400 text-sm">Top Rated (5★)</p>
-          <p className="text-2xl font-bold text-white">{factories.filter(f => f.quality_rating === 5).length}</p>
+        <div className="bg-white rounded-xl border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <Star className="h-5 w-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{topRated}</p>
+              <p className="text-sm text-gray-500">5-Star Rated</p>
+            </div>
+          </div>
         </div>
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-4">
-          <p className="text-slate-400 text-sm">Total Products</p>
-          <p className="text-2xl font-bold text-white">{factories.reduce((sum, f) => sum + f.products.length, 0)}</p>
+        <div className="bg-white rounded-xl border p-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Package className="h-5 w-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{totalProducts}</p>
+              <p className="text-sm text-gray-500">Products Tracked</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Factory List */}
+      {/* Factory Grid */}
       {filteredFactories.length === 0 ? (
-        <div className="text-center py-12 bg-slate-800/30 border border-slate-700/50 rounded-xl">
-          <Factory className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">
-            {factories.length === 0 ? 'No factories saved yet' : 'No factories match your search'}
-          </h3>
-          <p className="text-slate-400">
-            {factories.length === 0 
-              ? 'Start by adding your first 1688 factory'
-              : 'Try adjusting your search or filter'}
-          </p>
+        <div className="bg-white rounded-xl border p-12 text-center">
+          <Factory className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+          <h3 className="text-lg font-medium text-gray-600 mb-2">No factories saved yet</h3>
+          <p className="text-gray-500 mb-6">Start by adding your first 1688 factory supplier</p>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition"
+          >
+            <Plus className="h-4 w-4" />
+            Add Your First Factory
+          </button>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {filteredFactories.map(factory => (
-            <div
-              key={factory.id}
-              className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-5 hover:border-slate-600 transition-colors"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-white truncate">{factory.name}</h3>
-                    <span className="px-2 py-0.5 bg-slate-700 text-slate-300 text-xs rounded-full whitespace-nowrap">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredFactories.map((factory) => (
+            <div key={factory.id} className="bg-white rounded-xl border hover:shadow-md transition group">
+              <div className="p-4">
+                {/* Header */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-gray-900 truncate">{factory.name}</h3>
+                    <span className={`inline-flex px-2 py-0.5 text-xs rounded-full mt-1 border ${CATEGORY_COLORS[factory.category] || CATEGORY_COLORS['Other']}`}>
                       {factory.category}
                     </span>
                   </div>
-                  
-                  <div className="flex items-center gap-1 mb-3">
-                    {[1, 2, 3, 4, 5].map(rating => (
-                      <Star
-                        key={rating}
-                        className={`h-4 w-4 ${
-                          rating <= factory.quality_rating
-                            ? 'text-yellow-400 fill-yellow-400'
-                            : 'text-slate-600'
-                        }`}
-                      />
-                    ))}
+                  <div className="flex-shrink-0 ml-2">
+                    {renderStars(factory.quality_rating)}
                   </div>
+                </div>
 
-                  {factory.products.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {factory.products.map((product, idx) => (
-                        <span
-                          key={idx}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-orange-500/10 text-orange-400 text-xs rounded"
-                        >
-                          <Package className="h-3 w-3" />
+                {/* Products */}
+                {factory.products.length > 0 && (
+                  <div className="mb-3">
+                    <div className="flex flex-wrap gap-1">
+                      {factory.products.slice(0, 4).map((product, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
                           {product}
                         </span>
                       ))}
+                      {factory.products.length > 4 && (
+                        <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+                          +{factory.products.length - 4} more
+                        </span>
+                      )}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {factory.notes && (
-                    <p className="text-slate-400 text-sm mb-3">{factory.notes}</p>
-                  )}
+                {/* Notes */}
+                {factory.notes && (
+                  <p className="text-sm text-gray-500 mb-3 line-clamp-2">{factory.notes}</p>
+                )}
 
-                  <a
-                    href={factory.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-orange-400 hover:text-orange-300 text-sm"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    View on 1688
-                  </a>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleEdit(factory)}
-                    className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
-                    title="Edit"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(factory.id)}
-                    className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                {/* Actions */}
+                <div className="flex items-center justify-between pt-3 border-t">
+                  <div className="flex gap-1">
+                    <a
+                      href={factory.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
+                      title="Open in 1688"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                    <button
+                      onClick={() => copyUrl(factory.url, factory.id)}
+                      className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition"
+                      title="Copy URL"
+                    >
+                      {copiedId === factory.id ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={() => handleEdit(factory)}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      title="Edit"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(factory.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
