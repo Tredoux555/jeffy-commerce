@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Copy, Check, MessageCircle, Share2, Gift, Sparkles, ChevronRight, LogOut, X, Smartphone } from 'lucide-react';
+import { Loader2, Copy, Check, MessageCircle, Share2, Gift, Sparkles, ChevronRight, LogOut, X, Smartphone, Share, Plus } from 'lucide-react';
 import Link from 'next/link';
 import confetti from 'canvas-confetti';
 
@@ -31,16 +31,23 @@ export default function MyWantsPage() {
   const [want, setWant] = useState<Want | null>(null);
   const [copied, setCopied] = useState(false);
   const [celebrated, setCelebrated] = useState(false);
-  const [showPWATip, setShowPWATip] = useState(false);
+  const [showPWAModal, setShowPWAModal] = useState(false);
+  const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {
     checkAuth();
-    // Show PWA tip if not dismissed before
-    const dismissed = localStorage.getItem('jeffy_pwa_tip_dismissed');
-    if (!dismissed) {
-      setShowPWATip(true);
-    }
   }, []);
+
+  // Show PWA modal after auth check completes
+  useEffect(() => {
+    if (!loading && want) {
+      const dismissed = localStorage.getItem('jeffy_pwa_dismissed');
+      if (!dismissed) {
+        // Small delay so page settles first
+        setTimeout(() => setShowPWAModal(true), 500);
+      }
+    }
+  }, [loading, want]);
 
   // Trigger confetti when they hit 10
   useEffect(() => {
@@ -55,9 +62,11 @@ export default function MyWantsPage() {
     }
   }, [want, celebrated]);
 
-  const dismissPWATip = () => {
-    setShowPWATip(false);
-    localStorage.setItem('jeffy_pwa_tip_dismissed', 'true');
+  const dismissPWAModal = () => {
+    setShowPWAModal(false);
+    if (dontShowAgain) {
+      localStorage.setItem('jeffy_pwa_dismissed', 'true');
+    }
   };
 
   const checkAuth = async () => {
@@ -78,7 +87,6 @@ export default function MyWantsPage() {
 
       if (data.success) {
         setUser(data.user);
-        // Get the first (and only) want
         if (data.wants && data.wants.length > 0) {
           setWant(data.wants[0]);
         }
@@ -117,6 +125,17 @@ export default function MyWantsPage() {
       : `🔥 I'm ${remaining} away from getting "${want?.product_name}" FREE!\n\nCan you help? Just verify you'd want this too:\n${link}`;
     
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
+  // Dynamic motivation based on progress
+  const getMotivation = (count: number) => {
+    if (count === 0) return { emoji: '🚀', text: "Let's get this!" };
+    if (count <= 2) return { emoji: '💪', text: "You're on your way!" };
+    if (count <= 4) return { emoji: '🔥', text: "Building momentum!" };
+    if (count <= 6) return { emoji: '⚡', text: "Halfway there!" };
+    if (count <= 8) return { emoji: '🎯', text: "So close now!" };
+    if (count === 9) return { emoji: '😱', text: "Just ONE more!" };
+    return { emoji: '🎉', text: "You did it!" };
   };
 
   if (loading) {
@@ -159,11 +178,73 @@ export default function MyWantsPage() {
 
   const verified = want.verified_count || 0;
   const remaining = Math.max(0, 10 - verified);
-  const progress = Math.min((verified / 10) * 100, 100);
   const isComplete = verified >= 10;
+  const motivation = getMotivation(verified);
 
   return (
     <div className="min-h-screen bg-[#0a0f1a] flex flex-col">
+      
+      {/* PWA Modal */}
+      {showPWAModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-700">
+            {/* Icon */}
+            <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Smartphone className="h-8 w-8 text-orange-500" />
+            </div>
+            
+            {/* Title */}
+            <h2 className="text-xl font-bold text-white text-center mb-2">
+              Track Your Progress
+            </h2>
+            <p className="text-slate-400 text-center text-sm mb-6">
+              Add Jeffy to your home screen to check verifications anytime
+            </p>
+            
+            {/* Steps */}
+            <div className="bg-slate-900/50 rounded-2xl p-4 mb-6 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold text-white">1</div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <span>Tap</span>
+                  <span className="bg-slate-700 px-2 py-1 rounded flex items-center gap-1">
+                    <Share className="h-4 w-4" /> Share
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold text-white">2</div>
+                <div className="flex items-center gap-2 text-slate-300">
+                  <span>Tap</span>
+                  <span className="bg-slate-700 px-2 py-1 rounded flex items-center gap-1">
+                    <Plus className="h-4 w-4" /> Add to Home Screen
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Don't show again checkbox */}
+            <label className="flex items-center gap-3 mb-6 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={dontShowAgain}
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+                className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-800"
+              />
+              <span className="text-slate-400 text-sm">Don't show this again</span>
+            </label>
+            
+            {/* Close button */}
+            <button
+              onClick={dismissPWAModal}
+              className="w-full bg-orange-500 hover:bg-orange-600 text-black font-bold py-4 rounded-2xl transition-colors"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Minimal Header */}
       <header className="p-4 flex items-center justify-between">
         <span className="text-2xl font-black text-orange-500">Jeffy</span>
@@ -172,23 +253,17 @@ export default function MyWantsPage() {
         </button>
       </header>
 
-      {/* PWA Tip - Dismissible */}
-      {showPWATip && (
-        <div className="mx-4 mb-4 bg-slate-800/80 rounded-xl p-3 flex items-center gap-3">
-          <Smartphone className="h-5 w-5 text-orange-400 shrink-0" />
-          <p className="text-slate-300 text-sm flex-1">
-            <span className="text-white font-medium">Track verifications easily:</span>{' '}
-            Tap <span className="text-orange-400">Share</span> → <span className="text-orange-400">Add to Home Screen</span>
-          </p>
-          <button onClick={dismissPWATip} className="text-slate-500 hover:text-slate-300 p-1">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col px-4 pb-4">
         
+        {/* Motivation Line */}
+        {!isComplete && (
+          <div className="text-center mb-4">
+            <span className="text-3xl mb-1 block">{motivation.emoji}</span>
+            <p className="text-white font-semibold text-lg">{motivation.text}</p>
+          </div>
+        )}
+
         {/* Product Image */}
         <div className="relative mx-auto w-full max-w-sm aspect-square rounded-3xl overflow-hidden bg-slate-800/50 mb-6">
           {want.image_url ? (
