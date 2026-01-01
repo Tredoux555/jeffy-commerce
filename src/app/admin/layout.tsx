@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Scale, Send, Rocket, Factory } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingCart, Users, Gift, Truck, MapPin, Activity, BarChart3, TrendingUp, Scale, Send, Rocket, Factory, Folder, Bell } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
 export default function AdminLayout({
@@ -51,17 +51,47 @@ export default function AdminLayout({
             </Link>
             <Link
               href="/admin/products"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/products' || pathname.startsWith('/admin/products/')
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <Package className="h-5 w-5" />
               Products
             </Link>
             <Link
+              href="/admin/categories"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/categories' || pathname.startsWith('/admin/categories/')
+                  ? 'bg-orange-500 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Folder className="h-5 w-5" />
+              Categories
+            </Link>
+            <Link
               href="/admin/orders"
-              className="flex items-center gap-3 px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/orders' || pathname.startsWith('/admin/orders/')
+                  ? 'bg-green-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
               <ShoppingCart className="h-5 w-5" />
               Orders
+            </Link>
+            <Link
+              href="/admin/notifications"
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                pathname === '/admin/notifications'
+                  ? 'bg-purple-600 text-white' 
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Bell className="h-5 w-5" />
+              Notifications
             </Link>
             
             {/* Wants Section */}
