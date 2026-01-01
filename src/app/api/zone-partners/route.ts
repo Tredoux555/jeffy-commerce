@@ -1,81 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { sendZonePartnerWelcome } from '@/lib/email/resend';
+import { Resend } from 'resend';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-function getPositionBenefits(position: number): { tier: string; benefits: string[]; profitSplit: string } {
-  if (position <= 10) {
-    return {
-      tier: 'Founding Partner',
-      benefits: ['55/45 profit split (locked 6 months)', 'Founding Partner badge', 'Priority training cohort', 'Direct WhatsApp to founders'],
-      profitSplit: '55/45'
-    };
-  }
-  if (position <= 25) {
-    return {
-      tier: 'Early Partner',
-      benefits: ['Founding Partner badge', 'Priority training cohort', 'Early launch access'],
-      profitSplit: '50/50'
-    };
-  }
-  if (position <= 50) {
-    return {
-      tier: 'Launch Partner',
-      benefits: ['Early launch access', 'Priority onboarding'],
-      profitSplit: '50/50'
-    };
-  }
-  return {
-    tier: 'Partner',
-    benefits: ['Standard launch timeline'],
-    profitSplit: '50/50'
-  };
-}
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// GET - Get zone stats
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
+
+// GET - Get zone partner stats
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email');
 
-  // Get total partner waitlist count
+  // Get total partner count
   const { count: totalPartners } = await supabase
-    .from('waitlist')
-    .select('*', { count: 'exact', head: true })
-    .eq('type', 'zone_partner');
+    .from('zone_partners')
+    .select('*', { count: 'exact', head: true });
 
   // If checking specific user
   if (email) {
-    const { data: user } = await supabase
-      .from('waitlist')
+    const { data: partner } = await supabase
+      .from('zone_partners')
       .select('*')
       .eq('email', email.toLowerCase())
-      .eq('type', 'zone_partner')
       .single();
 
-    if (user) {
-      // Calculate position overall
-      const { count: ahead } = await supabase
-        .from('waitlist')
-        .select('*', { count: 'exact', head: true })
-        .eq('type', 'zone_partner')
-        .lt('position', user.position);
-
-      const position = (ahead || 0) + 1;
-      const benefits = getPositionBenefits(position);
-
+    if (partner) {
       return NextResponse.json({
         success: true,
-        user: {
-          email: user.email,
-          zoneId: user.zone_id,
-          position,
-          referralCode: user.referral_code,
-          referralCount: user.referral_count,
-          benefits
+        partner: {
+          id: partner.id,
+          name: partner.full_name,
+          email: partner.email,
+          status: partner.status,
+          zone: partner.zone_id,
         },
         totalPartners: totalPartners || 0
       });
@@ -88,13 +50,18 @@ export async function GET(request: NextRequest) {
   });
 }
 
-// POST - Join Zone Partner waitlist
+// POST - Submit Zone Partner application
 export async function POST(request: NextRequest) {
   try {
-    const { email, name, phone, zone_id, message, referral_code } = await request.json();
+    const { email, name, phone, zone_id, message } = await request.json();
 
+    // Validation
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
+    }
+
+    if (!name || name.length < 2) {
+      return NextResponse.json({ error: 'Full name required' }, { status: 400 });
     }
 
     if (!zone_id || zone_id.length < 3) {
@@ -103,137 +70,177 @@ export async function POST(request: NextRequest) {
 
     const cleanEmail = email.toLowerCase().trim();
 
-    // Check if already exists (any type - email is unique across all)
+    // Check if already applied
     const { data: existing } = await supabase
-      .from('waitlist')
-      .select('*')
+      .from('zone_partners')
+      .select('id, status, email')
       .eq('email', cleanEmail)
       .single();
 
     if (existing) {
-      // If they exist but not as zone partner, update them to zone partner
-      if (existing.type !== 'zone_partner') {
-        const zoneWithPhone = phone ? `${zone_id} | Phone: ${phone}` : zone_id;
-        const { data: updated, error: updateError } = await supabase
-          .from('waitlist')
-          .update({ 
-            type: 'zone_partner', 
-            zone_id: zoneWithPhone,
-            name: name || existing.name
-          })
-          .eq('id', existing.id)
-          .select()
-          .single();
-        
-        if (updateError) {
-          return NextResponse.json({ error: 'Failed to update application', details: updateError.message }, { status: 500 });
-        }
-
-        const { count: ahead } = await supabase
-          .from('waitlist')
-          .select('*', { count: 'exact', head: true })
-          .eq('type', 'zone_partner')
-          .lt('position', updated.position);
-
-        const position = (ahead || 0) + 1;
-
-        return NextResponse.json({
-          success: true,
-          upgraded: true,
-          user: {
-            email: updated.email,
-            zoneId: updated.zone_id,
-            position,
-            referralCode: updated.referral_code,
-            referralCount: updated.referral_count,
-            benefits: getPositionBenefits(position)
-          }
-        });
-      }
-
-      // Already a zone partner
-      const { count: ahead } = await supabase
-        .from('waitlist')
-        .select('*', { count: 'exact', head: true })
-        .eq('type', 'zone_partner')
-        .lt('position', existing.position);
-
-      const position = (ahead || 0) + 1;
-
       return NextResponse.json({
         success: true,
-        alreadyJoined: true,
-        user: {
-          email: existing.email,
-          zoneId: existing.zone_id,
-          position,
-          referralCode: existing.referral_code,
-          referralCount: existing.referral_count,
-          benefits: getPositionBenefits(position)
-        }
+        alreadyApplied: true,
+        status: existing.status,
+        message: existing.status === 'pending' 
+          ? 'Your application is being reviewed'
+          : existing.status === 'approved'
+          ? 'Your application has been approved! Check your email for next steps.'
+          : 'You have already applied'
       });
     }
 
-    // Find referrer
-    let referrerId = null;
-    if (referral_code) {
-      const { data: referrer } = await supabase
-        .from('waitlist')
-        .select('id')
-        .eq('referral_code', referral_code)
-        .single();
-      referrerId = referrer?.id;
-    }
-
-    // Insert new entry - include phone in zone_id for now since whatsapp column doesn't exist
-    const zoneWithPhone = phone ? `${zone_id} | Phone: ${phone}` : zone_id;
-    const { data: newEntry, error } = await supabase
-      .from('waitlist')
+    // Insert new application into zone_partners with status='pending'
+    const { data: newPartner, error: insertError } = await supabase
+      .from('zone_partners')
       .insert({
+        full_name: name,
+        full_legal_name: name, // Some pages use this field
         email: cleanEmail,
-        name: name || null,
-        type: 'zone_partner',
-        zone_id: zoneWithPhone
+        phone: phone || null,
+        zone_id: zone_id,
+        zone_name: zone_id, // Display name for the zone
+        notes: message || null,
+        status: 'pending',
+        is_active: false,
+        agreed_to_terms: false,
+        created_at: new Date().toISOString()
       })
       .select()
       .single();
 
-    if (error) {
-      console.error('Zone partner insert error:', error);
-      return NextResponse.json({ error: 'Failed to join waitlist', details: error.message }, { status: 500 });
+    if (insertError) {
+      console.error('Zone partner insert error:', insertError);
+      return NextResponse.json({ 
+        error: 'Failed to submit application', 
+        details: insertError.message 
+      }, { status: 500 });
     }
 
-    // Calculate position
-    const { count: ahead } = await supabase
-      .from('waitlist')
-      .select('*', { count: 'exact', head: true })
-      .eq('type', 'zone_partner')
-      .lt('position', newEntry.position);
+    // Send confirmation email
+    let emailSent = false;
+    try {
+      const firstName = name.split(' ')[0];
+      
+      const { error: emailError } = await resend.emails.send({
+        from: 'Jeffy <hello@jeffy.co.za>',
+        to: cleanEmail,
+        subject: `Zone Partner Application Received 🎯`,
+        html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 700;">Application Received! 🎯</h1>
+              <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Jeffy Zone Partner Program</p>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <p style="margin: 0 0 20px; color: #374151; font-size: 18px;">
+                Hey ${firstName}! 👋
+              </p>
+              
+              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                We've received your application to become a Zone Partner for <strong>${zone_id}</strong>.
+              </p>
+              
+              <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 20px; margin-bottom: 25px;">
+                <p style="margin: 0 0 10px; color: #166534; font-size: 14px; font-weight: 600;">WHAT HAPPENS NEXT</p>
+                <ol style="margin: 0; padding-left: 20px; color: #166534; font-size: 14px; line-height: 1.8;">
+                  <li>We review your application (1-3 business days)</li>
+                  <li>If approved, you'll receive disclosure documents</li>
+                  <li>14-day consideration period (legally required)</li>
+                  <li>Sign agreement & complete training</li>
+                  <li>Start earning in your zone! 🚀</li>
+                </ol>
+              </div>
+              
+              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                Zone Partners aren't just registered — they're <strong>chosen</strong>. We're looking for people who genuinely want to serve their community.
+              </p>
+              
+              <p style="margin: 0; color: #6b7280; font-size: 14px;">
+                Questions? Just reply to this email.
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 5px; color: #6b7280; font-size: 14px;">
+                Jeffy Commerce
+              </p>
+              <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                Building South Africa's community delivery network
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+        `,
+      });
 
-    const position = (ahead || 0) + 1;
+      if (emailError) {
+        console.error('Resend email error:', emailError);
+      } else {
+        emailSent = true;
+      }
+    } catch (emailErr) {
+      console.error('Email send failed:', emailErr);
+    }
 
-    // Send welcome email (non-blocking)
-    if (name) {
-      sendZonePartnerWelcome({
-        email: newEntry.email,
-        name: name,
-        zone: zone_id,
-        position: position,
-        referralCode: newEntry.referral_code
-      }).catch(err => console.error('Zone partner email failed:', err));
+    // Also send admin notification
+    try {
+      await resend.emails.send({
+        from: 'Jeffy <hello@jeffy.co.za>',
+        to: 'tredoux@gmail.com', // Admin email
+        subject: `🆕 New Zone Partner Application: ${name}`,
+        html: `
+          <h2>New Zone Partner Application</h2>
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Email:</strong> ${cleanEmail}</p>
+          <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+          <p><strong>Zone:</strong> ${zone_id}</p>
+          <p><strong>Why they want to join:</strong></p>
+          <p>${message || 'Not provided'}</p>
+          <br>
+          <p><a href="${SITE_URL}/admin/partners">Review in Admin Panel →</a></p>
+        `,
+      });
+    } catch (adminEmailErr) {
+      console.error('Admin notification failed:', adminEmailErr);
     }
 
     return NextResponse.json({
       success: true,
-      user: {
-        email: newEntry.email,
-        zoneId: zone_id,
-        position,
-        referralCode: newEntry.referral_code,
-        referralCount: 0,
-        benefits: getPositionBenefits(position),
-        referredBy: !!referrerId
-      }
+      emailSent,
+      partner: {
+        id: newPartner.id,
+        name: newPartner.full_name,
+        email: newPartner.email,
+        status: 'pending'
+      },
+      message: 'Application submitted successfully!'
     });
 
   } catch (error) {
