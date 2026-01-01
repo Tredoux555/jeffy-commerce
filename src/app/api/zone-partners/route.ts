@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
           from: 'Tredoux from Jeffy <hello@jeffy.co.za>',
           replyTo: 'tredoux@gmail.com',
           to: cleanEmail,
-          subject: `You're in 🎯 (But read this first)`,
+          subject: `Congratulations! You've taken the first step 🚀`,
           html: `
 <!DOCTYPE html>
 <html>
@@ -220,52 +220,58 @@ export async function POST(request: NextRequest) {
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
         
         <!-- Header -->
-        <tr><td style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 32px 30px; text-align: center;">
-          <h1 style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 900;">Jeffy</h1>
+        <tr><td style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 40px 30px; text-align: center;">
+          <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 900;">Jeffy</h1>
+          <p style="margin: 12px 0 0; color: rgba(255,255,255,0.9); font-size: 16px;">Welcome to the future of South African commerce</p>
         </td></tr>
         
         <!-- Body -->
         <tr><td style="padding: 40px 30px;">
-          <p style="margin: 0 0 24px; color: #1e293b; font-size: 18px; line-height: 1.6;">Hey ${firstName},</p>
+          <p style="margin: 0 0 24px; color: #1e293b; font-size: 20px; line-height: 1.6;">Congratulations ${firstName}! 🎉</p>
           
-          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">Got your application for <strong>${zone_id}</strong>.</p>
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">You've just taken the first step towards something extraordinary. Your application for <strong style="color: #f97316;">${zone_id}</strong> is in.</p>
           
-          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">Here's the honest truth: Jeffy isn't launching next month. We're not even launching in 6 months. We're building something that's meant to last, and that takes time.</p>
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">We're genuinely excited to have you here. Being a Zone Partner isn't just a business opportunity — it's being part of a movement that's going to change the face of commerce in South Africa.</p>
           
-          <!-- Why Apply Now Box -->
-          <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 20px; margin: 28px 0;">
-            <p style="margin: 0 0 12px; color: #92400e; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Why apply now then?</p>
-            <p style="margin: 0; color: #78350f; font-size: 15px; line-height: 1.6;">Because the first 50 Zone Partners aren't just delivery drivers. They're founders. They get:</p>
-            <ul style="margin: 12px 0 0; padding-left: 20px; color: #78350f; font-size: 15px; line-height: 1.8;">
-              <li>Locked-in territory (forever, not a lease)</li>
-              <li>Better profit splits than anyone who joins later</li>
-              <li>A seat at the table when decisions get made</li>
-              <li>Priority school placement for their families (when we build that)</li>
-            </ul>
+          <!-- The Vision Box -->
+          <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 24px; margin: 28px 0;">
+            <p style="margin: 0 0 12px; color: #92400e; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">🚀 Here's what's happening</p>
+            <p style="margin: 0; color: #78350f; font-size: 15px; line-height: 1.7;">The tech is built. The systems are ready. Now we're testing everything to make sure it's bulletproof — because when we launch, we're not doing it halfway. We're doing it right.</p>
           </div>
           
-          <!-- What Happens Section -->
-          <p style="margin: 0 0 12px; color: #64748b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">What happens between now and launch?</p>
-          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">We're going to build the tech properly, set up supply chains that actually work, test everything in small pilots before scaling, and keep you updated on progress.</p>
+          <!-- What You Get -->
+          <p style="margin: 0 0 16px; color: #1e293b; font-size: 16px; line-height: 1.7;">As a founding Zone Partner, you'll get:</p>
+          <ul style="margin: 0 0 24px; padding-left: 20px; color: #1e293b; font-size: 15px; line-height: 2;">
+            <li><strong>Your territory locked in forever</strong> — not a lease, not a franchise, yours</li>
+            <li><strong>50/50 profit share</strong> (first 10 partners get 55/45 for 6 months)</li>
+            <li><strong>A seat at the table</strong> when decisions get made</li>
+            <li><strong>Priority school placement</strong> for your family when we build that</li>
+          </ul>
           
-          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">You'll hear from us. Not with corporate newsletters, but with real updates about what we're building and when your zone is ready.</p>
-          
-          <!-- One Thing Box -->
-          <div style="background-color: #f1f5f9; border-radius: 8px; padding: 20px; margin: 28px 0;">
-            <p style="margin: 0 0 8px; color: #334155; font-size: 15px;"><strong>One thing:</strong></p>
-            <p style="margin: 0; color: #334155; font-size: 15px; line-height: 1.6;">We're selective. Not everyone who applies becomes a Zone Partner. We're looking for people who want to build something, not people looking for a quick gig.</p>
-            <p style="margin: 12px 0 0; color: #334155; font-size: 15px;">If that's you, you're in the right place.</p>
+          <!-- Important Note Box -->
+          <div style="background-color: #f1f5f9; border-radius: 12px; padding: 24px; margin: 28px 0;">
+            <p style="margin: 0 0 12px; color: #334155; font-size: 15px; font-weight: 700;">📋 Two things to know:</p>
+            <p style="margin: 0 0 12px; color: #475569; font-size: 15px; line-height: 1.6;"><strong>1. Selection is stringent.</strong> Not everyone who applies becomes a Zone Partner. We're building something special and we need the right people.</p>
+            <p style="margin: 0; color: #475569; font-size: 15px; line-height: 1.6;"><strong>2. You'll need capital.</strong> Zone Partners buy the stock they sell. If you need time to save, use it. This isn't a get-rich-quick scheme — it's building a real business.</p>
           </div>
           
-          <p style="margin: 0 0 8px; color: #1e293b; font-size: 16px;">Talk soon,</p>
+          <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px; line-height: 1.7;">We'll keep you updated with real progress — not corporate fluff. When your zone is ready to go live, you'll be the first to know.</p>
+          
+          <!-- Closing -->
+          <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 24px; margin: 28px 0; text-align: center;">
+            <p style="margin: 0; color: #065f46; font-size: 18px; font-weight: 600;">Welcome to the future.</p>
+            <p style="margin: 8px 0 0; color: #047857; font-size: 15px;">We sincerely wish you all the luck in the world. 🍀</p>
+          </div>
+          
+          <p style="margin: 0 0 8px; color: #1e293b; font-size: 16px;">Let's build something amazing,</p>
           <p style="margin: 0 0 20px; color: #1e293b; font-size: 16px;"><strong>Tredoux</strong><br><span style="color: #64748b;">Founder, Jeffy</span></p>
           
-          <p style="margin: 24px 0 0; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 14px;">P.S. — Reply to this email anytime. I read them.</p>
+          <p style="margin: 24px 0 0; padding-top: 20px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 14px;">P.S. — Reply anytime. I read every email.</p>
         </td></tr>
         
         <!-- Footer -->
-        <tr><td style="background-color: #f8fafc; padding: 20px 30px; text-align: center; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0; color: #94a3b8; font-size: 12px;">Jeffy Commerce • South Africa</p>
+        <tr><td style="background-color: #1e293b; padding: 24px 30px; text-align: center;">
+          <p style="margin: 0; color: #94a3b8; font-size: 13px;">Jeffy Commerce • Changing South African retail, one zone at a time</p>
         </td></tr>
       </table>
     </td></tr>
