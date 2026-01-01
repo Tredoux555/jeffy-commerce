@@ -46,34 +46,6 @@ export default function WhatIsJeffyPage() {
         </div>
       </section>
 
-      {/* The Truth Section */}
-      <section className="px-4 py-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No head office</h3>
-              <p className="text-slate-400">No CEO salary. No board. No corporate politics.</p>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No warehouse rent</h3>
-              <p className="text-slate-400">Stock goes directly to Zone Partners.</p>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No middlemen</h3>
-              <p className="text-slate-400">Source → Partner → Customer. That&apos;s it.</p>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No markup on markup</h3>
-              <p className="text-slate-400">Just quality products at prices that make sense.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* You're Not Joining Section */}
       <section className="px-4 py-20 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
         <div className="max-w-4xl mx-auto text-center">
