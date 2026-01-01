@@ -1,232 +1,151 @@
 'use client';
 
-import { ArrowRight, ArrowLeft, Flame, GraduationCap, Users, Crown, Shield, Sparkles } from 'lucide-react';
+import { ArrowRight, MapPin, GraduationCap, Crown, Zap } from 'lucide-react';
 import Link from 'next/link';
 
-export default function WhatIsJeffyPage() {
+export default function PartnerPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white">
-      {/* Hero */}
-      <section className="min-h-[70vh] flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden">
+      {/* Hero - Straight to the point */}
+      <section className="min-h-[80vh] flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
         {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500 rounded-full blur-[150px] opacity-20" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500 rounded-full blur-[150px] opacity-15" />
+          <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-amber-500 rounded-full blur-[150px] opacity-20" />
+          <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-orange-500 rounded-full blur-[150px] opacity-15" />
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          {/* Back link */}
-          <Link href="/coming-soon" className="inline-flex items-center gap-2 text-slate-400 hover:text-white mb-12 transition-colors">
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Link>
-
-          {/* Main headline */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
-            The system wasn&apos;t built for you.
+        <div className="relative z-10 max-w-3xl mx-auto text-center">
+          <h1 className="text-4xl md:text-6xl font-black mb-6 leading-tight">
+            Own your zone.
             <br />
             <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
-              So we build a new one.
+              Build your future.
             </span>
           </h1>
 
-          <p className="text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-            Jeffy is retail, rebuilt from the ground up. No middlemen. No corporate overhead. 
-            <br className="hidden md:block" />
-            <span className="text-white font-semibold">Just real people building real businesses in their communities.</span>
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Zone Partners aren&apos;t employees. They&apos;re founders who own exclusive delivery territories 
+            and share in everything we build together.
           </p>
 
-          {/* Apply CTA - Early */}
+          {/* Key Benefits - Clean, positive */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 max-w-2xl mx-auto">
+            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <MapPin className="h-6 w-6 text-amber-400 mx-auto mb-2" />
+              <p className="text-sm font-medium">Your Territory</p>
+              <p className="text-xs text-slate-400">Forever</p>
+            </div>
+            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <Zap className="h-6 w-6 text-emerald-400 mx-auto mb-2" />
+              <p className="text-sm font-medium">50/50 Split</p>
+              <p className="text-xs text-slate-400">On profits</p>
+            </div>
+            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <Crown className="h-6 w-6 text-purple-400 mx-auto mb-2" />
+              <p className="text-sm font-medium">Founder Status</p>
+              <p className="text-xs text-slate-400">First 50</p>
+            </div>
+            <div className="bg-slate-800/60 rounded-xl p-4 border border-slate-700">
+              <GraduationCap className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+              <p className="text-sm font-medium">School Priority</p>
+              <p className="text-xs text-slate-400">For family</p>
+            </div>
+          </div>
+
+          {/* CTA */}
           <Link 
             href="/partner/apply"
-            className="inline-flex items-center gap-3 mt-10 bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold text-lg px-8 py-4 rounded-full hover:shadow-lg hover:shadow-emerald-500/25 transition-all hover:scale-105"
-          >
-            Apply to Become a Zone Partner <ArrowRight className="h-5 w-5" />
-          </Link>
-        </div>
-      </section>
-
-      {/* The Truth Section */}
-      <section className="px-4 py-20">
-        <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No head office</h3>
-              <p className="text-slate-400">No CEO salary. No board. No corporate politics.</p>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No warehouse rent</h3>
-              <p className="text-slate-400">Stock goes directly to Zone Partners.</p>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No middlemen</h3>
-              <p className="text-slate-400">Source → Partner → Customer. That&apos;s it.</p>
-            </div>
-            <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700">
-              <div className="text-5xl mb-4">🚫</div>
-              <h3 className="text-xl font-bold mb-2">No markup on markup</h3>
-              <p className="text-slate-400">Just quality products at prices that make sense.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* You're Not Joining Section */}
-      <section className="px-4 py-20 bg-gradient-to-r from-amber-500/10 to-orange-500/10">
-        <div className="max-w-4xl mx-auto text-center">
-          <Crown className="h-16 w-16 text-amber-400 mx-auto mb-6" />
-          <h2 className="text-3xl md:text-5xl font-black mb-6">
-            You&apos;re not joining a company.
-            <br />
-            <span className="text-amber-400">You&apos;re becoming a founder.</span>
-          </h2>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-            Zone Partners don&apos;t work for Jeffy. They <span className="font-bold text-white">ARE</span> Jeffy.
-          </p>
-          <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-            <div className="bg-slate-800/80 rounded-2xl p-6 border border-amber-500/30">
-              <Shield className="h-8 w-8 text-amber-400 mx-auto mb-3" />
-              <p className="font-semibold">Exclusive territory</p>
-              <p className="text-sm text-slate-400 mt-1">No competition. The zone is yours.</p>
-            </div>
-            <div className="bg-slate-800/80 rounded-2xl p-6 border border-amber-500/30">
-              <Users className="h-8 w-8 text-amber-400 mx-auto mb-3" />
-              <p className="font-semibold">When Jeffy wins</p>
-              <p className="text-sm text-slate-400 mt-1">You win. Your community wins.</p>
-            </div>
-            <div className="bg-slate-800/80 rounded-2xl p-6 border border-amber-500/30">
-              <Flame className="h-8 w-8 text-amber-400 mx-auto mb-3" />
-              <p className="font-semibold">Forever</p>
-              <p className="text-sm text-slate-400 mt-1">Not a lease. Not a franchise. Yours.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The Bigger Picture */}
-      <section className="px-4 py-24">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-amber-400 font-semibold uppercase tracking-wider mb-4">The bigger picture</p>
-            <h2 className="text-3xl md:text-5xl font-black mb-6">
-              But this isn&apos;t really about commerce.
-            </h2>
-          </div>
-
-          <div className="space-y-8 text-lg text-slate-300">
-            <p className="text-xl md:text-2xl text-white font-medium">
-              Jeffy is the first brick.
-            </p>
-            <p>
-              We&apos;re not building a business. We&apos;re building an empire that fixes what&apos;s broken — 
-              starting with commerce because that&apos;s where the power is.
-            </p>
-            <p>
-              Once Jeffy proves the model works — that you can strip away the bloat and still deliver quality — 
-              we don&apos;t stop there.
-            </p>
-          </div>
-
-          {/* Schools Section */}
-          <div className="mt-16 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-3xl p-8 md:p-12 border border-emerald-500/30">
-            <GraduationCap className="h-16 w-16 text-emerald-400 mb-6" />
-            <h3 className="text-2xl md:text-4xl font-black mb-6 text-emerald-400">
-              Schools come next.
-            </h3>
-            <div className="space-y-4 text-lg text-slate-300">
-              <p>
-                Not charity schools. Not NGO schools. A new education system built the same way we&apos;re building Jeffy: 
-                <span className="text-white font-semibold"> from scratch, without the rot.</span>
-              </p>
-              <p className="text-xl text-white font-medium">
-                Free. Merit-based. No fees, no politics, no bought places.
-              </p>
-              <p>
-                The kind of education that creates leaders, not employees.
-              </p>
-            </div>
-          </div>
-
-          {/* The Path Forward */}
-          <div className="mt-16 text-center">
-            <h3 className="text-2xl md:text-3xl font-bold mb-6">
-              And then?
-            </h3>
-            <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-8">
-              God knows we need a new path forward. The current one is broken. 
-              There&apos;s no future on the road we&apos;re on.
-            </p>
-            <p className="text-2xl md:text-3xl font-black text-white">
-              Jeffy creates a future.
-              <br />
-              <span className="text-amber-400">For South Africans. Everywhere it goes.</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Zone Partners Section */}
-      <section className="px-4 py-24 bg-gradient-to-b from-slate-900 to-black">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-amber-400 font-semibold uppercase tracking-wider mb-4">Zone Partners</p>
-          <h2 className="text-3xl md:text-5xl font-black mb-8">
-            Aren&apos;t joining a company.
-          </h2>
-          <p className="text-xl text-slate-300 max-w-2xl mx-auto mb-12">
-            They&apos;re securing a seat at the table of something that could reshape this country.
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-16">
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700">
-              <div className="text-4xl mb-4">🗺️</div>
-              <p className="font-bold text-lg mb-2">A commerce zone</p>
-              <p className="text-slate-400">That&apos;s theirs. Forever.</p>
-            </div>
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700">
-              <div className="text-4xl mb-4">🎓</div>
-              <p className="font-bold text-lg mb-2">Priority placement</p>
-              <p className="text-slate-400">The ONLY path into Jeffy schools.</p>
-            </div>
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 border border-slate-700">
-              <div className="text-4xl mb-4">👑</div>
-              <p className="font-bold text-lg mb-2">Leadership position</p>
-              <p className="text-slate-400">In whatever comes next.</p>
-            </div>
-          </div>
-
-          {/* The Privilege */}
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-3xl p-8 md:p-12 text-left">
-            <h3 className="text-2xl md:text-3xl font-black text-black mb-4">
-              This is a privilege.
-            </h3>
-            <p className="text-black/80 text-lg mb-4">
-              Zone Partners will be carefully selected. Vetted. Chosen.
-            </p>
-            <p className="text-black/80 text-lg mb-6">
-              Not everyone who applies will be accepted.
-            </p>
-            <p className="text-xl md:text-2xl font-black text-black">
-              But those who are? They&apos;ll be part of the future.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="px-4 py-20 bg-black">
-        <div className="max-w-2xl mx-auto text-center">
-          <Sparkles className="h-12 w-12 text-amber-400 mx-auto mb-6" />
-          <h2 className="text-3xl md:text-4xl font-black mb-8">
-            Ready to see how it works?
-          </h2>
-          <Link 
-            href="/partner/how-it-works"
             className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-lg px-8 py-4 rounded-full hover:shadow-lg hover:shadow-amber-500/25 transition-all hover:scale-105"
           >
-            How It Works <ArrowRight className="h-5 w-5" />
+            Apply Now <ArrowRight className="h-5 w-5" />
+          </Link>
+          
+          <p className="mt-4 text-sm text-slate-500">
+            Not everyone gets accepted. We choose partners carefully.
+          </p>
+        </div>
+      </section>
+
+      {/* The Vision - Brief */}
+      <section className="px-4 py-20 bg-slate-800/30">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-amber-400 font-semibold uppercase tracking-wider mb-4 text-sm">The bigger picture</p>
+          <h2 className="text-3xl md:text-4xl font-black mb-6">
+            Commerce funds the mission.
+          </h2>
+          <p className="text-lg text-slate-300 leading-relaxed mb-8">
+            Jeffy isn&apos;t just retail. The profits fund free, merit-based schools. 
+            Zone Partners get priority placement for their families. 
+            We&apos;re building something that lasts.
+          </p>
+          <div className="flex items-center justify-center gap-3 text-slate-400">
+            <span className="text-2xl">🛒</span>
+            <ArrowRight className="h-4 w-4" />
+            <span className="text-2xl">💰</span>
+            <ArrowRight className="h-4 w-4" />
+            <span className="text-2xl">🎓</span>
+            <ArrowRight className="h-4 w-4" />
+            <span className="text-2xl">🌍</span>
+          </div>
+          <p className="text-sm text-slate-500 mt-3">Commerce → Profits → Schools → Communities</p>
+        </div>
+      </section>
+
+      {/* What You Get */}
+      <section className="px-4 py-20">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-black text-center mb-12">What Zone Partners Get</h2>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/10 rounded-2xl p-6 border border-amber-500/20">
+              <h3 className="text-xl font-bold text-amber-400 mb-3">Exclusive Territory</h3>
+              <p className="text-slate-300">
+                Your zone is yours. No other partners can operate there. 
+                Not rented, not leased — owned.
+              </p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-emerald-500/10 to-teal-500/10 rounded-2xl p-6 border border-emerald-500/20">
+              <h3 className="text-xl font-bold text-emerald-400 mb-3">50/50 Profit Share</h3>
+              <p className="text-slate-300">
+                Half of every delivery profit goes to you. 
+                First 10 partners get 55/45 for the first 6 months.
+              </p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/20">
+              <h3 className="text-xl font-bold text-purple-400 mb-3">Founding Partner Status</h3>
+              <p className="text-slate-300">
+                First 50 partners shape how Jeffy grows. 
+                Direct input on decisions. Your voice matters.
+              </p>
+            </div>
+            
+            <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-6 border border-blue-500/20">
+              <h3 className="text-xl font-bold text-blue-400 mb-3">School Priority</h3>
+              <p className="text-slate-300">
+                When we build Jeffy schools, Zone Partner families 
+                get priority placement. The only guaranteed path in.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-4 py-20 bg-gradient-to-t from-black to-slate-900">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-black mb-4">
+            Ready?
+          </h2>
+          <p className="text-slate-400 mb-8">
+            Applications are reviewed personally. Not everyone gets in.
+          </p>
+          <Link 
+            href="/partner/apply"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-lg px-10 py-4 rounded-full hover:shadow-lg hover:shadow-amber-500/25 transition-all hover:scale-105"
+          >
+            Apply to Become a Zone Partner <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
       </section>
