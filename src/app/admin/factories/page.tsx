@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import { 
   Factory, 
   Plus, 
@@ -91,26 +90,22 @@ export default function AdminFactoriesPage() {
     quality_rating: 3
   });
 
-  const supabase = createClient();
-
   const fetchFactories = async () => {
     try {
-      const { data, error } = await supabase
-        .from('factories')
-        .select('*')
-        .order('quality_rating', { ascending: false });
+      const res = await fetch('/api/admin/factories');
+      const data = await res.json();
       
-      if (error) {
-        if (error.message.includes('permission denied') || error.code === '42P01') {
+      if (data.error) {
+        if (data.error.includes('does not exist')) {
           setTableExists(false);
           setError(null);
         } else {
-          throw error;
+          throw new Error(data.error);
         }
         return;
       }
       setTableExists(true);
-      setFactories(data || []);
+      setFactories(data.factories || []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -175,19 +170,22 @@ export default function AdminFactoriesPage() {
       };
 
       if (editingId) {
-        const { error } = await supabase
-          .from('factories')
-          .update(payload)
-          .eq('id', editingId);
-        
-        if (error) throw error;
+        const res = await fetch('/api/admin/factories', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingId, ...payload })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
         setSuccess('Factory updated successfully!');
       } else {
-        const { error } = await supabase
-          .from('factories')
-          .insert([payload]);
-        
-        if (error) throw error;
+        const res = await fetch('/api/admin/factories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
         setSuccess('Factory saved successfully!');
       }
 
@@ -218,12 +216,9 @@ export default function AdminFactoriesPage() {
     if (!confirm('Delete this factory? This cannot be undone.')) return;
 
     try {
-      const { error } = await supabase
-        .from('factories')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      const res = await fetch(`/api/admin/factories?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
       setSuccess('Factory deleted');
       fetchFactories();
       setTimeout(() => setSuccess(null), 3000);
