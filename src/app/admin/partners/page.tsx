@@ -20,6 +20,7 @@ interface ZonePartner {
   phone: string;
   business_name: string | null;
   zone_id: string | null;
+  zone_name: string | null;
   status: string;
   disclosure_sent_at: string | null;
   can_sign_after: string | null;
@@ -46,7 +47,7 @@ export default function AdminPartnersPage() {
     try {
       const { data, error } = await supabase
         .from('zone_partners')
-        .select('*, zones(name)')
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -259,7 +260,7 @@ export default function AdminPartnersPage() {
                     </div>
                   </td>
                   <td className="py-3 px-4 text-navy-600">
-                    {partner.zones?.name || 'Not assigned'}
+                    {partner.zone_name || partner.zone_id || 'Not assigned'}
                   </td>
                   <td className="py-3 px-4">
                     {getStatusBadge(partner)}
