@@ -35,6 +35,14 @@ export default function WhatIsJeffyPage() {
             <br className="hidden md:block" />
             <span className="text-white font-semibold">Just real people building real businesses in their communities.</span>
           </p>
+
+          {/* Apply CTA - Early */}
+          <Link 
+            href="/partner/apply"
+            className="inline-flex items-center gap-3 mt-10 bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-bold text-lg px-8 py-4 rounded-full hover:shadow-lg hover:shadow-emerald-500/25 transition-all hover:scale-105"
+          >
+            Apply to Become a Zone Partner <ArrowRight className="h-5 w-5" />
+          </Link>
         </div>
       </section>
 
