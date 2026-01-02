@@ -274,6 +274,10 @@ export default function AdminLayout({
             {/* ==================== GROWTH ==================== */}
             <NavSection title="Growth" />
             
+            <NavLink href="/admin/launch-playbook" icon={Rocket} isActive={isActive('/admin/launch-playbook')}>
+              Launch Playbook
+            </NavLink>
+            
             <NavLink href="/admin/outreach" icon={Send} isActive={isActive('/admin/outreach')}>
               Influencer Outreach
             </NavLink>

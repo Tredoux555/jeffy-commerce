@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { randomBytes, createHash } from 'crypto';
 
-const supabase = createClient(
+// Lazy initialization to avoid build-time errors
+const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
 
 function generateToken(): string {
@@ -17,6 +18,9 @@ function generateToken(): string {
 
 // POST - Send verification email to new user
 export async function POST(request: NextRequest) {
+  const supabase = getSupabase();
+  const resend = getResend();
+  
   try {
     const { email, wantId, wantName } = await request.json();
 

@@ -124,6 +124,9 @@ export default async function AdminDashboard() {
 
       {/* Quick Links */}
       <div className="mb-8 flex flex-wrap gap-3">
+        <Link href="/admin/launch" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600 transition font-medium text-sm animate-pulse">
+          🔥 Guerrilla Launch
+        </Link>
         <Link href="/admin/roadmap" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition font-medium text-sm">
           🚀 Launch Roadmap
         </Link>

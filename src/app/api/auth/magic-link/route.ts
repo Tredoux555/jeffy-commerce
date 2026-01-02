@@ -2,12 +2,13 @@ import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const supabase = createClient(
+// Lazy initialization to avoid build-time errors
+const getSupabase = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const getResend = () => new Resend(process.env.RESEND_API_KEY);
 
 // Generate a magic link token
 function generateMagicToken(): string {
@@ -21,6 +22,9 @@ function generateMagicToken(): string {
 
 // POST - Request magic link (send email)
 export async function POST(request: NextRequest) {
+  const supabase = getSupabase();
+  const resend = getResend();
+  
   try {
     const { email } = await request.json();
 
@@ -136,6 +140,8 @@ export async function POST(request: NextRequest) {
 
 // GET - Verify magic link token
 export async function GET(request: NextRequest) {
+  const supabase = getSupabase();
+  
   try {
     const { searchParams } = new URL(request.url);
     const token = searchParams.get('token');
