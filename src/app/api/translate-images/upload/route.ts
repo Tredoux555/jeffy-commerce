@@ -197,10 +197,5 @@ async function processTranslation(
   }
 }
 
-// Configure for large file uploads
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// Next.js 14 App Router handles FormData natively - no config needed
 
