@@ -224,7 +224,7 @@ export default function AdminLayout({
             </NavLink>
             
             <NavLink href="/admin/image-translator" icon={Image} isActive={isActive('/admin/image-translator')}>
-              Image Translator
+              Image Analyzer
             </NavLink>
             
             <NavLink href="/admin/products" icon={Package} isActive={isActive('/admin/products')}>
