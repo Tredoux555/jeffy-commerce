@@ -103,20 +103,55 @@
         console.log('JEFFY: Found MOQ:', data.moq);
       }
 
-      // Images - get all product images from gallery
-      const imageEls = document.querySelectorAll('img.preview-img, img.ant-image-img, .od-gallery-turn-item-wrapper img');
+      // Images - get FULL-SIZE product images from gallery
+      // 1688 thumbnails have size suffixes like _60x60, .200x200.jpg, etc.
+      const imageEls = document.querySelectorAll(
+        'img.preview-img, img.ant-image-img, .od-gallery-turn-item-wrapper img, ' +
+        '.detail-gallery-img img, .detail-gallery img, [class*="gallery"] img, ' +
+        '.slider-item img, .sku-image img'
+      );
       const imageSet = new Set();
+      
       imageEls.forEach(img => {
-        let src = img.src || img.dataset.src;
+        // Try multiple sources for full-size URL
+        let src = img.dataset.origin ||     // Often contains full-size URL
+                  img.dataset.original ||   // Alternative full-size attribute
+                  img.dataset.src ||        // Lazy load source
+                  img.src;                  // Displayed image (might be thumbnail)
+        
         if (src && src.includes('alicdn.com') && !src.includes('avatar')) {
-          // Clean up URL
-          src = src.split('?')[0];
+          // Convert to full-size URL by removing thumbnail suffixes
+          src = src.split('?')[0];                           // Remove query params
+          src = src.replace(/_\d+x\d+(\.[a-z]+)?$/i, '$1');  // Remove _60x60, _200x200 etc
+          src = src.replace(/\.\d+x\d+\.([a-z]+)$/i, '.$1'); // Remove .60x60.jpg
+          src = src.replace(/(\.[a-z]+)_\.webp$/i, '$1');    // Remove _.webp suffix
+          src = src.replace(/\.summ\.[^.]+$/i, '');          // Remove .summ.search
+          src = src.replace(/_[bsmtq](\.[a-z]+)$/i, '$1');   // Remove size indicators
+          src = src.replace(/\.jpg_\.webp$/i, '.jpg');       // Fix .jpg_.webp
+          
+          // Ensure HTTPS
+          if (src.startsWith('http://')) {
+            src = src.replace('http://', 'https://');
+          }
+          
           imageSet.add(src);
         }
       });
+      
+      // Also try to get images from the main image viewer (usually higher quality)
+      const mainImg = document.querySelector('.detail-gallery-turn-wrapper img, .main-image img');
+      if (mainImg) {
+        let mainSrc = mainImg.dataset.origin || mainImg.dataset.original || mainImg.src;
+        if (mainSrc && mainSrc.includes('alicdn.com')) {
+          mainSrc = mainSrc.split('?')[0];
+          mainSrc = mainSrc.replace(/_\d+x\d+(\.[a-z]+)?$/i, '$1');
+          imageSet.add(mainSrc);
+        }
+      }
+      
       data.images = Array.from(imageSet).slice(0, 10);
       data.mainImage = data.images[0] || '';
-      console.log('JEFFY: Found images:', data.images.length, data.images);
+      console.log('JEFFY: Found full-size images:', data.images.length, data.images);
 
       // Seller info
       const sellerEl = document.querySelector('.shop-company-name h1') ||
