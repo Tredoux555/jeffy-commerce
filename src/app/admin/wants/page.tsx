@@ -1,8 +1,45 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { Eye, Users, CheckCircle, Clock, Bell, AlertTriangle, Package, ExternalLink, Image as ImageIcon, MessageCircle } from 'lucide-react';
+import { Eye, Users, CheckCircle, Clock, Bell, AlertTriangle, Package, ExternalLink, Image as ImageIcon, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ConvertToProductButton } from '@/components/convert-to-product-button';
+
+// Helper to get count - supports both column names
+function getCount(want: any): number {
+  return want.verified_count ?? want.current_agrees ?? 0;
+}
+
+// Helper to get threshold - default 10
+function getThreshold(want: any): number {
+  return want.threshold ?? 10;
+}
+
+// Helper to get title - supports both column names
+function getTitle(want: any): string {
+  return want.product_name || want.title || 'Untitled Want';
+}
+
+// Helper to get image - supports both column names
+function getImage(want: any): string | null {
+  const img = want.image_url || want.reference_image_url;
+  return img && img.length > 50 ? img : null;
+}
+
+// Helper to get contact info
+function getContact(want: any): { type: 'email' | 'phone' | 'none'; value: string } {
+  if (want.creator_email) return { type: 'email', value: want.creator_email };
+  if (want.creator_phone && want.creator_phone.length > 5) return { type: 'phone', value: want.creator_phone };
+  return { type: 'none', value: '' };
+}
+
+// Check if want is in "collecting" state (active or voting)
+function isCollecting(want: any): boolean {
+  return want.status === 'active' || want.status === 'voting';
+}
+
+// Check if want reached threshold
+function isReady(want: any): boolean {
+  return getCount(want) >= getThreshold(want);
+}
 
 function getExpiryInfo(createdAt: string) {
   const created = new Date(createdAt);
@@ -10,36 +47,6 @@ function getExpiryInfo(createdAt: string) {
   const now = new Date();
   const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   return { daysLeft, expired: daysLeft <= 0 };
-}
-
-// Format phone for WhatsApp (SA format)
-function formatPhoneForWhatsApp(phone: string): string {
-  if (!phone) return '';
-  // Remove spaces, dashes, brackets
-  let cleaned = phone.replace(/[\s\-\(\)]/g, '');
-  // If starts with 0, replace with 27
-  if (cleaned.startsWith('0')) {
-    cleaned = '27' + cleaned.slice(1);
-  }
-  // If doesn't start with +, add it
-  if (!cleaned.startsWith('+')) {
-    cleaned = '+' + cleaned;
-  }
-  return cleaned.replace('+', ''); // wa.me doesn't need the +
-}
-
-// Generate WhatsApp message for threshold reached
-function getWhatsAppUrl(phone: string, name: string, title: string): string {
-  const formattedPhone = formatPhoneForWhatsApp(phone);
-  const message = `🎉 Great news ${name}!
-
-Your want "${title}" just hit 10 agrees on Jeffy!
-
-We're now sourcing your product and will update you soon.
-
-Thank you for using Jeffy Wants! 🛒`;
-  
-  return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
 }
 
 export default async function AdminWantsPage() {
@@ -50,13 +57,18 @@ export default async function AdminWantsPage() {
     .select('*')
     .order('created_at', { ascending: false });
 
-  const readyToSource = wants?.filter(w => w.current_agrees >= w.threshold && w.status === 'active') || [];
+  // Ready to source: collecting status + reached threshold
+  const readyToSource = wants?.filter(w => isCollecting(w) && isReady(w)) || [];
+  
+  // Active: collecting status + not reached threshold + not expired
   const activeWants = wants?.filter(w => {
-    if (w.status !== 'active' || w.current_agrees >= w.threshold) return false;
+    if (!isCollecting(w) || isReady(w)) return false;
     return !getExpiryInfo(w.created_at).expired;
   }) || [];
+  
+  // Expired: collecting status + not reached threshold + expired
   const expiredWants = wants?.filter(w => {
-    if (w.status !== 'active' || w.current_agrees >= w.threshold) return false;
+    if (!isCollecting(w) || isReady(w)) return false;
     return getExpiryInfo(w.created_at).expired;
   }) || [];
 
@@ -92,7 +104,7 @@ export default async function AdminWantsPage() {
             <Bell className="h-6 w-6 text-green-600" />
             <div>
               <p className="font-semibold text-green-800">🎉 {readyToSource.length} Want{readyToSource.length > 1 ? 's' : ''} Ready!</p>
-              <p className="text-sm text-green-600">WhatsApp them the good news, then source!</p>
+              <p className="text-sm text-green-600">Contact them with the good news, then source!</p>
             </div>
           </div>
         </div>
@@ -117,7 +129,7 @@ export default async function AdminWantsPage() {
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Clock className="h-5 w-5 text-yellow-600" />
-          Collecting Agrees ({activeWants.length})
+          Collecting Verifications ({activeWants.length})
         </h2>
         {activeWants.length > 0 ? (
           <div className="space-y-4">
@@ -126,7 +138,7 @@ export default async function AdminWantsPage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">No active wants</p>
+          <p className="text-gray-500 text-center py-8">No active wants yet</p>
         )}
       </div>
 
@@ -150,17 +162,19 @@ export default async function AdminWantsPage() {
 
 function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expired' }) {
   const { daysLeft } = getExpiryInfo(want.created_at);
-  const progress = (want.current_agrees / want.threshold) * 100;
-  const maxPrice = want.max_price_cents ? want.max_price_cents / 100 : null;
-  const isGuaranteed = maxPrice && maxPrice <= 1000;
-  const hasImage = want.reference_image_url && want.reference_image_url.length > 50;
-  const hasLink = want.reference_url;
-  const hasPhone = want.creator_phone && want.creator_phone.length > 5;
-
+  const count = getCount(want);
+  const threshold = getThreshold(want);
+  const progress = (count / threshold) * 100;
+  const title = getTitle(want);
+  const image = getImage(want);
+  const contact = getContact(want);
+  
   const borderColor = type === 'ready' ? 'border-green-300 bg-green-50' : type === 'expired' ? 'border-red-200 bg-red-50/30' : 'border-gray-200';
 
-  // WhatsApp URL for notifying creator
-  const whatsappUrl = hasPhone ? getWhatsAppUrl(want.creator_phone, want.creator_name || 'there', want.title) : null;
+  // View link - use share_code if available, otherwise use ID
+  const viewUrl = want.share_code 
+    ? `/wants/${want.share_code}` 
+    : `/want/${want.id}?ref=${want.creator_referral_code || ''}`;
 
   return (
     <div className={`bg-white rounded-xl border ${borderColor} overflow-hidden`}>
@@ -168,8 +182,8 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
         <div className="flex gap-4">
           {/* Image Preview */}
           <div className="w-24 h-24 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-            {hasImage ? (
-              <img src={want.reference_image_url} alt={want.title} className="w-full h-full object-cover" />
+            {image ? (
+              <img src={image} alt={title} className="w-full h-full object-cover" />
             ) : (
               <ImageIcon className="h-8 w-8 text-gray-300" />
             )}
@@ -179,13 +193,25 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-bold text-lg">{want.title}</h3>
-                <p className="text-sm text-gray-500">by {want.creator_name || 'Anonymous'} • {want.creator_phone || 'No phone'}</p>
+                <h3 className="font-bold text-lg">{title}</h3>
+                <p className="text-sm text-gray-500">
+                  {contact.type === 'email' && (
+                    <span className="flex items-center gap-1">
+                      <Mail className="h-3 w-3" /> {contact.value}
+                    </span>
+                  )}
+                  {contact.type === 'phone' && (
+                    <span>📱 {contact.value}</span>
+                  )}
+                  {contact.type === 'none' && (
+                    <span className="text-gray-400">No contact info</span>
+                  )}
+                </p>
               </div>
               <div className="text-right flex-shrink-0">
                 <div className="flex items-center gap-1 text-sm font-semibold">
                   <Users className="h-4 w-4" />
-                  <span className={type === 'ready' ? 'text-green-600' : ''}>{want.current_agrees}/{want.threshold}</span>
+                  <span className={type === 'ready' ? 'text-green-600' : ''}>{count}/{threshold}</span>
                 </div>
                 {type === 'active' && (
                   <span className={`text-xs ${daysLeft <= 2 ? 'text-orange-600' : 'text-gray-500'}`}>
@@ -200,27 +226,17 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
               <p className="text-sm text-gray-600 mt-2 line-clamp-2">{want.description}</p>
             )}
 
-            {/* Reference Link */}
-            {hasLink && (
-              <a 
-                href={want.reference_url} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline mt-2"
-              >
-                <ExternalLink className="h-3 w-3" />
-                View Product Link
-              </a>
+            {/* Category */}
+            {want.category && want.category !== 'General' && (
+              <span className="inline-block mt-2 px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+                {want.category}
+              </span>
             )}
 
-            {/* Price & Progress */}
+            {/* Progress Bar */}
             <div className="flex items-center justify-between mt-3">
-              <div>
-                {maxPrice && (
-                  <span className={`text-sm font-medium ${isGuaranteed ? 'text-green-600' : 'text-yellow-600'}`}>
-                    Max: R{maxPrice.toLocaleString()} {isGuaranteed ? '✓ Guaranteed' : '⚠️ Review'}
-                  </span>
-                )}
+              <div className="text-sm text-gray-500">
+                {type === 'ready' ? '✅ Threshold reached!' : `${threshold - count} more needed`}
               </div>
               <div className="w-32">
                 <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -236,44 +252,35 @@ function WantCard({ want, type }: { want: any; type: 'ready' | 'active' | 'expir
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
-          <Link href={`/wants/${want.share_code}`} target="_blank">
+          <Link href={viewUrl} target="_blank">
             <Button variant="outline" size="sm">
               <Eye className="h-4 w-4 mr-1" /> View
             </Button>
           </Link>
           
-          {hasImage && (
-            <a href={want.reference_image_url} target="_blank">
+          {image && (
+            <a href={image} target="_blank">
               <Button variant="outline" size="sm">
                 <ImageIcon className="h-4 w-4 mr-1" /> Image
               </Button>
             </a>
           )}
           
-          {/* WhatsApp Creator Button - Only for READY wants with phone */}
-          {type === 'ready' && whatsappUrl && (
-            <a href={whatsappUrl} target="_blank">
-              <Button className="bg-[#25D366] hover:bg-[#1fb855] text-white" size="sm">
-                <MessageCircle className="h-4 w-4 mr-1" /> WhatsApp Creator
+          {/* Email Creator Button */}
+          {contact.type === 'email' && (
+            <a href={`mailto:${contact.value}?subject=Your Jeffy Want "${title}"&body=Hi there!%0A%0AGreat news about your want "${title}" on Jeffy!`}>
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white" size="sm">
+                <Mail className="h-4 w-4 mr-1" /> Email Creator
               </Button>
             </a>
           )}
           
           {type === 'ready' && (
-            <Link href={`/admin/procurement/smart-finder?want_id=${want.id}&want_title=${encodeURIComponent(want.title)}`}>
+            <Link href={`/admin/procurement/smart-finder?want_id=${want.id}&want_title=${encodeURIComponent(title)}`}>
               <Button className="bg-green-600 hover:bg-green-700" size="sm">
                 <Package className="h-4 w-4 mr-1" /> Source
               </Button>
             </Link>
-          )}
-
-          {/* Convert to Product Button - Only for READY wants */}
-          {type === 'ready' && !want.converted_product_id && (
-            <ConvertToProductButton wantId={want.id} wantTitle={want.title} />
-          )}
-          
-          {want.converted_product_id && (
-            <span className="text-sm text-green-600 font-medium">✓ Converted to Product</span>
           )}
         </div>
       </div>

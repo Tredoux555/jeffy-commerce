@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  JEFFY - The Soaring Weaver
+  
+  The definitive Jeffy logo.
+  
+  SYMBOLISM:
+  • Weaver bird = Building communities together (endemic to South Africa)
+  • Three wing feathers = Strands being woven / Building in progress
+  • Upward-tilted head = Hope, possibility, aspiration
+  • Orange = Energy, warmth, creativity, approachability
+  
+  DESIGN PRINCIPLES:
+  • Circle-based geometric construction (like Twitter bird)
+  • Works at 16px favicon to billboard
+  • Pure silhouette - no unnecessary detail
+  • Instantly recognizable profile
+  
+  USAGE:
+  • Primary: Orange on white/light backgrounds
+  • Dark mode: Orange on dark backgrounds  
+  • Reversed: White on orange backgrounds
+  • Monochrome: Single color for special applications
+  
+  COLOR CODES:
+  • Jeffy Orange: #ff6b35
+  • Beak accent: #e55a2b
+  
+  © Jeffy Commerce 2025
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 100" width="280" height="200">
+  <title>Jeffy - The Soaring Weaver</title>
+  
+  <!-- Body -->
+  <circle cx="60" cy="50" r="28" fill="#ff6b35"/>
+  
+  <!-- Head -->
+  <circle cx="90" cy="38" r="20" fill="#ff6b35"/>
+  
+  <!-- Wing feather 1 (top) -->
+  <path d="M35 45 Q10 25 25 10 Q40 20 50 40" fill="#ff6b35"/>
+  
+  <!-- Wing feather 2 (middle) -->
+  <path d="M32 55 Q5 45 15 25 Q35 35 45 50" fill="#ff6b35"/>
+  
+  <!-- Wing feather 3 (bottom) -->
+  <path d="M35 65 Q15 65 20 45 Q38 50 45 60" fill="#ff6b35"/>
+  
+  <!-- Tail -->
+  <path d="M32 60 Q10 75 5 65 Q15 60 32 55" fill="#ff6b35"/>
+  
+  <!-- Beak -->
+  <path d="M108 35 L130 40 L108 45" fill="#e55a2b"/>
+  
+  <!-- Eye -->
+  <circle cx="95" cy="34" r="4" fill="#ffffff"/>
+  <circle cx="96.5" cy="34" r="2" fill="#1a1a1a"/>
+</svg>

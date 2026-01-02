@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 120" width="200" height="240">
+  <!-- 
+    JEFFY LOGO: The Nested J
+    Concept: Bird's silhouette naturally forms the letter J
+    Symbolism: Brand name embedded in symbol (like FedEx arrow)
+    
+    Design Principles Applied:
+    - Dual meaning creates "discovery moment"
+    - Head = dot of J
+    - Body = vertical stroke
+    - Tail = hook of J
+  -->
+  
+  <!-- Head (dot of J) -->
+  <circle cx="65" cy="18" r="14" fill="#ff6b35"/>
+  
+  <!-- Body (vertical stroke of J) -->
+  <rect x="55" y="30" width="20" height="45" rx="10" fill="#ff6b35"/>
+  
+  <!-- Tail curving left (hook of J) -->
+  <path d="M55 70 Q55 100 30 105 Q15 107 10 95" stroke="#ff6b35" stroke-width="20" stroke-linecap="round" fill="none"/>
+  
+  <!-- Wing feathers -->
+  <path d="M75 45 Q95 35 90 20" stroke="#ff6b35" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M75 52 Q100 45 98 30" stroke="#ff6b35" stroke-width="6" stroke-linecap="round" fill="none"/>
+  
+  <!-- Beak -->
+  <path d="M77 14 L88 18 L77 22" fill="#e55a2b"/>
+  
+  <!-- Eye white -->
+  <circle cx="68" cy="16" r="3" fill="white"/>
+  
+  <!-- Eye pupil -->
+  <circle cx="69" cy="16" r="1.5" fill="#1a1a1a"/>
+</svg>
