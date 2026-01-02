@@ -6,12 +6,13 @@
  * - FormData with image file (key: 'image')
  * - JSON body with { imageUrl: string }
  * 
- * Uses Alibaba DashScope Qwen-MT-Image API
+ * Uses Alibaba DashScope Qwen-MT-Image API (Beijing region only)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Beijing region endpoint (image translation only works in Beijing)
 const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis';
 const API_KEY = process.env.ALIBABA_DASHSCOPE_API_KEY;
 
@@ -26,7 +27,6 @@ export async function POST(request: NextRequest) {
   console.log('[translate-image] === START ===');
   
   try {
-    // Check API key first
     if (!API_KEY) {
       console.error('[translate-image] No API key configured');
       return NextResponse.json(
@@ -41,18 +41,16 @@ export async function POST(request: NextRequest) {
     const contentType = request.headers.get('content-type') || '';
     console.log('[translate-image] Content-Type:', contentType);
 
-    // Clone the request so we can try multiple parsing methods
     const clonedRequest = request.clone();
     
-    // Try FormData first (for file uploads)
+    // Try FormData first
     try {
       const formData = await request.formData();
       const imageFile = formData.get('image') as File | null;
       
       if (imageFile && imageFile.size > 0) {
-        console.log('[translate-image] Got file:', imageFile.name, 'size:', imageFile.size, 'type:', imageFile.type);
+        console.log('[translate-image] Got file:', imageFile.name, 'size:', imageFile.size);
         
-        // Validate file type
         if (!imageFile.type.startsWith('image/')) {
           return NextResponse.json(
             { error: 'File must be an image', receivedType: imageFile.type },
@@ -60,7 +58,6 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        // Upload to Supabase storage
         const arrayBuffer = await imageFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const safeName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
@@ -91,7 +88,7 @@ export async function POST(request: NextRequest) {
         console.log('[translate-image] Uploaded, URL:', originalImageUrl);
       }
     } catch (formError) {
-      console.log('[translate-image] Not form data, trying JSON...', formError);
+      console.log('[translate-image] Not form data, trying JSON...');
     }
 
     // If no URL yet, try JSON
@@ -103,11 +100,10 @@ export async function POST(request: NextRequest) {
           console.log('[translate-image] Got URL from JSON:', originalImageUrl);
         }
       } catch (jsonError) {
-        console.log('[translate-image] Not JSON either:', jsonError);
+        console.log('[translate-image] Not JSON either');
       }
     }
 
-    // Still no URL?
     if (!originalImageUrl) {
       console.error('[translate-image] No image provided');
       return NextResponse.json(
@@ -116,8 +112,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Call Alibaba DashScope API
+    // Call Alibaba DashScope API with CORRECT format
+    // Model: qwen-mt-image (NOT qwen-mt-image-v1)
+    // source_lang and target_lang go in INPUT, not parameters
     console.log('[translate-image] Calling DashScope API...');
+    
+    const requestBody = {
+      model: 'qwen-mt-image',  // Correct model name
+      input: {
+        image_url: originalImageUrl,
+        source_lang: 'zh',      // Moved to input
+        target_lang: 'en',      // Moved to input
+      },
+    };
+    
+    console.log('[translate-image] Request body:', JSON.stringify(requestBody));
     
     const dashscopeResponse = await fetch(DASHSCOPE_API_URL, {
       method: 'POST',
@@ -126,31 +135,29 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'X-DashScope-Async': 'enable',
       },
-      body: JSON.stringify({
-        model: 'qwen-mt-image-v1',
-        input: {
-          image_url: originalImageUrl,
-        },
-        parameters: {
-          source_lang: 'zh',
-          target_lang: 'en',
-          domain_list: ['e-commerce'],
-        },
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     const dashscopeData = await dashscopeResponse.json();
-    console.log('[translate-image] DashScope response:', JSON.stringify(dashscopeData).slice(0, 500));
+    console.log('[translate-image] DashScope response:', JSON.stringify(dashscopeData).slice(0, 1000));
 
     if (!dashscopeResponse.ok) {
-      return NextResponse.json(
-        { 
-          error: 'DashScope API error',
-          details: dashscopeData.message || dashscopeData,
-          status: dashscopeResponse.status,
-        },
-        { status: 500 }
-      );
+      // Check for region error
+      const errorMsg = dashscopeData.message || dashscopeData.error?.message || JSON.stringify(dashscopeData);
+      
+      if (errorMsg.includes('region') || errorMsg.includes('Beijing') || dashscopeData.code === 'InvalidParameter') {
+        return NextResponse.json({
+          error: 'Region error: Image translation only works with Beijing region API key',
+          details: errorMsg,
+          hint: 'Get a Beijing region API key from https://dashscope.console.aliyun.com/',
+        }, { status: 500 });
+      }
+      
+      return NextResponse.json({
+        error: 'DashScope API error',
+        details: errorMsg,
+        status: dashscopeResponse.status,
+      }, { status: 500 });
     }
 
     const taskId = dashscopeData.output?.task_id;
@@ -212,13 +219,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[translate-image] Unhandled error:', error);
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : String(error),
+    }, { status: 500 });
   }
 }
 
