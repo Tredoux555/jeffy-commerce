@@ -25,6 +25,66 @@ const SHIPPING_PER_KG = 150; // ZAR
 const DEFAULT_WEIGHT = 0.5; // kg
 const MARKUP = 2.5; // 150% markup
 
+/**
+ * Convert 1688/Alibaba thumbnail URL to full-size image URL
+ * Removes size suffixes and parameters that create thumbnails
+ */
+function getFullSizeImageUrl(url: string): string {
+  if (!url) return url;
+  
+  let fullUrl = url;
+  
+  // Pattern 1: Remove size suffixes like _60x60, _100x100, _200x200, _400x400, etc.
+  fullUrl = fullUrl.replace(/_\d+x\d+(\.[a-z]+)?$/i, '$1');
+  
+  // Pattern 2: Remove .NxN. patterns like .60x60.jpg
+  fullUrl = fullUrl.replace(/\.\d+x\d+\.([a-z]+)$/i, '.$1');
+  
+  // Pattern 3: Remove _.webp or similar conversion suffixes (keep original format)
+  fullUrl = fullUrl.replace(/(\.[a-z]+)_\.webp$/i, '$1');
+  
+  // Pattern 4: Remove summ.search or other CDN processing params
+  fullUrl = fullUrl.replace(/\.summ\.search.*$/i, '');
+  fullUrl = fullUrl.replace(/\.search.*$/i, '');
+  
+  // Pattern 5: Remove query parameters that might limit size
+  fullUrl = fullUrl.replace(/\?.*$/, '');
+  
+  // Pattern 6: Convert to HTTPS if HTTP
+  if (fullUrl.startsWith('http://')) {
+    fullUrl = fullUrl.replace('http://', 'https://');
+  }
+  
+  // Pattern 7: Handle .jpg_.webp → .jpg
+  fullUrl = fullUrl.replace(/\.jpg_\.webp$/i, '.jpg');
+  fullUrl = fullUrl.replace(/\.png_\.webp$/i, '.png');
+  
+  // Pattern 8: Alicdn specific - some use .220x220.jpg format
+  fullUrl = fullUrl.replace(/\.\d+x\d+\.[a-z]+$/i, '.jpg');
+  
+  // Pattern 9: Remove _b (thumbnail indicator on some alicdn URLs)
+  fullUrl = fullUrl.replace(/_[bsmtq](\.[a-z]+)$/i, '$1');
+  
+  console.log(`[1688-import] Image URL: ${url} → ${fullUrl}`);
+  
+  return fullUrl;
+}
+
+/**
+ * Process array of images, converting thumbnails to full-size
+ * Also deduplicates URLs that become identical after conversion
+ */
+function processImageUrls(images: string[]): string[] {
+  if (!images || !Array.isArray(images)) return [];
+  
+  const processed = images.map(getFullSizeImageUrl);
+  
+  // Deduplicate (some thumbnails might point to same full-size image)
+  const unique = [...new Set(processed)];
+  
+  return unique.filter(url => url && url.length > 0);
+}
+
 function calculateSellingPrice(costCNY: number): number {
   const costZAR = costCNY * EXCHANGE_RATE;
   const shippingZAR = DEFAULT_WEIGHT * SHIPPING_PER_KG;
@@ -63,8 +123,8 @@ export async function POST(request: NextRequest) {
       descriptionOriginal,
       description,
       costPriceCNY,
-      images,
-      mainImage,
+      images: rawImages,
+      mainImage: rawMainImage,
       moq,
       seller,
       variants,
@@ -78,6 +138,12 @@ export async function POST(request: NextRequest) {
         { status: 400, headers: corsHeaders }
       );
     }
+
+    // Convert thumbnail URLs to full-size URLs
+    const images = processImageUrls(rawImages || []);
+    const mainImage = rawMainImage ? getFullSizeImageUrl(rawMainImage) : images[0];
+    
+    console.log(`[1688-import] Processing ${rawImages?.length || 0} images → ${images.length} unique full-size`);
 
     // Calculate prices
     const costPriceZAR = Math.round(costPriceCNY * EXCHANGE_RATE * 100); // in cents
@@ -139,7 +205,8 @@ export async function POST(request: NextRequest) {
           seller,
           variants,
           capturedAt,
-          importedAt: new Date().toISOString()
+          importedAt: new Date().toISOString(),
+          originalImages: rawImages, // Keep original thumbnail URLs for reference
         },
         source_1688_data: {
           titleOriginal,
@@ -177,7 +244,8 @@ export async function POST(request: NextRequest) {
         for (let i = 0; i < Math.min(images.length, 10); i++) {
           const url = images[i];
           try {
-            const response = await fetch(url, {
+            // Try fetching the full-size image
+            let response = await fetch(url, {
               headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 'Referer': 'https://detail.1688.com/',
@@ -185,10 +253,31 @@ export async function POST(request: NextRequest) {
               }
             });
 
-            if (!response.ok) continue;
+            // If full-size fails, try original thumbnail URL as fallback
+            if (!response.ok && rawImages && rawImages[i]) {
+              console.log(`[1688-import] Full-size failed, trying original: ${rawImages[i]}`);
+              response = await fetch(rawImages[i], {
+                headers: {
+                  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                  'Referer': 'https://detail.1688.com/',
+                  'Accept': 'image/webp,image/*,*/*'
+                }
+              });
+            }
+
+            if (!response.ok) {
+              console.log(`[1688-import] Image ${i} failed: ${response.status}`);
+              continue;
+            }
 
             const contentType = response.headers.get('content-type') || 'image/jpeg';
             const buffer = await response.arrayBuffer();
+            
+            // Check if we got a real image (not a placeholder or error)
+            if (buffer.byteLength < 1000) {
+              console.log(`[1688-import] Image ${i} too small (${buffer.byteLength} bytes), skipping`);
+              continue;
+            }
             
             let ext = 'jpg';
             if (contentType.includes('png')) ext = 'png';
@@ -208,10 +297,13 @@ export async function POST(request: NextRequest) {
               if (urlData?.publicUrl) {
                 storedImages.push(urlData.publicUrl);
                 if (!primaryStoredImage) primaryStoredImage = urlData.publicUrl;
+                console.log(`[1688-import] Image ${i} saved: ${buffer.byteLength} bytes`);
               }
+            } else {
+              console.log(`[1688-import] Upload error for image ${i}:`, uploadError);
             }
           } catch (imgErr) {
-            console.log(`Image ${i} failed:`, imgErr);
+            console.log(`[1688-import] Image ${i} failed:`, imgErr);
           }
         }
 
@@ -224,7 +316,7 @@ export async function POST(request: NextRequest) {
           }).eq('id', product.id);
         }
       } catch (imgError) {
-        console.log('Image processing error:', imgError);
+        console.log('[1688-import] Image processing error:', imgError);
       }
     }
 
@@ -253,11 +345,12 @@ export async function POST(request: NextRequest) {
       costPrice: costPriceZAR,
       status: 'draft',
       imagesUploaded: storedImages.length,
+      imagesProcessed: images.length,
       primaryImage: primaryStoredImage
     }, { headers: corsHeaders });
 
   } catch (error: any) {
-    console.error('Import error:', error);
+    console.error('[1688-import] Import error:', error);
     return NextResponse.json(
       { success: false, error: error.message || 'Unknown error' },
       { status: 500, headers: corsHeaders }
