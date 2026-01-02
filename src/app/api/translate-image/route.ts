@@ -34,31 +34,20 @@ export async function POST(request: NextRequest) {
 
     const supabase = getSupabaseAdmin();
     let originalImageUrl: string;
-    let isFileUpload = false;
     
     // Check content type to determine how to parse
     const contentType = request.headers.get('content-type') || '';
+    console.log('[translate-image] Content-Type:', contentType);
     
-    if (contentType.includes('application/json')) {
-      // JSON body with imageUrl
-      const body = await request.json();
-      originalImageUrl = body.imageUrl;
-      
-      if (!originalImageUrl) {
-        return NextResponse.json(
-          { error: 'imageUrl is required' },
-          { status: 400 }
-        );
-      }
-    } else if (contentType.includes('multipart/form-data')) {
+    // Try to parse as FormData first (most common from drag-drop)
+    if (contentType.includes('multipart/form-data') || contentType.includes('form-data')) {
       // FormData with file upload
-      isFileUpload = true;
       const formData = await request.formData();
       const imageFile = formData.get('image') as File;
       
       if (!imageFile) {
         return NextResponse.json(
-          { error: 'No image file provided' },
+          { error: 'No image file provided in form data' },
           { status: 400 }
         );
       }
@@ -71,10 +60,12 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      console.log('[translate-image] Received file:', imageFile.name, imageFile.type, imageFile.size);
+
       // Upload original image to Supabase storage
       const arrayBuffer = await imageFile.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      const originalFilename = `originals/${Date.now()}_${imageFile.name}`;
+      const originalFilename = `originals/${Date.now()}_${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       
       const { error: uploadError } = await supabase.storage
         .from('translated-images')
@@ -84,7 +75,7 @@ export async function POST(request: NextRequest) {
         });
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError);
+        console.error('[translate-image] Storage upload error:', uploadError);
         return NextResponse.json(
           { error: 'Failed to upload image', details: uploadError.message },
           { status: 500 }
@@ -97,9 +88,35 @@ export async function POST(request: NextRequest) {
         .getPublicUrl(originalFilename);
 
       originalImageUrl = urlData.publicUrl;
+      console.log('[translate-image] Uploaded to:', originalImageUrl);
+      
+    } else if (contentType.includes('application/json')) {
+      // JSON body with imageUrl
+      const body = await request.json();
+      originalImageUrl = body.imageUrl;
+      
+      if (!originalImageUrl) {
+        return NextResponse.json(
+          { error: 'imageUrl is required in JSON body' },
+          { status: 400 }
+        );
+      }
+      console.log('[translate-image] Using URL:', originalImageUrl);
     } else {
+      // Try to detect if it's actually form data without proper content-type
+      try {
+        const formData = await request.formData();
+        const imageFile = formData.get('image') as File;
+        if (imageFile) {
+          console.log('[translate-image] Detected form data despite content-type:', contentType);
+          // Handle as form data... (simplified - just use the URL approach)
+        }
+      } catch {
+        // Not form data
+      }
+      
       return NextResponse.json(
-        { error: 'Invalid content type. Use application/json or multipart/form-data' },
+        { error: `Invalid content type: ${contentType}. Use multipart/form-data or application/json` },
         { status: 400 }
       );
     }
