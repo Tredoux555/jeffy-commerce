@@ -1,20 +1,18 @@
 /**
- * API Route: Translate Chinese Product Image to English
+ * API Route: Analyze Chinese Product Images
  * POST /api/translate-image
  * 
- * Accepts either:
- * - FormData with image file (key: 'image')
- * - JSON body with { imageUrl: string }
- * 
- * Uses Alibaba DashScope Qwen-MT-Image API (Beijing region only)
+ * Uses Claude Vision to detect and translate Chinese text in product images.
+ * Helps identify which images are "clean" (no Chinese) for SA market.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import Anthropic from '@anthropic-ai/sdk';
 
-// Beijing region endpoint (image translation only works in Beijing)
-const DASHSCOPE_API_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis';
-const API_KEY = process.env.ALIBABA_DASHSCOPE_API_KEY;
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 function getSupabaseAdmin() {
   return createClient(
@@ -24,26 +22,27 @@ function getSupabaseAdmin() {
 }
 
 export async function POST(request: NextRequest) {
-  console.log('[translate-image] === START ===');
+  console.log('[translate-image] === START (Claude Vision) ===');
   
   try {
-    if (!API_KEY) {
-      console.error('[translate-image] No API key configured');
+    if (!process.env.ANTHROPIC_API_KEY) {
       return NextResponse.json(
-        { error: 'ALIBABA_DASHSCOPE_API_KEY not configured' },
+        { error: 'ANTHROPIC_API_KEY not configured' },
         { status: 500 }
       );
     }
 
     const supabase = getSupabaseAdmin();
-    let originalImageUrl: string = '';
+    let imageUrl: string = '';
+    let imageBase64: string = '';
+    let mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' = 'image/jpeg';
     
     const contentType = request.headers.get('content-type') || '';
     console.log('[translate-image] Content-Type:', contentType);
 
     const clonedRequest = request.clone();
     
-    // Try FormData first
+    // Try FormData first (file upload)
     try {
       const formData = await request.formData();
       const imageFile = formData.get('image') as File | null;
@@ -53,207 +52,159 @@ export async function POST(request: NextRequest) {
         
         if (!imageFile.type.startsWith('image/')) {
           return NextResponse.json(
-            { error: 'File must be an image', receivedType: imageFile.type },
+            { error: 'File must be an image' },
             { status: 400 }
           );
         }
 
+        // Convert to base64 for Claude
         const arrayBuffer = await imageFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
+        imageBase64 = buffer.toString('base64');
+        mediaType = imageFile.type as typeof mediaType;
+        
+        // Also upload to storage for reference
         const safeName = imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const originalFilename = `originals/${Date.now()}_${safeName}`;
+        const filename = `analyzed/${Date.now()}_${safeName}`;
         
-        console.log('[translate-image] Uploading to storage:', originalFilename);
-        
-        const { error: uploadError } = await supabase.storage
+        await supabase.storage
           .from('translated-images')
-          .upload(originalFilename, buffer, {
+          .upload(filename, buffer, {
             contentType: imageFile.type,
             upsert: true,
           });
 
-        if (uploadError) {
-          console.error('[translate-image] Storage error:', uploadError);
-          return NextResponse.json(
-            { error: 'Failed to upload image to storage', details: uploadError.message },
-            { status: 500 }
-          );
-        }
-
         const { data: urlData } = supabase.storage
           .from('translated-images')
-          .getPublicUrl(originalFilename);
-
-        originalImageUrl = urlData.publicUrl;
-        console.log('[translate-image] Uploaded, URL:', originalImageUrl);
+          .getPublicUrl(filename);
+        
+        imageUrl = urlData.publicUrl;
       }
     } catch (formError) {
       console.log('[translate-image] Not form data, trying JSON...');
     }
 
-    // If no URL yet, try JSON
-    if (!originalImageUrl) {
+    // Try JSON (URL)
+    if (!imageBase64) {
       try {
         const body = await clonedRequest.json();
         if (body.imageUrl) {
-          originalImageUrl = body.imageUrl;
-          console.log('[translate-image] Got URL from JSON:', originalImageUrl);
+          imageUrl = body.imageUrl;
+          console.log('[translate-image] Got URL from JSON:', imageUrl);
+          
+          // Fetch image and convert to base64
+          const imageResponse = await fetch(imageUrl);
+          const imageBuffer = await imageResponse.arrayBuffer();
+          imageBase64 = Buffer.from(imageBuffer).toString('base64');
+          
+          const contentTypeHeader = imageResponse.headers.get('content-type') || 'image/jpeg';
+          if (contentTypeHeader.includes('png')) mediaType = 'image/png';
+          else if (contentTypeHeader.includes('gif')) mediaType = 'image/gif';
+          else if (contentTypeHeader.includes('webp')) mediaType = 'image/webp';
         }
       } catch (jsonError) {
         console.log('[translate-image] Not JSON either');
       }
     }
 
-    if (!originalImageUrl) {
-      console.error('[translate-image] No image provided');
+    if (!imageBase64) {
       return NextResponse.json(
-        { error: 'No image provided. Send FormData with "image" file or JSON with "imageUrl"' },
+        { error: 'No image provided' },
         { status: 400 }
       );
     }
 
-    // Call Alibaba DashScope API with CORRECT format
-    // Model: qwen-mt-image (NOT qwen-mt-image-v1)
-    // source_lang and target_lang go in INPUT, not parameters
-    console.log('[translate-image] Calling DashScope API...');
+    // Call Claude Vision
+    console.log('[translate-image] Calling Claude Vision...');
     
-    const requestBody = {
-      model: 'qwen-mt-image',  // Correct model name
-      input: {
-        image_url: originalImageUrl,
-        source_lang: 'zh',      // Moved to input
-        target_lang: 'en',      // Moved to input
-      },
-    };
-    
-    console.log('[translate-image] Request body:', JSON.stringify(requestBody));
-    
-    const dashscopeResponse = await fetch(DASHSCOPE_API_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${API_KEY}`,
-        'Content-Type': 'application/json',
-        'X-DashScope-Async': 'enable',
-      },
-      body: JSON.stringify(requestBody),
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: mediaType,
+                data: imageBase64,
+              },
+            },
+            {
+              type: 'text',
+              text: `Analyze this product image for Chinese text.
+
+RESPOND IN THIS EXACT JSON FORMAT:
+{
+  "has_chinese": true/false,
+  "chinese_texts": [
+    {
+      "original": "the Chinese text exactly as shown",
+      "translation": "English translation",
+      "location": "where in image (e.g., top banner, product label, watermark)"
+    }
+  ],
+  "recommendation": "CLEAN" or "HAS_CHINESE" or "MINOR_CHINESE",
+  "summary": "Brief description of what text was found and recommendation for SA market"
+}
+
+Rules:
+- "CLEAN" = No Chinese text, safe to use
+- "MINOR_CHINESE" = Small Chinese text (watermark, tiny label) that might be acceptable
+- "HAS_CHINESE" = Prominent Chinese text that should be avoided for SA market
+- Only include actual Chinese characters, not English text
+- If no Chinese found, return empty chinese_texts array
+
+Return ONLY the JSON, no other text.`,
+            },
+          ],
+        },
+      ],
     });
 
-    const dashscopeData = await dashscopeResponse.json();
-    console.log('[translate-image] DashScope response:', JSON.stringify(dashscopeData).slice(0, 1000));
-
-    if (!dashscopeResponse.ok) {
-      // Check for region error
-      const errorMsg = dashscopeData.message || dashscopeData.error?.message || JSON.stringify(dashscopeData);
-      
-      if (errorMsg.includes('region') || errorMsg.includes('Beijing') || dashscopeData.code === 'InvalidParameter') {
-        return NextResponse.json({
-          error: 'Region error: Image translation only works with Beijing region API key',
-          details: errorMsg,
-          hint: 'Get a Beijing region API key from https://dashscope.console.aliyun.com/',
-        }, { status: 500 });
-      }
-      
-      return NextResponse.json({
-        error: 'DashScope API error',
-        details: errorMsg,
-        status: dashscopeResponse.status,
-      }, { status: 500 });
-    }
-
-    const taskId = dashscopeData.output?.task_id;
-    if (!taskId) {
-      return NextResponse.json(
-        { error: 'No task ID from DashScope', response: dashscopeData },
-        { status: 500 }
-      );
-    }
-
-    // Poll for completion
-    console.log('[translate-image] Task ID:', taskId, '- polling...');
-    const translatedUrl = await pollForResult(taskId);
-
-    if (!translatedUrl) {
-      return NextResponse.json(
-        { error: 'Translation timed out or failed' },
-        { status: 500 }
-      );
-    }
-
-    // Download and save translated image
-    console.log('[translate-image] Downloading result from:', translatedUrl);
-    const translatedBuffer = await fetch(translatedUrl).then(r => r.arrayBuffer());
-    const translatedFilename = `translated/${Date.now()}.jpg`;
+    // Parse Claude's response
+    const claudeText = response.content[0].type === 'text' ? response.content[0].text : '';
+    console.log('[translate-image] Claude response:', claudeText.slice(0, 500));
     
-    const { error: saveError } = await supabase.storage
-      .from('translated-images')
-      .upload(translatedFilename, Buffer.from(translatedBuffer), {
-        contentType: 'image/jpeg',
-        upsert: true,
-      });
-
-    if (saveError) {
-      console.error('[translate-image] Save error:', saveError);
-      // Return the Alibaba URL directly as fallback
-      return NextResponse.json({
-        success: true,
-        id: taskId,
-        original_image_url: originalImageUrl,
-        translated_image_url: translatedUrl,
-        status: 'completed',
-      });
+    let analysis;
+    try {
+      // Extract JSON from response (handle markdown code blocks)
+      const jsonMatch = claudeText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        analysis = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No JSON found in response');
+      }
+    } catch (parseError) {
+      console.error('[translate-image] Parse error:', parseError);
+      analysis = {
+        has_chinese: false,
+        chinese_texts: [],
+        recommendation: 'UNKNOWN',
+        summary: 'Could not analyze image',
+        raw_response: claudeText,
+      };
     }
 
-    const { data: finalUrlData } = supabase.storage
-      .from('translated-images')
-      .getPublicUrl(translatedFilename);
-
-    console.log('[translate-image] === SUCCESS ===', finalUrlData.publicUrl);
+    console.log('[translate-image] === SUCCESS ===');
     
     return NextResponse.json({
       success: true,
-      id: taskId,
-      original_image_url: originalImageUrl,
-      translated_image_url: finalUrlData.publicUrl,
-      status: 'completed',
+      original_image_url: imageUrl,
+      analysis: analysis,
+      has_chinese: analysis.has_chinese,
+      recommendation: analysis.recommendation,
+      chinese_texts: analysis.chinese_texts || [],
+      summary: analysis.summary,
     });
 
   } catch (error) {
-    console.error('[translate-image] Unhandled error:', error);
+    console.error('[translate-image] Error:', error);
     return NextResponse.json({
-      error: 'Internal server error',
+      error: 'Analysis failed',
       details: error instanceof Error ? error.message : String(error),
     }, { status: 500 });
   }
-}
-
-async function pollForResult(taskId: string): Promise<string | null> {
-  const maxAttempts = 30;
-  const interval = 2000;
-
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, interval));
-
-    try {
-      const res = await fetch(`https://dashscope.aliyuncs.com/api/v1/tasks/${taskId}`, {
-        headers: { 'Authorization': `Bearer ${API_KEY}` },
-      });
-      
-      const data = await res.json();
-      const status = data.output?.task_status;
-      
-      console.log(`[translate-image] Poll ${i + 1}/${maxAttempts}: ${status}`);
-
-      if (status === 'SUCCEEDED') {
-        return data.output?.result_url || null;
-      }
-      if (status === 'FAILED') {
-        console.error('[translate-image] Task failed:', data);
-        return null;
-      }
-    } catch (e) {
-      console.error('[translate-image] Poll error:', e);
-    }
-  }
-
-  return null;
 }

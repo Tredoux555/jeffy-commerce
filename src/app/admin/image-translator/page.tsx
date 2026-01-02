@@ -1,33 +1,40 @@
 'use client';
 
 /**
- * Image Translation Admin Page
+ * Image Analyzer - Chinese Text Detection
  * /admin/image-translator
  * 
- * Translate Chinese product images to English using Alibaba DashScope Qwen-MT-Image
- * Replaces Chinese text in images with English translations
+ * Uses Claude Vision to detect Chinese text in product images
+ * Helps identify which images are "clean" for SA market
  */
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import Image from 'next/image';
 
-interface TranslationResult {
-  id: string;
+interface ChineseText {
+  original: string;
+  translation: string;
+  location: string;
+}
+
+interface AnalysisResult {
   original_image_url: string;
-  translated_image_url: string;
-  status: string;
+  has_chinese: boolean;
+  recommendation: 'CLEAN' | 'HAS_CHINESE' | 'MINOR_CHINESE' | 'UNKNOWN';
+  chinese_texts: ChineseText[];
+  summary: string;
 }
 
 export default function ImageTranslatorPage() {
-  const [uploading, setUploading] = useState(false);
-  const [translations, setTranslations] = useState<TranslationResult[]>([]);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [results, setResults] = useState<AnalysisResult[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
 
-    setUploading(true);
+    setAnalyzing(true);
     setError(null);
 
     for (const file of acceptedFiles) {
@@ -43,22 +50,22 @@ export default function ImageTranslatorPage() {
         const result = await response.json();
 
         if (!response.ok) {
-          throw new Error(result.error || 'Translation failed');
+          throw new Error(result.error || 'Analysis failed');
         }
 
         if (result.success) {
-          setTranslations(prev => [result, ...prev]);
+          setResults(prev => [result, ...prev]);
         } else {
-          throw new Error(result.error || 'Translation failed');
+          throw new Error(result.error || 'Analysis failed');
         }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Upload failed';
         setError(message);
-        console.error('Translation error:', err);
+        console.error('Analysis error:', err);
       }
     }
 
-    setUploading(false);
+    setAnalyzing(false);
   }, []);
 
   const {
@@ -74,204 +81,201 @@ export default function ImageTranslatorPage() {
       'image/webp': ['.webp'],
     },
     maxFiles: 10,
-    maxSize: 10 * 1024 * 1024, // 10MB
-    disabled: uploading,
+    maxSize: 10 * 1024 * 1024,
+    disabled: analyzing,
   });
 
+  const getRecommendationStyle = (rec: string) => {
+    switch (rec) {
+      case 'CLEAN':
+        return 'bg-green-100 text-green-800 border-green-300';
+      case 'MINOR_CHINESE':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'HAS_CHINESE':
+        return 'bg-red-100 text-red-800 border-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getRecommendationIcon = (rec: string) => {
+    switch (rec) {
+      case 'CLEAN': return '✅';
+      case 'MINOR_CHINESE': return '⚠️';
+      case 'HAS_CHINESE': return '❌';
+      default: return '❓';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            🖼️ Image Translator
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Translate Chinese product images to English for South African market
-          </p>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">
+          🔍 Image Analyzer
+        </h1>
+        <p className="text-gray-600 mt-1">
+          Detect Chinese text in product images • Find clean images for SA market
+        </p>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Upload Zone */}
-        <div
-          {...getRootProps()}
-          className={`
-            relative border-2 border-dashed rounded-xl p-12 text-center cursor-pointer
-            transition-all duration-200
-            ${isDragActive && !isDragReject 
-              ? 'border-blue-500 bg-blue-50 scale-[1.02]' 
-              : isDragReject
-                ? 'border-red-500 bg-red-50'
-                : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-            }
-            ${uploading ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-        >
-          <input {...getInputProps()} />
-          
-          <div className="mb-4">
-            <svg
-              className={`w-16 h-16 mx-auto ${isDragActive ? 'text-blue-500' : 'text-gray-400'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
+      {/* Upload Zone */}
+      <div
+        {...getRootProps()}
+        className={`
+          relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer
+          transition-all duration-200
+          ${isDragActive && !isDragReject 
+            ? 'border-orange-500 bg-orange-50 scale-[1.01]' 
+            : isDragReject
+              ? 'border-red-500 bg-red-50'
+              : 'border-gray-300 hover:border-orange-400 hover:bg-orange-50/50'
+          }
+          ${analyzing ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+      >
+        <input {...getInputProps()} />
+        
+        {analyzing ? (
+          <div className="py-4">
+            <div className="animate-spin w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-3" />
+            <div className="text-lg font-medium text-gray-700">
+              Analyzing with Claude Vision...
+            </div>
           </div>
-
-          {uploading ? (
-            <div>
-              <div className="text-lg font-medium text-gray-700 mb-2">
-                Translating...
-              </div>
-              <div className="w-full max-w-xs mx-auto bg-gray-200 rounded-full h-2">
-                <div className="bg-blue-500 h-2 rounded-full animate-pulse" style={{ width: '60%' }} />
-              </div>
+        ) : isDragActive ? (
+          <div className="py-4">
+            <div className="text-lg font-medium text-orange-600">
+              {isDragReject ? 'Invalid file type!' : 'Drop images here'}
             </div>
-          ) : isDragActive ? (
-            <div>
-              <div className="text-lg font-medium text-blue-600">
-                {isDragReject ? 'Invalid file type!' : 'Drop images here'}
-              </div>
+          </div>
+        ) : (
+          <div className="py-4">
+            <div className="text-4xl mb-3">📸</div>
+            <div className="text-lg font-medium text-gray-700">
+              Drop product images to analyze
             </div>
-          ) : (
-            <div>
-              <div className="text-lg font-medium text-gray-700">
-                Drag & drop Chinese product images
-              </div>
-              <div className="text-sm text-gray-500 mt-2">
-                or click to browse • PNG, JPG, WebP • Max 10MB
-              </div>
-              <div className="mt-6 flex items-center justify-center gap-2 text-sm">
-                <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full font-medium">
-                  中文
-                </span>
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full font-medium">
-                  English
-                </span>
-              </div>
+            <div className="text-sm text-gray-500 mt-1">
+              PNG, JPG, WebP • Max 10MB • Claude AI will detect Chinese text
             </div>
-          )}
-        </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-            {error}
           </div>
         )}
+      </div>
 
-        {/* Results */}
-        {translations.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Translation Results
-            </h2>
-            <div className="grid gap-6">
-              {translations.map((translation) => (
-                <div
-                  key={translation.id}
-                  className="bg-white rounded-xl border border-gray-200 overflow-hidden"
-                >
-                  <div className="p-4 border-b border-gray-100">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                        ✅ Completed
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Results Legend */}
+      {results.length > 0 && (
+        <div className="flex gap-4 text-sm">
+          <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full">
+            ✅ CLEAN - Safe to use
+          </span>
+          <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full">
+            ⚠️ MINOR - Small Chinese text
+          </span>
+          <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full">
+            ❌ HAS_CHINESE - Avoid
+          </span>
+        </div>
+      )}
+
+      {/* Results */}
+      {results.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-900">
+            Analysis Results ({results.length})
+          </h2>
+          
+          <div className="grid gap-4">
+            {results.map((result, index) => (
+              <div
+                key={index}
+                className={`bg-white rounded-xl border-2 overflow-hidden ${getRecommendationStyle(result.recommendation)}`}
+              >
+                <div className="flex">
+                  {/* Image Preview */}
+                  <div className="w-48 h-48 relative flex-shrink-0 bg-gray-100">
+                    {result.original_image_url ? (
+                      <Image
+                        src={result.original_image_url}
+                        alt="Analyzed image"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        No preview
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Analysis Details */}
+                  <div className="flex-1 p-4">
+                    {/* Recommendation Badge */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className={`text-2xl`}>
+                        {getRecommendationIcon(result.recommendation)}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-bold ${getRecommendationStyle(result.recommendation)}`}>
+                        {result.recommendation}
+                      </span>
+                      <span className="text-gray-600">
+                        {result.has_chinese ? `${result.chinese_texts?.length || 0} Chinese text(s) found` : 'No Chinese text detected'}
                       </span>
                     </div>
-                  </div>
-                  
-                  {/* Before/After Comparison */}
-                  <div className="grid md:grid-cols-2 gap-4 p-4">
-                    {/* Original */}
-                    <div>
-                      <div className="text-sm font-medium text-gray-700 mb-2">
-                        Original (中文)
-                      </div>
-                      <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                        <Image
-                          src={translation.original_image_url}
-                          alt="Original"
-                          fill
-                          className="object-contain"
-                          unoptimized
-                        />
-                      </div>
-                    </div>
 
-                    {/* Translated */}
-                    <div>
-                      <div className="text-sm font-medium text-gray-700 mb-2">
-                        Translated (English)
-                      </div>
-                      <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                        {translation.translated_image_url ? (
-                          <Image
-                            src={translation.translated_image_url}
-                            alt="Translated"
-                            fill
-                            className="object-contain"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full text-gray-400">
-                            Processing...
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                    {/* Summary */}
+                    <p className="text-gray-700 mb-3">
+                      {result.summary}
+                    </p>
 
-                  {/* Actions */}
-                  <div className="px-4 pb-4 flex gap-2">
-                    {translation.translated_image_url && (
-                      <>
-                        <a
-                          href={translation.translated_image_url}
-                          download
-                          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
-                        >
-                          ⬇ Download Translated
-                        </a>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(translation.translated_image_url);
-                            alert('Image URL copied to clipboard!');
-                          }}
-                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
-                        >
-                          📋 Copy URL
-                        </button>
-                      </>
+                    {/* Chinese Texts Found */}
+                    {result.chinese_texts && result.chinese_texts.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium text-gray-600">Chinese text found:</div>
+                        <div className="space-y-1">
+                          {result.chinese_texts.map((text, i) => (
+                            <div key={i} className="bg-white/50 rounded p-2 text-sm">
+                              <div className="flex gap-2">
+                                <span className="text-red-600 font-medium">{text.original}</span>
+                                <span className="text-gray-400">→</span>
+                                <span className="text-green-700">{text.translation}</span>
+                              </div>
+                              <div className="text-gray-500 text-xs mt-1">
+                                📍 {text.location}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Empty State */}
-        {translations.length === 0 && !uploading && (
-          <div className="mt-8 bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
-            <div className="text-6xl mb-4">📷</div>
-            <h3 className="text-lg font-medium text-gray-700">No translations yet</h3>
-            <p className="text-gray-500 mt-1">
-              Upload Chinese product images to see translations here
-            </p>
+      {/* Empty State */}
+      {results.length === 0 && !analyzing && (
+        <div className="bg-white rounded-xl border border-dashed border-gray-300 p-12 text-center">
+          <div className="text-6xl mb-4">🖼️</div>
+          <h3 className="text-lg font-medium text-gray-700">No images analyzed yet</h3>
+          <p className="text-gray-500 mt-1">
+            Drop product images to check for Chinese text
+          </p>
+          <div className="mt-4 text-sm text-gray-400">
+            Tip: Use this to find clean images for your SA product listings
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
