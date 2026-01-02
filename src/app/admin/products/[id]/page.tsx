@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Trash2, ZoomIn, Languages } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Trash2, ZoomIn, Languages, Upload, Plus, ImageIcon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,12 @@ export default function EditProductPage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+  
+  // New states for enhanced media section
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const [translatingImage, setTranslatingImage] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   const [form, setForm] = useState({
     name: '',
@@ -187,6 +193,143 @@ export default function EditProductPage() {
     }
     setAnalyzing(false);
   };
+
+  // ============ NEW: Enhanced Image Functions ============
+
+  // Add image from URL
+  const addImageFromUrl = () => {
+    if (!newImageUrl.trim()) return;
+    
+    // Check if URL is valid
+    try {
+      new URL(newImageUrl);
+    } catch {
+      alert('Please enter a valid URL');
+      return;
+    }
+    
+    // Add to images array if not already there
+    if (!images.includes(newImageUrl.trim())) {
+      setImages([...images, newImageUrl.trim()]);
+    }
+    setNewImageUrl('');
+  };
+
+  // Handle drag and drop
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    
+    // Check for URL in drag data (dragging image from website)
+    const url = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain');
+    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+      // It's a URL - add directly
+      if (!images.includes(url)) {
+        setImages(prev => [...prev, url]);
+      }
+      return;
+    }
+    
+    // Check for files (uploading from computer)
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      await uploadFiles(files);
+    }
+  }, [images]);
+
+  // Handle file upload
+  const uploadFiles = async (files: File[]) => {
+    setUploadingImage(true);
+    const supabase = createClient();
+    
+    for (const file of files) {
+      try {
+        const filename = `products/${productId}/${Date.now()}_${file.name}`;
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(filename, file);
+        
+        if (error) {
+          console.error('Upload error:', error);
+          continue;
+        }
+        
+        const { data: urlData } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filename);
+        
+        if (urlData.publicUrl) {
+          setImages(prev => [...prev, urlData.publicUrl]);
+        }
+      } catch (err) {
+        console.error('Upload failed:', err);
+      }
+    }
+    setUploadingImage(false);
+  };
+
+  // Handle file input change
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      uploadFiles(files);
+    }
+  };
+
+  // Translate single image
+  const translateSingleImage = async (index: number) => {
+    const imageUrl = images[index];
+    if (!imageUrl) return;
+    
+    setTranslatingImage(index);
+    
+    try {
+      const res = await fetch('/api/translate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl }),
+      });
+      
+      const data = await res.json();
+      
+      if (data.success && data.translated_image_url) {
+        // Replace the image in the array
+        const newImages = [...images];
+        newImages[index] = data.translated_image_url;
+        setImages(newImages);
+        
+        // If this was the selected image, update selection
+        if (form.imageUrl === imageUrl) {
+          setForm({ ...form, imageUrl: data.translated_image_url });
+        }
+        
+        // Clear analysis since images changed
+        setImageAnalysis(null);
+      } else {
+        alert(data.error || 'Translation failed');
+      }
+    } catch (error) {
+      console.error('Translation error:', error);
+      alert('Translation failed - check console for details');
+    }
+    
+    setTranslatingImage(null);
+  };
+
+  // ============ END NEW Functions ============
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -418,6 +561,7 @@ export default function EditProductPage() {
           </div>
         </div>
 
+        {/* ============ ENHANCED MEDIA SECTION ============ */}
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">Media</h2>
@@ -433,16 +577,72 @@ export default function EditProductPage() {
                   {analyzing ? 'Analyzing...' : 'AI Analyze'}
                 </button>
               )}
-              {imageAnalysis?.summary?.imagesWithChineseText > 0 && (
-                <Link
-                  href="/admin/image-processor"
-                  className="px-3 py-1.5 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 flex items-center gap-2 text-sm"
-                >
-                  <Languages className="h-4 w-4" />
-                  Translate Tool
-                </Link>
-              )}
             </div>
+          </div>
+
+          {/* Drag & Drop Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-xl p-6 text-center transition-all ${
+              isDragging 
+                ? 'border-jeffy-orange bg-orange-50 scale-[1.02]' 
+                : 'border-gray-300 hover:border-gray-400'
+            }`}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              id="image-upload"
+            />
+            
+            {uploadingImage ? (
+              <div className="flex items-center justify-center gap-2 text-gray-600">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Uploading...
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Upload className="h-6 w-6 text-gray-400" />
+                  <ImageIcon className="h-6 w-6 text-gray-400" />
+                </div>
+                <p className="text-gray-600 font-medium">
+                  Drag images here from 1688 or your computer
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  or{' '}
+                  <label htmlFor="image-upload" className="text-jeffy-orange cursor-pointer hover:underline">
+                    click to browse
+                  </label>
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Add from URL */}
+          <div className="flex gap-2">
+            <Input
+              type="url"
+              value={newImageUrl}
+              onChange={(e) => setNewImageUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addImageFromUrl())}
+              placeholder="Paste image URL here..."
+              className="flex-1"
+            />
+            <button
+              type="button"
+              onClick={addImageFromUrl}
+              disabled={!newImageUrl.trim()}
+              className="px-4 py-2 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 rounded-lg flex items-center gap-2 text-sm font-medium"
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </button>
           </div>
 
           {/* Analysis Results */}
@@ -457,86 +657,112 @@ export default function EditProductPage() {
                 {imageAnalysis.summary.imagesWithChineseText > 0 && 
                   ` ${imageAnalysis.summary.imagesWithChineseText} have Chinese text.`}
               </div>
-              {imageAnalysis.analyses.map((a: any, idx: number) => (
-                a.chineseTextFound?.length > 0 && (
-                  <div key={idx} className="text-xs bg-white rounded p-2">
-                    <span className="font-medium">Image {a.index + 1}:</span>
-                    {a.chineseTextFound.map((text: string, i: number) => (
-                      <div key={i} className="ml-2">
-                        "{text}" → <span className="text-green-700">{a.englishTranslations?.[i] || 'N/A'}</span>
-                      </div>
-                    ))}
-                  </div>
-                )
-              ))}
             </div>
           )}
 
           {/* Image Gallery */}
           {images.length > 0 && (
             <div>
-              <label className="block text-sm font-medium mb-2">Available Images (click to select)</label>
-              <div className="grid grid-cols-5 gap-2">
+              <label className="block text-sm font-medium mb-2">
+                Available Images ({images.length}) - click to select as primary
+              </label>
+              <div className="grid grid-cols-4 gap-3">
                 {images.map((img, idx) => {
                   const analysis = imageAnalysis?.analyses?.find((a: any) => a.index === idx);
                   const isBest = imageAnalysis?.bestImageIndex === idx;
+                  const hasChineseText = analysis && !analysis.isClean;
+                  const isTranslating = translatingImage === idx;
+                  
                   return (
                     <div key={idx} className="relative group">
                       <button
                         type="button"
                         onClick={() => selectImage(img)}
                         className={`relative aspect-square rounded-lg overflow-hidden border-2 w-full ${
-                          form.imageUrl === img ? 'border-jeffy-orange ring-2 ring-jeffy-orange' : 'border-gray-200 hover:border-gray-400'
+                          form.imageUrl === img 
+                            ? 'border-jeffy-orange ring-2 ring-jeffy-orange' 
+                            : 'border-gray-200 hover:border-gray-400'
                         }`}
                       >
                         <img src={img} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+                        
+                        {/* Selected indicator */}
                         {form.imageUrl === img && (
                           <div className="absolute top-1 right-1 bg-jeffy-orange text-white rounded-full p-0.5">
                             <Check className="h-3 w-3" />
                           </div>
                         )}
+                        
+                        {/* Best image indicator */}
                         {isBest && (
                           <div className="absolute top-1 left-1 bg-green-500 text-white rounded-full p-0.5" title="Recommended">
                             <Star className="h-3 w-3" />
                           </div>
                         )}
-                        {analysis && (
-                          <div className={`absolute bottom-0 left-0 right-0 text-[10px] px-1 py-0.5 text-center ${
-                            analysis.isClean ? 'bg-green-500/80 text-white' : 'bg-orange-500/80 text-white'
-                          }`}>
-                            {analysis.textAmount}
+                        
+                        {/* Chinese text indicator */}
+                        {hasChineseText && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-orange-500/90 text-white text-[10px] px-1 py-0.5 text-center">
+                            中文 Chinese Text
+                          </div>
+                        )}
+                        
+                        {/* Translating overlay */}
+                        {isTranslating && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <Loader2 className="h-6 w-6 text-white animate-spin" />
                           </div>
                         )}
                       </button>
-                      {/* Zoom button - shows on hover */}
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setZoomImage(img); }}
-                        className="absolute top-1 left-1 p-1 bg-blue-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-blue-600 z-20"
-                        title="Zoom image"
-                      >
-                        <ZoomIn className="h-3 w-3" />
-                      </button>
-                      {/* Delete button - shows on hover */}
-                      <button
-                        type="button"
-                        onClick={() => deleteImage(idx)}
-                        className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 z-20"
-                        title="Remove image"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
+                      
+                      {/* Action buttons - show on hover */}
+                      <div className="absolute top-1 left-1 right-1 flex justify-between opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                        {/* Zoom button */}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setZoomImage(img); }}
+                          className="p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600"
+                          title="Zoom"
+                        >
+                          <ZoomIn className="h-3 w-3" />
+                        </button>
+                        
+                        {/* Translate button - only show if has Chinese text */}
+                        {hasChineseText && !isTranslating && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); translateSingleImage(idx); }}
+                            className="p-1.5 bg-purple-500 text-white rounded-full hover:bg-purple-600"
+                            title="Translate Chinese"
+                          >
+                            <Languages className="h-3 w-3" />
+                          </button>
+                        )}
+                        
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); deleteImage(idx); }}
+                          className="p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          title="Remove"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
               </div>
+              <p className="text-xs text-gray-500 mt-2">
+                💡 Tip: Click "AI Analyze" to detect Chinese text, then hover and click the purple 🌐 button to translate individual images
+              </p>
             </div>
           )}
 
           {/* Selected Image Preview */}
           {form.imageUrl && (
             <div>
-              <label className="block text-sm font-medium mb-2">Selected Image</label>
+              <label className="block text-sm font-medium mb-2">Selected Primary Image</label>
               <div className="w-48 h-48 rounded-lg overflow-hidden border bg-gray-100">
                 <img src={form.imageUrl} alt="Selected" className="w-full h-full object-cover" />
               </div>
@@ -544,7 +770,7 @@ export default function EditProductPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium mb-1">Image URL</label>
+            <label className="block text-sm font-medium mb-1">Image URL (manual)</label>
             <Input
               type="url"
               value={form.imageUrl}
@@ -556,6 +782,7 @@ export default function EditProductPage() {
             </p>
           </div>
         </div>
+        {/* ============ END ENHANCED MEDIA SECTION ============ */}
 
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <h2 className="font-semibold">Status</h2>
@@ -588,9 +815,6 @@ export default function EditProductPage() {
               onChange={(e) => setForm({ ...form, source1688Url: e.target.value })}
               placeholder="https://1688.com/offer/xxxxx.html"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Direct link to the product on 1688.com
-            </p>
           </div>
 
           <div>
@@ -600,9 +824,6 @@ export default function EditProductPage() {
               onChange={(e) => setForm({ ...form, source1688ItemId: e.target.value })}
               placeholder="e.g., 123456789"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              The product ID from the 1688 URL
-            </p>
           </div>
 
           <div>
@@ -612,9 +833,6 @@ export default function EditProductPage() {
               onChange={(e) => setForm({ ...form, source1688SupplierName: e.target.value })}
               placeholder="e.g., Shanghai Tech Manufacturing"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              The name of the supplier on 1688
-            </p>
           </div>
 
           <div>
@@ -626,9 +844,6 @@ export default function EditProductPage() {
               onChange={(e) => setForm({ ...form, source1688PriceCNY: e.target.value })}
               placeholder="45.50"
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Price per unit in Chinese Yuan (used for cost analysis)
-            </p>
           </div>
         </div>
 
@@ -674,7 +889,3 @@ export default function EditProductPage() {
     </div>
   );
 }
-
-
-
-
