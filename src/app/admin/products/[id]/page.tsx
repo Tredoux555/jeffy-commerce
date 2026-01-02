@@ -563,22 +563,7 @@ export default function EditProductPage() {
 
         {/* ============ ENHANCED MEDIA SECTION ============ */}
         <div className="bg-white rounded-xl border p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Media</h2>
-            <div className="flex gap-2">
-              {images.length > 0 && (
-                <button
-                  type="button"
-                  onClick={analyzeImages}
-                  disabled={analyzing}
-                  className="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 disabled:opacity-50 flex items-center gap-2 text-sm"
-                >
-                  {analyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scan className="h-4 w-4" />}
-                  {analyzing ? 'Analyzing...' : 'AI Analyze'}
-                </button>
-              )}
-            </div>
-          </div>
+          <h2 className="font-semibold">Media</h2>
 
           {/* Drag & Drop Zone */}
           <div
@@ -645,18 +630,69 @@ export default function EditProductPage() {
             </button>
           </div>
 
-          {/* Analysis Results */}
-          {imageAnalysis && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-              <div className="flex items-center gap-2 text-blue-800 font-medium">
-                <Scan className="h-4 w-4" />
-                Analysis Complete
+          {/* ============ CHINESE TEXT ANALYZER ============ */}
+          {images.length > 0 && (
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Scan className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Chinese Text Detector</h3>
+                    <p className="text-xs text-gray-500">Find clean images for SA market</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={analyzeImages}
+                  disabled={analyzing}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 font-medium shadow-sm"
+                >
+                  {analyzing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Scanning...
+                    </>
+                  ) : (
+                    <>
+                      <Scan className="h-4 w-4" />
+                      Scan All Images
+                    </>
+                  )}
+                </button>
               </div>
-              <div className="text-sm text-blue-700">
-                {imageAnalysis.summary.cleanImages} of {imageAnalysis.summary.totalAnalyzed} images are clean. 
-                {imageAnalysis.summary.imagesWithChineseText > 0 && 
-                  ` ${imageAnalysis.summary.imagesWithChineseText} have Chinese text.`}
-              </div>
+              
+              {/* Analysis Results */}
+              {imageAnalysis ? (
+                <div className="bg-white/80 rounded-lg p-3 space-y-2">
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <span><strong>{imageAnalysis.summary.cleanImages}</strong> clean</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                      <span><strong>{imageAnalysis.summary.imagesWithChineseText}</strong> have Chinese</span>
+                    </div>
+                    {imageAnalysis.bestImageIndex !== undefined && (
+                      <div className="flex items-center gap-1.5 text-blue-600">
+                        <Star className="h-3 w-3" />
+                        <span>Best: Image #{imageAnalysis.bestImageIndex + 1}</span>
+                      </div>
+                    )}
+                  </div>
+                  {imageAnalysis.summary.imagesWithChineseText > 0 && (
+                    <p className="text-xs text-gray-600">
+                      💡 Hover over images with Chinese text and click the purple <Languages className="h-3 w-3 inline" /> button to translate
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  Click "Scan All Images" to detect which images have Chinese text
+                </p>
+              )}
             </div>
           )}
 
