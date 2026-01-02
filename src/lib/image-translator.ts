@@ -21,19 +21,24 @@ import {
 } from './alibaba-translator';
 
 import { 
-  translateImageWithClaude,
-  TextRegion 
+  translateImageWithClaude
 } from './claude-translator-fallback';
 
 import { createClient } from '@supabase/supabase-js';
 
 // Types
+export interface DetectedTextRegion {
+  original: string;
+  translated: string;
+  bbox: number[] | { x: number; y: number; width: number; height: number };
+}
+
 export interface ProductImageTranslation {
   success: boolean;
   method: 'alibaba' | 'claude' | 'none';
   originalUrl: string;
   translatedUrl?: string;
-  detectedRegions?: TextRegion[];
+  detectedRegions?: DetectedTextRegion[];
   processingTimeMs?: number;
   error?: string;
 }
