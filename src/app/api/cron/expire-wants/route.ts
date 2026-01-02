@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('status', 'active')
       .lt('created_at', sevenDaysAgo.toISOString())
-      .lt('current_agrees', 10);
+      .lt('verified_count', 10);
 
     if (fetchError) {
       console.error('Error fetching expired wants:', fetchError);
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
       .from('wants')
       .select('*')
       .eq('status', 'active')
-      .gte('current_agrees', 10)
+      .gte('verified_count', 10)
       .is('notified_at', null);
 
     let successCount = 0;

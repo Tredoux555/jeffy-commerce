@@ -11,8 +11,8 @@ export async function GET(request: NextRequest) {
     // Find wants that reached threshold recently
     let query = supabase
       .from('wants')
-      .select('id, title, creator_name, current_agrees, threshold, updated_at')
-      .gte('current_agrees', 10)
+      .select('id, title, creator_name, verified_count, threshold, updated_at')
+      .gte('verified_count', 10)
       .eq('status', 'active')
       .order('updated_at', { ascending: false })
       .limit(10);

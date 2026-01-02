@@ -110,11 +110,11 @@ export default function AdminLayout({
       // Wants ready to source (status = 'sourcing' OR verified_count >= 10)
       const { data: wants } = await supabase
         .from('wants')
-        .select('id, verified_count, current_agrees, status')
+        .select('id, verified_count, status')
         .or('status.eq.sourcing,status.eq.voting,status.eq.active');
       
       const wantsReady = wants?.filter(w => {
-        const count = w.verified_count ?? w.current_agrees ?? 0;
+        const count = w.verified_count ?? 0;
         return count >= 10;
       }).length || 0;
       

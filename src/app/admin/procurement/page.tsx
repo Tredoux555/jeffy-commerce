@@ -14,7 +14,7 @@ export default async function ProcurementPage() {
   const { data: wantsReady } = await supabase
     .from('wants')
     .select('id')
-    .gte('current_agrees', 10);
+    .gte('verified_count', 10);
 
   return (
     <div className="space-y-6">

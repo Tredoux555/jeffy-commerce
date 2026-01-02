@@ -22,7 +22,7 @@ export default async function HomePage() {
   const { count: successfulWants } = await supabase
     .from('wants')
     .select('*', { count: 'exact', head: true })
-    .gte('current_agrees', 10);
+    .gte('verified_count', 10);
 
   return (
     <div className="bg-gray-950">
