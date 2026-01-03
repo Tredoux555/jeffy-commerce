@@ -268,3 +268,4 @@ export async function GET(request: NextRequest) {
     by_status: grouped
   }, { headers: corsHeaders });
 }
+
