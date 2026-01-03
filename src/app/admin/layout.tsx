@@ -25,7 +25,8 @@ import {
   Search,
   Scale,
   Activity,
-  Brain
+  Brain,
+  ShoppingBag
 } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
@@ -247,6 +248,10 @@ export default function AdminLayout({
             
             <NavLink href="/admin/zones" icon={MapPin} isActive={isActive('/admin/zones')}>
               Zones
+            </NavLink>
+            
+            <NavLink href="/admin/starter-kit" icon={ShoppingBag} isActive={isActive('/admin/starter-kit')}>
+              Starter Kit
             </NavLink>
 
             {/* ==================== ORDERS ==================== */}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Check, X, Scan, Star, Trash2, ZoomIn, Upload, Plus, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, Check, X, Scan, Star, Trash2, ZoomIn, Upload, Plus, ImageIcon, Package, GripVertical } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,10 @@ export default function EditProductPage() {
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  
+  // Variants state
+  const [variants, setVariants] = useState<any[]>([]);
+  const [sourceData, setSourceData] = useState<any>({});
   
   const [form, setForm] = useState({
     name: '',
@@ -71,6 +75,13 @@ export default function EditProductPage() {
         }
 
         const source1688Data = product.source_1688_data || {};
+        const productSourceData = product.source_data || {};
+        
+        // Load variants from source_data
+        if (productSourceData.variants && Array.isArray(productSourceData.variants)) {
+          setVariants(productSourceData.variants);
+        }
+        setSourceData(productSourceData);
 
         // Load images array
         if (product.images && Array.isArray(product.images)) {
