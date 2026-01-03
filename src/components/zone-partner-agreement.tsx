@@ -89,15 +89,15 @@ export default function ZonePartnerAgreement({
         <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-8 py-12">
           <div className="text-center">
             <CheckCircle className="h-16 w-16 text-white mx-auto mb-4" />
-            <h2 className="text-3xl font-bold text-white mb-2">Agreement Accepted!</h2>
+            <h2 className="text-3xl font-bold text-white mb-2">Welcome, Partner!</h2>
             <p className="text-white/90">
-              A confirmation email has been sent to <strong>{partnerData.email}</strong>
+              Confirmation sent to <strong>{partnerData.email}</strong>
             </p>
           </div>
         </div>
         <div className="p-8 text-center">
           <p className="text-gray-600 mb-4">
-            You'll be redirected to your partner dashboard shortly...
+            We'll WhatsApp you to arrange your first stock order...
           </p>
           <Loader2 className="h-6 w-6 animate-spin text-orange-500 mx-auto" />
         </div>
@@ -111,7 +111,7 @@ export default function ZonePartnerAgreement({
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
       <div className="bg-gradient-to-r from-orange-500 to-yellow-500 px-8 py-6">
         <h1 className="text-2xl font-bold text-white">Zone Partner Agreement</h1>
-        <p className="text-white/90 mt-1">Please review the agreement below</p>
+        <p className="text-white/90 mt-1">Wholesale Partnership Agreement</p>
       </div>
 
       <div className="h-1 bg-gray-200">
@@ -126,15 +126,17 @@ export default function ZonePartnerAgreement({
         onScroll={handleScroll}
       >
         <div className="space-y-6 text-gray-800 max-w-3xl">
+          {/* Header */}
           <div className="border-b-2 border-orange-200 pb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">JEFFY ZONE PARTNER AGREEMENT</h2>
+            <p className="text-sm text-gray-600 mb-4">Wholesale Purchase Agreement with Trade Credit</p>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-gray-600">Effective Date</p>
                 <p className="font-semibold text-gray-900">{acceptanceDate.toLocaleDateString()}</p>
               </div>
               <div>
-                <p className="text-gray-600">Zone</p>
+                <p className="text-gray-600">Your Zone</p>
                 <p className="font-semibold text-orange-600">{partnerData.zoneName}</p>
               </div>
               <div>
@@ -148,90 +150,193 @@ export default function ZonePartnerAgreement({
             </div>
           </div>
 
+          {/* 1. The Relationship */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">1. WHAT IS A ZONE PARTNER?</h3>
-            <p className="text-sm leading-relaxed text-gray-700">
-              You are starting an independent delivery business in <strong>{partnerData.zoneName}</strong>. You are <strong>NOT an employee</strong> of Jeffy Commerce. You own and operate your own business, determine your own hours, can work with other platforms, and are responsible for your own taxes, insurance, and expenses.
+            <h3 className="text-lg font-bold text-gray-900 mb-3">1. WHAT THIS IS</h3>
+            <p className="text-sm leading-relaxed text-gray-700 mb-3">
+              This is a <strong>wholesale purchase agreement</strong>. You are starting your own independent business in <strong>{partnerData.zoneName}</strong>. You buy products from Jeffy at wholesale prices and sell them to your customers at retail prices. You keep the profit.
+            </p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm">
+              <p className="font-semibold text-blue-900 mb-2">You are an INDEPENDENT BUSINESS OWNER:</p>
+              <ul className="text-blue-800 space-y-1">
+                <li>• You buy stock from Jeffy - you OWN that stock</li>
+                <li>• You set your own selling prices</li>
+                <li>• You keep all profit above your purchase price</li>
+                <li>• You work your own hours</li>
+                <li>• You can work with other suppliers (Makro, wholesalers, etc.)</li>
+                <li>• You can hire your own staff or subcontract deliveries</li>
+                <li>• You are NOT a Jeffy employee</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 2. How Buying Works */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">2. HOW STOCK BUYING WORKS</h3>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm mb-3">
+              <p className="font-semibold text-orange-900 mb-2">The Deal:</p>
+              <ul className="text-orange-800 space-y-1">
+                <li>• <strong>Starter Deposit:</strong> R500 (refundable after 3 successful payment cycles)</li>
+                <li>• <strong>First Order:</strong> R2,500 worth of stock</li>
+                <li>• <strong>Payment Terms:</strong> Net 7 (pay within 7 days of receiving stock)</li>
+                <li>• <strong>Balance Due:</strong> R2,000 within 7 days</li>
+              </ul>
+            </div>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm">
+              <p className="font-semibold text-green-900 mb-2">After 3 Successful Cycles:</p>
+              <ul className="text-green-800 space-y-1">
+                <li>• Deposit refunded or applied to stock</li>
+                <li>• Credit limit increases based on performance</li>
+                <li>• Payment terms may extend to Net 14</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* 3. Ownership & Risk */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">3. OWNERSHIP AND RISK</h3>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 text-sm">
+              <p className="font-semibold text-purple-900 mb-2">When stock is delivered to you:</p>
+              <ul className="text-purple-800 space-y-1">
+                <li>• <strong>Ownership transfers to YOU</strong> at delivery</li>
+                <li>• The stock is YOUR property</li>
+                <li>• You owe Jeffy the purchase price (trade credit)</li>
+                <li>• Risk of loss, theft, or damage is YOURS</li>
+                <li>• If stock doesn't sell, that is YOUR business risk</li>
+              </ul>
+            </div>
+            <p className="text-sm text-gray-700 mt-3">
+              This is how all wholesale businesses work. You are a real business owner with real business risk.
             </p>
           </div>
 
+          {/* 4. Your Zone */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">2. YOUR ZONE AND TERRITORY</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">4. YOUR EXCLUSIVE ZONE</h3>
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-sm">
-              <p className="font-semibold text-orange-900 mb-2">Your Delivery Zone: {partnerData.zoneName}</p>
+              <p className="font-semibold text-orange-900 mb-2">Your Territory: {partnerData.zoneName}</p>
               <p className="text-orange-800">
-                You have the exclusive right to be the delivery partner in this zone. Jeffy will not assign other delivery partners to your territory.
+                Jeffy will not appoint other Zone Partners to operate in your designated area. You have exclusive rights to service customers in this zone through the Jeffy platform.
               </p>
             </div>
           </div>
 
+          {/* 5. Pricing */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">3. HOW YOU GET PAID (THE 50/50 SPLIT)</h3>
-            <p className="text-sm mb-3 text-gray-700">You earn commission on every delivery completed in your zone.</p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm mb-3">
-              <p className="font-semibold text-blue-900 mb-2">Commission Structure:</p>
-              <div className="space-y-1 text-blue-800 font-mono">
-                <p>You keep 100% of earnings from customers in {partnerData.zoneName}</p>
-                <p>Jeffy handles platform costs and logistics</p>
-                <p className="text-green-700 font-bold">You focus on delivering excellent service</p>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">5. PRICING</h3>
+            <p className="text-sm text-gray-700 mb-3">
+              You buy from Jeffy at <strong>wholesale prices</strong>. You sell at <strong>whatever price you choose</strong>.
+            </p>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm">
+              <p className="font-semibold text-green-900 mb-2">Example:</p>
+              <div className="space-y-1 text-green-800">
+                <p>You buy from Jeffy: <strong>R100</strong></p>
+                <p>Suggested retail: <strong>R199</strong></p>
+                <p>Your profit if sold at suggested: <strong>R99</strong></p>
+                <p className="text-gray-600 text-xs mt-2">You can sell higher or lower - it's your business.</p>
               </div>
             </div>
-            <p className="text-sm text-gray-700">
-              Payments are made weekly by electronic transfer to your bank account.
-            </p>
           </div>
 
+          {/* 6. Payment Terms */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">4. YOUR RESPONSIBILITIES</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">6. PAYMENT TERMS</h3>
             <ul className="text-sm space-y-2 text-gray-700">
               <li className="flex gap-2">
                 <span className="text-orange-500 font-bold">•</span>
-                <span><strong>Vehicle:</strong> Own or control a reliable vehicle with valid insurance</span>
+                <span><strong>Due Date:</strong> Payment is due within 7 days of stock delivery</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-orange-500 font-bold">•</span>
-                <span><strong>Performance:</strong> Complete 90%+ of deliveries with 4.0+ star rating</span>
+                <span><strong>Method:</strong> EFT to Jeffy's bank account or approved payment method</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-orange-500 font-bold">•</span>
-                <span><strong>Safety:</strong> Obey all traffic laws, no driving under influence</span>
+                <span><strong>Late Payment:</strong> Stock supply will be paused until account is settled</span>
               </li>
               <li className="flex gap-2">
                 <span className="text-orange-500 font-bold">•</span>
-                <span><strong>Taxes:</strong> Register with SARS, pay your own income tax</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="text-orange-500 font-bold">•</span>
-                <span><strong>Insurance:</strong> Maintain R1-5 million public liability insurance</span>
+                <span><strong>Non-Payment:</strong> Outstanding amounts are debts owed to Jeffy and may be pursued through legal debt collection</span>
               </li>
             </ul>
           </div>
 
+          {/* 7. Your Responsibilities */}
           <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">5. TAX RESPONSIBILITIES</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">7. YOUR RESPONSIBILITIES</h3>
+            <ul className="text-sm space-y-2 text-gray-700">
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Vehicle:</strong> Provide your own reliable vehicle with valid license and insurance</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Phone:</strong> Provide your own smartphone with WhatsApp</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Expenses:</strong> Pay your own fuel, airtime, and business expenses</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Stock Care:</strong> Keep purchased stock safe and in sellable condition</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Customer Service:</strong> Deliver professionally and handle customer queries</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Taxes:</strong> Register with SARS and pay your own income tax</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* 8. Tax */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">8. TAX RESPONSIBILITIES</h3>
             <p className="text-sm mb-2 text-gray-700">
-              You are an independent contractor responsible for your own taxes:
+              You are an independent business owner responsible for your own taxes:
             </p>
             <ul className="text-sm space-y-2 text-gray-700 ml-4">
-              <li>• Declare all earnings on your annual ITR12</li>
-              <li>• Pay provisional tax if earning over R91,250/year</li>
-              <li>• Register for VAT if earning over R1,000,000/year</li>
+              <li>• Declare all business income on your annual tax return (ITR12)</li>
+              <li>• Register for provisional tax if earning over R91,250/year</li>
+              <li>• Register for VAT if turnover exceeds R1,000,000/year</li>
+              <li>• Keep records of all purchases from Jeffy and all sales</li>
+            </ul>
+            <p className="text-sm text-gray-600 mt-2">
+              Jeffy will provide you with invoices for all stock purchases for your records.
+            </p>
+          </div>
+
+          {/* 9. Termination */}
+          <div>
+            <h3 className="text-lg font-bold text-gray-900 mb-3">9. ENDING THE PARTNERSHIP</h3>
+            <ul className="text-sm space-y-2 text-gray-700">
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Cooling Off:</strong> You have 10 business days to cancel without penalty</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Notice:</strong> Either party may terminate with 14 days written notice</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Outstanding Payments:</strong> All amounts owed must be settled on termination</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-orange-500 font-bold">•</span>
+                <span><strong>Deposit:</strong> Refunded within 14 days of termination if no amounts outstanding</span>
+              </li>
             </ul>
           </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-3">6. NON-COMPETE (12 MONTHS POST-PARTNERSHIP)</h3>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-900">
-              <p>
-                For <strong>12 months after partnership ends</strong>, you cannot work as a delivery partner in <strong>{partnerData.zoneName}</strong> with other platforms.
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-xs text-gray-700 mt-6">
-            <p className="font-semibold mb-2">IMPORTANT LEGAL NOTICE</p>
+          {/* 10. Governing Law */}
+          <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-xs text-gray-700">
+            <p className="font-semibold mb-2">GOVERNING LAW</p>
             <p>
-              This agreement is governed by South African law. You have <strong>10 business days</strong> after accepting to cancel without penalty.
+              This agreement is governed by the laws of South Africa. Any disputes will be resolved through mediation, and if necessary, the courts of South Africa.
             </p>
           </div>
         </div>
@@ -255,7 +360,7 @@ export default function ZonePartnerAgreement({
             className="w-5 h-5 mt-1 rounded border-gray-300 text-orange-500 cursor-pointer flex-shrink-0"
           />
           <span className="text-sm text-gray-700">
-            I have read and fully understand the Zone Partner Agreement. I confirm all information is accurate and agree to be an independent contractor. <span className="text-red-500 font-bold">*</span>
+            I have read and understand this Wholesale Partnership Agreement. I confirm I am starting an <strong>independent business</strong>, NOT becoming an employee. I understand I am <strong>buying stock</strong> from Jeffy and am responsible for payment within 7 days. <span className="text-red-500 font-bold">*</span>
           </span>
         </label>
 
@@ -276,18 +381,18 @@ export default function ZonePartnerAgreement({
             {submitting || isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Accepting...
+                Processing...
               </>
             ) : (
-              '✓ Accept Agreement'
+              '✓ Accept & Start My Business'
             )}
           </Button>
         </div>
 
         <p className="text-xs text-gray-600 text-center pt-2">
-          Confirming acceptance on {acceptanceDate.toLocaleDateString()}.
+          Agreement dated {acceptanceDate.toLocaleDateString()}.
           <br />
-          Confirmation email will be sent to {partnerData.email}.
+          Confirmation will be sent to {partnerData.email}.
         </p>
       </div>
     </div>
@@ -297,13 +402,15 @@ export default function ZonePartnerAgreement({
 function generateAgreementText(partnerData: any): string {
   const date = new Date(partnerData.acceptanceDate);
   return `
-ZONE_PARTNER_AGREEMENT
+ZONE_PARTNER_WHOLESALE_AGREEMENT
+Version: 2.0
+Type: Wholesale Purchase Agreement with Trade Credit
 Partner: ${partnerData.fullName}
 Zone: ${partnerData.zoneName}
 Email: ${partnerData.email}
 Phone: ${partnerData.phone}
 Accepted: ${date.toISOString()}
-Version: 1.0
+Terms: Net 7, R500 deposit, R2500 starter stock
   `.trim();
 }
 
@@ -315,4 +422,3 @@ async function generateHash(text: string): Promise<string> {
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   return hashHex;
 }
-

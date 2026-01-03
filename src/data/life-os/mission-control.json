@@ -3,7 +3,7 @@
     "lastUpdated": "2026-01-03",
     "lastAudit": null,
     "nextAudit": "2026-01-31",
-    "version": "1.0.0"
+    "version": "1.2.0"
   },
   
   "focusAllocation": {
@@ -52,11 +52,11 @@
           "status": "locked",
           "progress": 0,
           "tasks": [
-            { "id": "t7", "task": "Recruit 10 agents in Soweto", "done": false, "priority": "critical" },
+            { "id": "t7", "task": "Recruit 10 Zone Partners in Soweto", "done": false, "priority": "critical" },
             { "id": "t8", "task": "Partner with 5 spaza shops", "done": false, "priority": "critical" },
             { "id": "t9", "task": "First stokvel bulk order (20+ members)", "done": false, "priority": "high" },
             { "id": "t10", "task": "Book Jozi FM interview (564K listeners)", "done": false, "priority": "high" },
-            { "id": "t11", "task": "Test China→Joburg→spaza pipeline", "done": false, "priority": "high" },
+            { "id": "t11", "task": "Test China→JHB→ZP pipeline", "done": false, "priority": "high" },
             { "id": "t12", "task": "Collect 50+ wants from township", "done": false, "priority": "medium" }
           ]
         },
@@ -68,7 +68,7 @@
           "progress": 0,
           "tasks": [
             { "id": "t13", "task": "Expand to Alex and Tembisa", "done": false, "priority": "high" },
-            { "id": "t14", "task": "50 agents across 3 townships", "done": false, "priority": "high" },
+            { "id": "t14", "task": "50 Zone Partners across 3 townships", "done": false, "priority": "high" },
             { "id": "t15", "task": "20 spaza shop partners", "done": false, "priority": "high" },
             { "id": "t16", "task": "Taxi rank presence at Bara", "done": false, "priority": "medium" },
             { "id": "t17", "task": "Festive season stokvel orders", "done": false, "priority": "critical" },
@@ -88,9 +88,89 @@
       "name": "Zone Partner System",
       "category": "jeffy",
       "status": "active",
-      "priority": 2,
-      "description": "50/50 profit sharing with local entrepreneurs",
-      "dashboardUrl": "/admin/partners"
+      "priority": 1,
+      "description": "Wholesale model with trade credit - ZPs buy stock, own it, sell retail",
+      "dashboardUrl": "/admin/partners",
+      "modelDecision": "2026-01-03: Rejected consignment model (disguised employment risk). Adopted wholesale + trade credit.",
+      "operationalModel": {
+        "summary": "Wholesale Purchase + Net 7 Trade Credit",
+        "legalStatus": "Buyer-Seller relationship (NOT employment)",
+        "stockOwnership": "Transfers to ZP at delivery - they OWN it",
+        "pricing": "ZP buys wholesale, sets own retail prices, keeps all margin",
+        "payment": "Net 7 trade credit (pay within 7 days of delivery)",
+        "risk": "ZP bears risk of unsold stock (true business ownership)"
+      },
+      "starterPackage": {
+        "deposit": 500,
+        "depositNote": "Refundable after 3 successful payment cycles",
+        "firstOrder": 2500,
+        "balanceDue": 2000,
+        "paymentTerms": "Net 7 (7 days from delivery)",
+        "totalToStart": 500
+      },
+      "weeklyFlow": {
+        "monday": "Stock delivered to ZP",
+        "monToSun": "ZP sells to customers at their prices",
+        "sunday": "ZP pays Jeffy wholesale cost via EFT",
+        "nextMonday": "New stock delivered, cycle repeats"
+      },
+      "moneyFlow": {
+        "step1": "ZP receives R2,500 stock on Monday",
+        "step2": "ZP sells at retail (e.g., R5,000 total)",
+        "step3": "ZP pays Jeffy R2,500 by Sunday",
+        "step4": "ZP keeps R2,500 profit",
+        "step5": "Jeffy pays Agent from collections",
+        "jeffyMargin": "~40% markup on cost from Agent"
+      },
+      "exampleTransaction": {
+        "zpBuysFor": 100,
+        "suggestedRetail": 199,
+        "zpProfit": 99,
+        "note": "ZP sets their own price - can sell higher or lower"
+      },
+      "creditTerms": {
+        "newPartner": "Net 7, R2,500 limit, R500 deposit required",
+        "after3Cycles": "Deposit refunded, limit increases",
+        "established": "Net 14 available, higher limits based on performance",
+        "latePayment": "Stock supply paused until settled",
+        "nonPayment": "Outstanding debt may go to collections"
+      },
+      "legalStructure": {
+        "relationship": "Wholesale Buyer (Independent Business Owner)",
+        "notEmployment": "ZP owns stock, sets prices, bears risk = independent",
+        "keyProtections": [
+          "Stock ownership transfers at delivery",
+          "ZP sets their own retail prices",
+          "ZP can work for other companies",
+          "ZP can subcontract/hire own staff",
+          "ZP provides own vehicle, phone, fuel",
+          "No fixed hours or supervision",
+          "Payment is for goods, not time worked"
+        ],
+        "documentsInPlace": [
+          "Wholesale Partnership Agreement",
+          "1-Page Explainer (How It Works)"
+        ]
+      },
+      "preLaunchChecklist": [
+        { "id": "zp-1", "task": "Zone Partner Agreement - wholesale terms", "done": true, "priority": "critical" },
+        { "id": "zp-2", "task": "1-Page Explainer component", "done": true, "priority": "critical" },
+        { "id": "zp-3", "task": "Marketing page - 'Start for R500'", "done": true, "priority": "critical" },
+        { "id": "zp-4", "task": "Set up ZP payment tracking system", "done": false, "priority": "high" },
+        { "id": "zp-5", "task": "Create stock inventory per ZP", "done": false, "priority": "high" },
+        { "id": "zp-6", "task": "Set up Agent payment schedule", "done": false, "priority": "high" },
+        { "id": "zp-7", "task": "Define starter stock package (products)", "done": false, "priority": "high" },
+        { "id": "zp-8", "task": "Build ZP dashboard (stock, sales, payments)", "done": false, "priority": "medium" },
+        { "id": "zp-9", "task": "Create ZP onboarding WhatsApp flow", "done": false, "priority": "medium" },
+        { "id": "zp-10", "task": "Test full cycle: deposit → stock → sale → payment → restock", "done": false, "priority": "critical" }
+      ],
+      "riskRegister": [
+        { "risk": "ZP doesn't pay on time", "likelihood": "medium", "impact": "medium", "mitigation": "Pause stock, deposit covers some loss, collections if needed" },
+        { "risk": "ZP claims employment status", "likelihood": "very low", "impact": "critical", "mitigation": "Wholesale agreement, they own stock, set prices, bear risk" },
+        { "risk": "Stock theft/loss at ZP", "likelihood": "low", "impact": "low", "mitigation": "ZP's problem - they own it" },
+        { "risk": "ZP can't sell stock", "likelihood": "medium", "impact": "low", "mitigation": "Start with fast-moving products, small quantities" },
+        { "risk": "Agent doesn't deliver", "likelihood": "low", "impact": "high", "mitigation": "Established relationship, backup suppliers" }
+      ]
     },
     {
       "id": "wants-system",
@@ -98,8 +178,14 @@
       "category": "jeffy",
       "status": "active",
       "priority": 2,
-      "description": "Demand-driven product sourcing",
-      "dashboardUrl": "/admin/wants"
+      "description": "Demand-driven product sourcing - one-click WhatsApp verification",
+      "dashboardUrl": "/admin/wants",
+      "features": {
+        "oneClickVerify": true,
+        "whatsappSharing": true,
+        "viralLoop": true,
+        "termsPage": "/wants/terms"
+      }
     },
     {
       "id": "influencer-outreach",
@@ -130,7 +216,7 @@
           { "value": 10, "label": "Proof of concept", "reached": false },
           { "value": 20, "label": "Launch ready", "reached": false }
         ],
-        "notes": "Quality over speed. Each partner is a business owner."
+        "notes": "R500 deposit each. Quality over speed."
       },
       {
         "id": "township-agents",
@@ -166,7 +252,7 @@
           { "value": 10, "label": "Coverage", "reached": false },
           { "value": 20, "label": "Full network", "reached": false }
         ],
-        "notes": "Cash-on-delivery pickup points. Commission model."
+        "notes": "COD pickup points."
       },
       {
         "id": "stokvel-orders",
@@ -184,7 +270,7 @@
           { "value": 5, "label": "Proven model", "reached": false },
           { "value": 10, "label": "Festive season", "reached": false }
         ],
-        "notes": "70% of stokvel purchases are food. Target Nov-Dec bulk orders."
+        "notes": "70% of stokvel purchases are food. Target Nov-Dec."
       },
       {
         "id": "wants-collected",
@@ -219,7 +305,7 @@
           { "value": 30000, "label": "Sustainable", "reached": false },
           { "value": 50000, "label": "Financial freedom", "reached": false }
         ],
-        "notes": "Target: ~20 active Zone Partners at R80/order Jeffy share."
+        "notes": "40% margin on wholesale to ZPs × volume"
       },
       {
         "id": "influencer-response",
@@ -237,7 +323,7 @@
           { "value": 3, "label": "Momentum", "reached": false },
           { "value": 5, "label": "Strong interest", "reached": false }
         ],
-        "notes": "40 personalized letters sent Jan 2. Wait until Jan 15 before follow-up."
+        "notes": "40 letters sent Jan 2. Wait until Jan 15 before follow-up."
       }
     ],
     
@@ -328,9 +414,24 @@
         },
         {
           "category": "jeffy",
-          "action": "Fixed Tailwind CSS v4→v3 build error",
-          "impact": "medium",
-          "goalId": null
+          "action": "One-click verification + WhatsApp viral sharing for Wants",
+          "impact": "high",
+          "goalId": null,
+          "linkedProject": "wants-system"
+        },
+        {
+          "category": "jeffy",
+          "action": "Zone Partner model finalized: Wholesale + Net 7 trade credit (rejected consignment)",
+          "impact": "critical",
+          "goalId": null,
+          "linkedProject": "zone-partner-system"
+        },
+        {
+          "category": "jeffy",
+          "action": "Updated ZP Agreement, Explainer, Marketing page to wholesale model",
+          "impact": "high",
+          "goalId": null,
+          "linkedProject": "zone-partner-system"
         }
       ]
     }
@@ -346,6 +447,26 @@
       "status": "urgent",
       "linkedProject": "township-strategy",
       "notes": "Gateway to 125K+ stokvel groups, R50B economy"
+    },
+    {
+      "id": "aq-009",
+      "task": "Build ZP payment tracking system",
+      "category": "jeffy",
+      "priority": 1,
+      "deadline": "2026-01-10",
+      "status": "pending",
+      "linkedProject": "zone-partner-system",
+      "notes": "Track: deposit, stock delivered, payment due date, payment received"
+    },
+    {
+      "id": "aq-010",
+      "task": "Define starter stock package (actual products)",
+      "category": "jeffy",
+      "priority": 1,
+      "deadline": "2026-01-10",
+      "status": "pending",
+      "linkedProject": "zone-partner-system",
+      "notes": "Fast-moving items, R2,500 value, good margins"
     },
     {
       "id": "aq-001",
