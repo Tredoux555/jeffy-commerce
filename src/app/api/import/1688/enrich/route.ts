@@ -63,6 +63,11 @@ export async function PUT(request: NextRequest) {
       title,
       descriptionOriginal,
       description,
+      shortDescription,
+      features,
+      categorySuggestion,
+      specs,
+      weight,
       costPriceCNY,
       images: rawImages,
       mainImage: rawMainImage,
@@ -93,6 +98,7 @@ export async function PUT(request: NextRequest) {
     }
 
     console.log(`[enrich] Enriching product ${existing.id} (${sourceProductId})`);
+    console.log(`[enrich] Received: features=${features?.length || 0}, specs=${Object.keys(specs || {}).length}, category=${categorySuggestion}`);
 
     // Calculate prices
     const costPriceZAR = Math.round((costPriceCNY || 10) * EXCHANGE_RATE * 100);
@@ -107,6 +113,10 @@ export async function PUT(request: NextRequest) {
         descriptionOriginal,
         costPriceCNY,
         moq,
+        weight,
+        specs,
+        features,
+        categorySuggestion,
         scrapedAt,
         enrichedAt: new Date().toISOString()
       }
@@ -191,7 +201,12 @@ export async function PUT(request: NextRequest) {
     // Update description if provided
     if (description) {
       updateData.description = description.substring(0, 5000);
-      updateData.short_description = description.substring(0, 160);
+      updateData.short_description = shortDescription || description.substring(0, 160);
+    }
+
+    // Store features in source_data (already done above)
+    if (features && Array.isArray(features)) {
+      updateData.source_data.features = features;
     }
 
     // Update prices
