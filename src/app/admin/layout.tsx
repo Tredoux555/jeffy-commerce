@@ -286,6 +286,10 @@ export default function AdminLayout({
             {/* ==================== GROWTH ==================== */}
             <NavSection title="Growth" />
             
+            <NavLink href="/admin/followers" icon={Users} isActive={isActive('/admin/followers')}>
+              Followers
+            </NavLink>
+            
             <NavLink href="/admin/launch" icon={Rocket} isActive={isActive('/admin/launch')}>
               Launch Playbook
             </NavLink>

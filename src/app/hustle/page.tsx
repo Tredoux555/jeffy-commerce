@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { Package, TrendingUp, Truck, Phone, CheckCircle, ArrowRight, Zap, Users, MapPin } from 'lucide-react';
+import { Package, TrendingUp, Truck, Phone, CheckCircle, ArrowRight, Zap, Users, MapPin, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
+import { FollowForm } from '@/components/follow-form';
 
 export const metadata = {
   title: 'The Spaza Project | R5K Starter Kit - Start Your Business Today',
@@ -38,7 +39,7 @@ export default async function SpazaPage() {
             </div>
           </div>
           <a 
-            href="https://wa.me/27765064386?text=I%20want%20a%20Spaza%20Kit"
+            href="https://wa.me/27738439496?text=I%20want%20a%20Spaza%20Kit"
             className="bg-green-500 text-black font-bold px-4 py-2 rounded-lg hover:bg-green-400 transition flex items-center gap-2"
           >
             <Phone className="h-4 w-4" />
@@ -77,7 +78,7 @@ export default async function SpazaPage() {
             {/* CTA */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <a 
-                href="https://wa.me/27765064386?text=I%20want%20a%20Spaza%20Kit"
+                href="https://wa.me/27738439496?text=I%20want%20a%20Spaza%20Kit"
                 className="bg-green-500 hover:bg-green-400 text-black text-lg font-bold h-14 px-8 rounded-xl flex items-center justify-center gap-2 transition"
               >
                 <Phone className="h-5 w-5" />
@@ -265,6 +266,22 @@ export default async function SpazaPage() {
         </div>
       </section>
 
+      {/* Stay Connected */}
+      <section className="py-16 bg-black">
+        <div className="container mx-auto px-4">
+          <div className="max-w-md mx-auto">
+            <FollowForm 
+              source="hustle"
+              interests={['spaza']}
+              title="Not ready yet?"
+              subtitle="Drop your number. We'll send you tips & updates."
+              buttonText="Keep Me Posted"
+              variant="dark"
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section className="py-16 bg-green-500">
         <div className="container mx-auto px-4 text-center">
@@ -275,7 +292,7 @@ export default async function SpazaPage() {
             R5,000 today. R10,000 back when you sell. Your business starts now.
           </p>
           <a 
-            href="https://wa.me/27765064386?text=I%20want%20a%20Spaza%20Kit%20-%20let's%20do%20this!"
+            href="https://wa.me/27738439496?text=I%20want%20a%20Spaza%20Kit%20-%20let's%20do%20this!"
             className="inline-flex items-center gap-2 bg-black text-green-500 text-xl font-bold px-8 py-4 rounded-xl hover:bg-gray-900 transition"
           >
             <Phone className="h-6 w-6" />
