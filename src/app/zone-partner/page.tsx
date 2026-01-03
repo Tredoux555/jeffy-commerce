@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageCircle, TrendingUp, Users, Sparkles, Share2, Handshake, Truck } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users, Sparkles, Truck, Handshake, MapPin } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ZonePartnerPage() {
@@ -38,7 +38,7 @@ export default function ZonePartnerPage() {
             Become a Zone Partner
           </h1>
           <p className="text-gray-400">
-            Share products in your area. We handle the rest. Split the profit.
+            Run your own delivery business. We supply the products. You own your zone.
           </p>
         </div>
 
@@ -46,11 +46,11 @@ export default function ZonePartnerPage() {
         <div className="bg-white/5 rounded-2xl p-6 mb-8 space-y-4">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-orange-500/20 rounded-lg">
-              <Share2 className="h-5 w-5 text-orange-400" />
+              <MapPin className="h-5 w-5 text-orange-400" />
             </div>
             <div>
-              <p className="text-white font-medium">You share, we sell</p>
-              <p className="text-gray-400 text-sm">Your unique link for your zone</p>
+              <p className="text-white font-medium">Your exclusive zone</p>
+              <p className="text-gray-400 text-sm">You own deliveries in your area</p>
             </div>
           </div>
           
@@ -59,8 +59,8 @@ export default function ZonePartnerPage() {
               <Truck className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-white font-medium">We handle everything</p>
-              <p className="text-gray-400 text-sm">Stock, shipping, customer service</p>
+              <p className="text-white font-medium">You deliver, we supply</p>
+              <p className="text-gray-400 text-sm">We source products from China, you get them to customers</p>
             </div>
           </div>
           
@@ -70,7 +70,7 @@ export default function ZonePartnerPage() {
             </div>
             <div>
               <p className="text-white font-medium">50% of every sale</p>
-              <p className="text-gray-400 text-sm">Your zone, your profit</p>
+              <p className="text-gray-400 text-sm">Split the profit on every order you deliver</p>
             </div>
           </div>
           
@@ -79,18 +79,18 @@ export default function ZonePartnerPage() {
               <Users className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-white font-medium">No stock, no risk</p>
-              <p className="text-gray-400 text-sm">Just your network and hustle</p>
+              <p className="text-white font-medium">Your business, your rules</p>
+              <p className="text-gray-400 text-sm">Set your hours, hire your own drivers</p>
             </div>
           </div>
         </div>
 
         {/* Example */}
         <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-5 mb-8">
-          <p className="text-green-400 text-sm font-medium mb-3">Example:</p>
+          <p className="text-green-400 text-sm font-medium mb-3">Example delivery:</p>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between text-gray-400">
-              <span>Customer buys via your link</span>
+              <span>Customer pays</span>
               <span className="text-white font-medium">R299</span>
             </div>
             <div className="flex justify-between text-gray-400">
@@ -112,6 +112,16 @@ export default function ZonePartnerPage() {
               <span className="text-orange-400 font-bold">R74.50</span>
             </div>
           </div>
+        </div>
+
+        {/* What you need */}
+        <div className="bg-white/5 rounded-xl p-4 mb-8">
+          <p className="text-white font-medium mb-3">What you need:</p>
+          <ul className="space-y-2 text-sm text-gray-400">
+            <li>• Reliable vehicle (car, bakkie, or bike)</li>
+            <li>• Smartphone with WhatsApp</li>
+            <li>• Hustle and community connections</li>
+          </ul>
         </div>
 
         {/* Simple Form */}
@@ -162,15 +172,15 @@ export default function ZonePartnerPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
-              <p className="text-gray-300">Get your unique Zone Partner link</p>
+              <p className="text-gray-300">Chat with us, get approved for your zone</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
-              <p className="text-gray-300">Share products in your community</p>
+              <p className="text-gray-300">Orders come in, we supply the products</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
-              <p className="text-gray-300">Customers buy, we ship, you earn 50%</p>
+              <p className="text-gray-300">You deliver, collect payment, keep 50%</p>
             </div>
           </div>
         </div>
