@@ -1,0 +1,219 @@
+{
+  "meta": {
+    "lastUpdated": "2026-01-03",
+    "lastAudit": null,
+    "nextAudit": "2026-01-31",
+    "version": "1.0.0"
+  },
+  
+  "focusAllocation": {
+    "jeffy": 85,
+    "family": 8,
+    "career": 5,
+    "personal": 2
+  },
+
+  "goals": {
+    "jeffy": [
+      {
+        "id": "zone-partners",
+        "name": "Zone Partner Recruitment",
+        "target": 20,
+        "minimum": 5,
+        "current": 0,
+        "unit": "partners",
+        "deadline": "2026-06-01",
+        "priority": 1,
+        "status": "active",
+        "milestones": [
+          { "value": 5, "label": "Minimum viable network", "reached": false },
+          { "value": 10, "label": "Proof of concept", "reached": false },
+          { "value": 20, "label": "Launch ready", "reached": false }
+        ],
+        "notes": "Quality over speed. Each partner is a business owner, not a gig worker."
+      },
+      {
+        "id": "wants-collected",
+        "name": "Wants Collected",
+        "target": 500,
+        "minimum": 100,
+        "current": 0,
+        "unit": "wants",
+        "deadline": "2026-06-01",
+        "priority": 2,
+        "status": "active",
+        "milestones": [
+          { "value": 100, "label": "Minimum for launch", "reached": false },
+          { "value": 250, "label": "Strong signal", "reached": false },
+          { "value": 500, "label": "Excellent validation", "reached": false }
+        ],
+        "notes": "Each want is market research that converts to revenue."
+      },
+      {
+        "id": "monthly-revenue",
+        "name": "Monthly Net Profit",
+        "target": 50000,
+        "minimum": 30000,
+        "current": 0,
+        "unit": "ZAR",
+        "deadline": "2027-12-31",
+        "priority": 3,
+        "status": "future",
+        "milestones": [
+          { "value": 10000, "label": "Ramen profitable", "reached": false },
+          { "value": 30000, "label": "Sustainable", "reached": false },
+          { "value": 50000, "label": "Financial freedom", "reached": false }
+        ],
+        "notes": "Target: ~20 active Zone Partners at R80/order Jeffy share."
+      },
+      {
+        "id": "influencer-response",
+        "name": "Influencer Responses",
+        "target": 5,
+        "minimum": 1,
+        "current": 0,
+        "unit": "responses",
+        "deadline": "2026-01-20",
+        "priority": 1,
+        "status": "waiting",
+        "milestones": [
+          { "value": 1, "label": "First response", "reached": false },
+          { "value": 3, "label": "Momentum", "reached": false },
+          { "value": 5, "label": "Strong interest", "reached": false }
+        ],
+        "notes": "40 personalized letters sent Jan 2. Wait until Jan 15 before gentle follow-up."
+      }
+    ],
+    
+    "family": [
+      {
+        "id": "son-portfolio",
+        "name": "Son's Model Portfolio",
+        "target": 1,
+        "current": 0,
+        "unit": "portfolio",
+        "deadline": "2026-02-28",
+        "priority": 1,
+        "status": "planning",
+        "tasks": [
+          { "task": "Research child model agencies in China/SA", "done": false },
+          { "task": "Plan photo shoot themes", "done": false },
+          { "task": "Book photographer or DIY session", "done": false },
+          { "task": "Select 10-15 best shots", "done": false },
+          { "task": "Create portfolio document", "done": false }
+        ],
+        "notes": "Need to understand requirements for child modeling portfolios."
+      }
+    ],
+    
+    "career": [
+      {
+        "id": "qingdao-move",
+        "name": "Relocate to Qingdao",
+        "target": 1,
+        "current": 0,
+        "unit": "move",
+        "deadline": "2026-06-30",
+        "priority": 1,
+        "status": "planning",
+        "tasks": [
+          { "task": "Secure job offer in Qingdao", "done": false },
+          { "task": "Research schools for kids", "done": false },
+          { "task": "Find housing", "done": false },
+          { "task": "Plan logistics (visa, moving, etc.)", "done": false },
+          { "task": "Give notice at Beijing school", "done": false }
+        ],
+        "notes": "God willing. Getting out of Beijing is the goal."
+      }
+    ],
+    
+    "personal": []
+  },
+
+  "dailyLog": [
+    {
+      "date": "2026-01-02",
+      "entries": [
+        {
+          "category": "jeffy",
+          "action": "Sent 40 personalized influencer letters to SA change-makers",
+          "impact": "high",
+          "goalId": "influencer-response"
+        },
+        {
+          "category": "jeffy",
+          "action": "Fixed image quality issue - full-size images now imported",
+          "impact": "medium",
+          "goalId": null
+        },
+        {
+          "category": "jeffy",
+          "action": "All 62 E2E tests passing, production deployment verified",
+          "impact": "high",
+          "goalId": null
+        }
+      ]
+    },
+    {
+      "date": "2026-01-03",
+      "entries": [
+        {
+          "category": "jeffy",
+          "action": "Created Life OS mission control system",
+          "impact": "high",
+          "goalId": null
+        }
+      ]
+    }
+  ],
+
+  "actionQueue": [
+    {
+      "id": "aq-001",
+      "task": "Wait for influencer responses (no follow-up yet)",
+      "category": "jeffy",
+      "priority": 1,
+      "deadline": "2026-01-15",
+      "status": "waiting",
+      "notes": "If silence after Jan 15, one gentle follow-up"
+    },
+    {
+      "id": "aq-002",
+      "task": "Continue collecting wants - daily check",
+      "category": "jeffy",
+      "priority": 2,
+      "deadline": null,
+      "status": "ongoing",
+      "notes": "Share want submission link in relevant groups"
+    },
+    {
+      "id": "aq-003",
+      "task": "Curate product catalog from 1688",
+      "category": "jeffy",
+      "priority": 3,
+      "deadline": null,
+      "status": "ongoing",
+      "notes": "Quality over quantity. Check images for Chinese text."
+    },
+    {
+      "id": "aq-004",
+      "task": "Research son's model portfolio requirements",
+      "category": "family",
+      "priority": 4,
+      "deadline": "2026-01-15",
+      "status": "pending",
+      "notes": "What do agencies look for? DIY vs professional?"
+    },
+    {
+      "id": "aq-005",
+      "task": "Research Qingdao international schools",
+      "category": "career",
+      "priority": 5,
+      "deadline": "2026-02-01",
+      "status": "pending",
+      "notes": "Need Montessori or similar approach"
+    }
+  ],
+
+  "monthlyAudits": []
+}

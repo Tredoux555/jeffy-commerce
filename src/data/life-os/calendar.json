@@ -1,0 +1,133 @@
+{
+  "meta": {
+    "lastUpdated": "2026-01-03",
+    "timezone": "Asia/Shanghai"
+  },
+
+  "events": [
+    {
+      "id": "evt-001",
+      "title": "Influencer Letters Sent",
+      "date": "2026-01-02",
+      "type": "milestone",
+      "category": "jeffy",
+      "completed": true,
+      "notes": "40 personalized letters to SA change-makers"
+    },
+    {
+      "id": "evt-002",
+      "title": "Life OS System Created",
+      "date": "2026-01-03",
+      "type": "milestone",
+      "category": "personal",
+      "completed": true,
+      "notes": "Mission control, research archive, calendar"
+    }
+  ],
+
+  "deadlines": [
+    {
+      "id": "dl-001",
+      "title": "Influencer Follow-up Window Opens",
+      "date": "2026-01-15",
+      "category": "jeffy",
+      "goalId": "influencer-response",
+      "priority": "high",
+      "notes": "If no responses by this date, send one gentle follow-up"
+    },
+    {
+      "id": "dl-002",
+      "title": "January Monthly Audit",
+      "date": "2026-01-31",
+      "category": "system",
+      "goalId": null,
+      "priority": "high",
+      "notes": "First Life OS monthly audit - review all goals, research new strategies"
+    },
+    {
+      "id": "dl-003",
+      "title": "Son's Portfolio - Research Complete",
+      "date": "2026-01-15",
+      "category": "family",
+      "goalId": "son-portfolio",
+      "priority": "medium",
+      "notes": "Understand requirements before planning shoot"
+    },
+    {
+      "id": "dl-004",
+      "title": "Qingdao Schools Research",
+      "date": "2026-02-01",
+      "category": "career",
+      "goalId": "qingdao-move",
+      "priority": "medium",
+      "notes": "Have list of viable schools for kids"
+    },
+    {
+      "id": "dl-005",
+      "title": "Son's Portfolio Complete",
+      "date": "2026-02-28",
+      "category": "family",
+      "goalId": "son-portfolio",
+      "priority": "medium",
+      "notes": "Final portfolio ready for submission"
+    },
+    {
+      "id": "dl-006",
+      "title": "Zone Partners - Minimum Target",
+      "date": "2026-06-01",
+      "category": "jeffy",
+      "goalId": "zone-partners",
+      "priority": "critical",
+      "notes": "At least 5 Zone Partners signed up"
+    },
+    {
+      "id": "dl-007",
+      "title": "Qingdao Move Target",
+      "date": "2026-06-30",
+      "category": "career",
+      "goalId": "qingdao-move",
+      "priority": "high",
+      "notes": "God willing - out of Beijing"
+    }
+  ],
+
+  "reminders": [
+    {
+      "id": "rem-001",
+      "title": "Daily Jeffy Check",
+      "frequency": "daily",
+      "time": "09:00",
+      "category": "jeffy",
+      "active": true,
+      "message": "Check admin dashboard: new wants? partner applications? orders?"
+    },
+    {
+      "id": "rem-002",
+      "title": "Weekly Product Curation",
+      "frequency": "weekly",
+      "dayOfWeek": "saturday",
+      "category": "jeffy",
+      "active": true,
+      "message": "Add 5-10 quality products from 1688 to catalog"
+    },
+    {
+      "id": "rem-003",
+      "title": "Monthly Life OS Audit",
+      "frequency": "monthly",
+      "dayOfMonth": "last",
+      "category": "system",
+      "active": true,
+      "message": "Full audit: goals progress, research new strategies, generate next month plan"
+    }
+  ],
+
+  "recurringTasks": [
+    {
+      "id": "rt-001",
+      "title": "Share Wants Link",
+      "frequency": "twice-weekly",
+      "category": "jeffy",
+      "notes": "Share jeffy.co.za/wants in relevant SA groups/forums"
+    }
+  ]
+}

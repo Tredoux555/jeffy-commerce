@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "lastUpdated": "2026-01-03",
+    "totalEntries": 4
+  },
+
+  "categories": [
+    "products",
+    "recipes",
+    "business",
+    "education",
+    "technology",
+    "personal",
+    "sourcing",
+    "marketing"
+  ],
+
+  "entries": [
+    {
+      "id": "research-001",
+      "title": "Bilton Recipe",
+      "category": "recipes",
+      "dateAdded": "2026-01-03",
+      "dateResearched": null,
+      "status": "to-research",
+      "tags": ["food", "south-africa", "preservation"],
+      "summary": "Traditional South African dried meat recipe. Need to research and document complete process.",
+      "content": null,
+      "sources": [],
+      "relatedGoals": [],
+      "notes": "Tredoux mentioned wanting to archive this recipe."
+    },
+    {
+      "id": "research-002",
+      "title": "Lip Balm Formulation & Sourcing",
+      "category": "products",
+      "dateAdded": "2026-01-03",
+      "dateResearched": null,
+      "status": "to-research",
+      "tags": ["cosmetics", "sourcing", "1688", "oem"],
+      "summary": "Lip balm product research for potential Jeffy catalog. Need formulation basics and 1688 sourcing.",
+      "content": null,
+      "sources": [],
+      "relatedGoals": ["wants-collected"],
+      "notes": "Part of cosmetics category research."
+    },
+    {
+      "id": "research-003",
+      "title": "1688 Product Sourcing - Complete Guide",
+      "category": "sourcing",
+      "dateAdded": "2026-01-03",
+      "dateResearched": "2025-12-15",
+      "status": "documented",
+      "tags": ["1688", "china", "importing", "pricing"],
+      "summary": "Complete workflow for sourcing products from 1688.com for South African market.",
+      "content": {
+        "pricingFormula": "Cost CNY × 3.2 (exchange) + Shipping (R75/kg) × 2.5 markup = Selling Price",
+        "workflow": [
+          "Browse 1688.com for products",
+          "Click 'Send to Jeffy' Chrome extension",
+          "Product imports with translated title, pricing calculated",
+          "Edit in admin - drag better images directly from 1688",
+          "Run through Image Analyzer for Chinese text detection",
+          "Select clean images for SA market",
+          "Publish when ready"
+        ],
+        "imageQuality": "Extension grabs full-size images. API has backup conversion for thumbnails.",
+        "apiAccess": "Chinese agent can provide official 1688 API access through their business license."
+      },
+      "sources": ["Previous Claude sessions", "1688.com documentation"],
+      "relatedGoals": ["wants-collected"],
+      "notes": "Core workflow for Jeffy product pipeline."
+    },
+    {
+      "id": "research-004",
+      "title": "Zone Partner Economics Model",
+      "category": "business",
+      "dateAdded": "2026-01-03",
+      "dateResearched": "2025-12-20",
+      "status": "documented",
+      "tags": ["jeffy", "economics", "partners", "profit-sharing"],
+      "summary": "The 50/50 profit-sharing model that makes Jeffy different.",
+      "content": {
+        "orderEconomics": {
+          "averageOrder": "R400",
+          "grossMargin": "40% = R160",
+          "split": "R80 to Partner, R80 to Jeffy"
+        },
+        "projections": [
+          { "partners": 5, "ordersPerMonth": 200, "grossProfit": "R32,000", "jeffyShare": "R16,000" },
+          { "partners": 20, "ordersPerMonth": 800, "grossProfit": "R128,000", "jeffyShare": "R64,000" },
+          { "partners": 60, "ordersPerMonth": 2400, "grossProfit": "R384,000", "jeffyShare": "R192,000" }
+        ],
+        "keyInsight": "Inactive partners cost nothing - no fixed overhead. Quality > quantity."
+      },
+      "sources": ["Business model documentation"],
+      "relatedGoals": ["zone-partners", "monthly-revenue"],
+      "notes": "This is the competitive advantage - genuine partnership vs gig exploitation."
+    }
+  ],
+
+  "toResearch": [
+    {
+      "topic": "Bilton Recipe - Complete traditional method",
+      "priority": "low",
+      "requestedDate": "2026-01-03"
+    },
+    {
+      "topic": "Lip balm formulation and 1688 sourcing",
+      "priority": "medium",
+      "requestedDate": "2026-01-03"
+    },
+    {
+      "topic": "Child model portfolio requirements - China/SA",
+      "priority": "medium",
+      "requestedDate": "2026-01-03"
+    },
+    {
+      "topic": "Qingdao international schools - Montessori options",
+      "priority": "medium",
+      "requestedDate": "2026-01-03"
+    }
+  ]
+}

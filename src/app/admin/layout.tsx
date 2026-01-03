@@ -18,15 +18,14 @@ import {
   Folder,
   ChevronDown,
   ChevronRight,
-  Image,
-  Sparkles,
   DollarSign,
   RotateCcw,
   Star,
   FileText,
   Search,
   Scale,
-  Activity
+  Activity,
+  Brain
 } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
@@ -153,7 +152,6 @@ export default function AdminLayout({
   const isMoreSection = [
     '/admin/oem-research',
     '/admin/factories',
-    '/admin/image-processor',
     '/admin/commissions',
     '/admin/refunds',
     '/admin/reviews',
@@ -206,6 +204,13 @@ export default function AdminLayout({
               Command Center
             </NavLink>
 
+            {/* ==================== LIFE OS ==================== */}
+            <NavSection title="Life OS" />
+            
+            <NavLink href="/admin/life-os" icon={Brain} isActive={isActive('/admin/life-os')}>
+              Mission Control
+            </NavLink>
+
             {/* ==================== SOURCING PIPELINE ==================== */}
             <NavSection title="Sourcing Pipeline" />
             
@@ -217,14 +222,6 @@ export default function AdminLayout({
               countColor="green"
             >
               Wants
-            </NavLink>
-            
-            <NavLink href="/admin/procurement/smart-finder" icon={Sparkles} isActive={isActive('/admin/procurement/smart-finder')}>
-              Smart Finder
-            </NavLink>
-            
-            <NavLink href="/admin/image-translator" icon={Image} isActive={isActive('/admin/image-translator')}>
-              Image Analyzer
             </NavLink>
             
             <NavLink href="/admin/products" icon={Package} isActive={isActive('/admin/products')}>
@@ -285,6 +282,10 @@ export default function AdminLayout({
             <NavLink href="/admin/roadmap" icon={Rocket} isActive={isActive('/admin/roadmap')}>
               Launch Roadmap
             </NavLink>
+            
+            <NavLink href="/admin/growth/township-strategy" icon={MapPin} isActive={isActive('/admin/growth/township-strategy')}>
+              Township Strategy
+            </NavLink>
 
             {/* ==================== MORE (Collapsible) ==================== */}
             <div className="mt-6 mb-2">
@@ -306,9 +307,6 @@ export default function AdminLayout({
                 </NavLink>
                 <NavLink href="/admin/factories" icon={Factory} isActive={isActive('/admin/factories')}>
                   Factory Database
-                </NavLink>
-                <NavLink href="/admin/image-processor" icon={Image} isActive={isActive('/admin/image-processor')}>
-                  Text Extractor
                 </NavLink>
                 <NavLink href="/admin/procurement" icon={Package} isActive={pathname === '/admin/procurement'}>
                   Procurement Hub
