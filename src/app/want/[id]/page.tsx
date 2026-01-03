@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { Loader2, CheckCircle, Users, ArrowRight, Gift, AlertCircle, Sparkles, Share2, MessageCircle } from 'lucide-react';
+import { Loader2, CheckCircle, Users, ArrowRight, Gift, AlertCircle, Sparkles, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 
 interface Want {
@@ -37,7 +37,6 @@ export default function WantVerificationPage() {
   }, [wantId]);
 
   const checkIfAlreadyHelped = () => {
-    // Check localStorage for previous verification
     const helpedWants = JSON.parse(localStorage.getItem('jeffy_helped_wants') || '[]');
     if (helpedWants.includes(wantId)) {
       setAlreadyHelped(true);
@@ -82,7 +81,6 @@ export default function WantVerificationPage() {
         setVerified(true);
         setVerifyResult(data);
         
-        // Save to localStorage
         const helpedWants = JSON.parse(localStorage.getItem('jeffy_helped_wants') || '[]');
         helpedWants.push(wantId);
         localStorage.setItem('jeffy_helped_wants', JSON.stringify(helpedWants));
@@ -101,20 +99,28 @@ export default function WantVerificationPage() {
     }
   };
 
-  const shareViaWhatsApp = () => {
+  // Generate personalized WhatsApp message
+  const getWhatsAppMessage = () => {
     const shareUrl = `${window.location.origin}/want/${wantId}`;
-    const creatorName = want?.creator_name || 'My friend';
-    const productName = want?.product_name || 'something cool';
+    const firstName = want?.creator_name?.split(' ')[0] || 'my friend';
+    const product = want?.product_name || 'something';
     
-    const message = `Hey! ${creatorName} wants a ${productName} and needs help getting it FREE! 🎁\n\nIf 10 people click "Help", they get it for free. I already helped - can you?\n\n${shareUrl}`;
-    
+    // Clean, personal message - no marketing
+    return `${firstName} wants a ${product} - help them get it free?\n\n${shareUrl}`;
+  };
+
+  const shareViaWhatsApp = () => {
+    const message = getWhatsAppMessage();
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   const progress = want ? Math.min((want.verified_count / 10) * 100, 100) : 0;
   const remaining = want ? Math.max(0, 10 - want.verified_count) : 10;
-  const creatorName = want?.creator_name || 'Your friend';
+  
+  // Get first name for personal touch
+  const firstName = want?.creator_name?.split(' ')[0] || 'Your friend';
+  const productName = want?.product_name || 'this product';
 
   if (loading) {
     return (
@@ -130,99 +136,97 @@ export default function WantVerificationPage() {
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">Oops!</h1>
-          <p className="text-gray-500 mb-6">{error || 'This product request may have been removed.'}</p>
-          <Link href="/wants/create" className="text-orange-600 font-medium hover:underline">
-            Create your own want →
-          </Link>
+          <p className="text-gray-500">{error || 'This link may have expired.'}</p>
         </div>
       </div>
     );
   }
 
-  // SUCCESS STATE - Show WhatsApp share
+  // ============ SUCCESS STATE ============
+  // Clean, personal messaging - no marketing push
   if (verified || alreadyHelped) {
     const count = verifyResult?.verified_count || want.verified_count;
     const isComplete = count >= 10;
+    const stepsRemaining = Math.max(0, 10 - count);
     
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full text-center">
-          <div className={`w-20 h-20 ${isComplete ? 'bg-green-100' : 'bg-orange-100'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-            {isComplete ? (
-              <Gift className="h-10 w-10 text-green-600" />
-            ) : (
-              <CheckCircle className="h-10 w-10 text-orange-600" />
-            )}
+          {/* Simple checkmark */}
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {alreadyHelped && !verified ? 'You already helped!' : isComplete ? '🎉 They got it FREE!' : 'You're awesome!'}
-          </h1>
-          <p className="text-gray-500 mb-6">
-            {isComplete 
-              ? `${creatorName} hit 10 helpers and their ${want.product_name} is being sourced!`
-              : `You helped ${creatorName} get closer to their free ${want.product_name}!`
-            }
-          </p>
-          
-          {/* Progress */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-gray-600">Progress</span>
-              <span className="font-bold text-gray-900">{count}/10 helpers</span>
-            </div>
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all ${isComplete ? 'bg-green-500' : 'bg-gradient-to-r from-orange-400 to-orange-500'}`}
-                style={{ width: `${Math.min((count / 10) * 100, 100)}%` }}
-              />
-            </div>
-            {!isComplete && (
-              <p className="text-sm text-gray-500 mt-2">
-                {10 - count} more {10 - count === 1 ? 'person' : 'people'} needed!
+          {/* Core message - personal, not salesy */}
+          {isComplete ? (
+            <>
+              <h1 className="text-xl font-bold text-gray-900 mb-3">
+                {firstName} got it free!
+              </h1>
+              <p className="text-gray-600">
+                Thanks to you and 9 others, {firstName} is getting a free {productName}.
               </p>
-            )}
+            </>
+          ) : alreadyHelped && !verified ? (
+            <>
+              <h1 className="text-xl font-bold text-gray-900 mb-3">
+                You already helped {firstName}
+              </h1>
+              <p className="text-gray-600">
+                They're {stepsRemaining} {stepsRemaining === 1 ? 'step' : 'steps'} away from getting a free {productName}.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="text-xl font-bold text-gray-900 mb-3">
+                You verified this for {firstName}
+              </h1>
+              <p className="text-gray-600">
+                They're {stepsRemaining === 1 ? 'one step' : `${stepsRemaining} steps`} closer to getting a free {productName}.
+              </p>
+            </>
+          )}
+          
+          {/* Simple progress indicator */}
+          <div className="mt-6 mb-8">
+            <div className="flex justify-center gap-1">
+              {[...Array(10)].map((_, i) => (
+                <div 
+                  key={i}
+                  className={`w-3 h-3 rounded-full ${
+                    i < count ? 'bg-green-500' : 'bg-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="text-sm text-gray-400 mt-2">{count} of 10</p>
           </div>
 
-          {/* WhatsApp Share - THE KEY VIRAL ELEMENT */}
-          <button
-            onClick={shareViaWhatsApp}
-            className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl flex items-center justify-center gap-3 text-lg mb-4 transition-all hover:scale-[1.02]"
-          >
-            <MessageCircle className="h-6 w-6" />
-            Share on WhatsApp
-          </button>
-          <p className="text-sm text-gray-500 mb-6">Help spread the word!</p>
-
-          {/* Create Own Want */}
-          <div className="border-t pt-6">
-            <p className="text-gray-600 mb-3">Want something for FREE?</p>
-            <Link 
-              href="/wants/create"
-              className="block w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all"
+          {/* WhatsApp share - the only action */}
+          {!isComplete && (
+            <button
+              onClick={shareViaWhatsApp}
+              className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl flex items-center justify-center gap-3 transition-all"
             >
-              Create Your Own Want
-            </Link>
-          </div>
+              <MessageCircle className="h-5 w-5" />
+              Help spread the word
+            </button>
+          )}
         </div>
       </div>
     );
   }
 
-  // MAIN VIEW - Simple one-click help
+  // ============ MAIN VIEW ============
+  // Simple ask - help your friend
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
-      {/* Header */}
-      <header className="p-4">
-        <Link href="/" className="text-2xl font-bold text-white">Jeffy</Link>
-      </header>
-
-      <main className="max-w-lg mx-auto px-4 py-8">
+      <main className="max-w-lg mx-auto px-4 py-12">
         {/* Product Card */}
         <div className="bg-white rounded-2xl overflow-hidden mb-6">
           {/* Product Image */}
           {want.image_url && (
-            <div className="w-full aspect-video bg-gray-100 relative">
+            <div className="w-full aspect-video bg-gray-100">
               <img 
                 src={want.image_url} 
                 alt={want.product_name}
@@ -232,85 +236,53 @@ export default function WantVerificationPage() {
           )}
           
           <div className="p-6">
-            <div className="flex items-start gap-3 mb-4">
-              {!want.image_url && (
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-100 to-orange-200 rounded-xl flex items-center justify-center shrink-0">
-                  <Gift className="h-6 w-6 text-orange-600" />
-                </div>
-              )}
-              <div>
-                <p className="text-sm text-gray-500 mb-1">{creatorName} wants:</p>
-                <h1 className="text-xl font-bold text-gray-900">{want.product_name}</h1>
-                {want.description && (
-                  <p className="text-gray-500 text-sm mt-1">{want.description}</p>
-                )}
-              </div>
-            </div>
+            {/* Personal ask */}
+            <p className="text-gray-500 mb-1">{firstName} wants:</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">{want.product_name}</h1>
+            
+            {want.description && (
+              <p className="text-gray-500 text-sm mb-4">{want.description}</p>
+            )}
 
-            {/* Progress */}
-            <div className="bg-gray-50 rounded-xl p-4">
-              <div className="flex items-center justify-between text-sm mb-2">
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-gray-400" />
-                  <span className="text-gray-600">Helpers so far</span>
-                </div>
-                <span className="font-bold text-gray-900">{want.verified_count}/10</span>
+            {/* Progress dots */}
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1">
+                {[...Array(10)].map((_, i) => (
+                  <div 
+                    key={i}
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      i < want.verified_count ? 'bg-green-500' : 'bg-gray-200'
+                    }`}
+                  />
+                ))}
               </div>
-              <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {remaining > 0 
-                  ? `${remaining} more ${remaining === 1 ? 'person' : 'people'} needed to get it FREE!`
-                  : '🎉 Goal reached! Being sourced now.'
-                }
-              </p>
+              <span className="text-sm text-gray-400">{want.verified_count}/10</span>
             </div>
           </div>
         </div>
 
-        {/* THE BIG BUTTON - One Click Help */}
+        {/* THE BUTTON - Simple, personal */}
         <button
           onClick={handleHelp}
           disabled={verifying}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl p-6 text-left transition-all hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl p-6 transition-all hover:scale-[1.01] disabled:opacity-70"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-xl">
-                <Sparkles className="h-8 w-8" />
-              </div>
-              <div>
-                <p className="font-bold text-xl">Help {creatorName.split(' ')[0]} get it FREE!</p>
-                <p className="text-purple-200 text-sm">One tap - that's all it takes</p>
-              </div>
-            </div>
+          <div className="flex items-center justify-center gap-3">
             {verifying ? (
-              <Loader2 className="h-8 w-8 animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin" />
             ) : (
-              <ArrowRight className="h-8 w-8" />
+              <>
+                <Sparkles className="h-6 w-6" />
+                <span className="text-xl font-medium">Help {firstName} get it free</span>
+              </>
             )}
           </div>
         </button>
 
-        {/* How it works - subtle */}
-        <div className="mt-6 text-center text-sm text-gray-400">
-          <p>When 10 people help, {creatorName.split(' ')[0]} gets this product FREE.</p>
-          <p className="mt-1">Then YOU can create your own want!</p>
-        </div>
-
-        {/* Create Your Own */}
-        <div className="mt-8 text-center">
-          <Link 
-            href="/wants/create"
-            className="inline-flex items-center gap-2 text-orange-400 font-medium hover:text-orange-300"
-          >
-            Or create your own want & get it FREE <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+        {/* Subtle explanation */}
+        <p className="text-center text-gray-500 text-sm mt-4">
+          {remaining} more {remaining === 1 ? 'person' : 'people'} needed
+        </p>
       </main>
     </div>
   );
