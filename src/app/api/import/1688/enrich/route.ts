@@ -178,7 +178,7 @@ export async function PUT(request: NextRequest) {
         processedVariants.push(processed);
       }
       
-      updateData.variants = processedVariants;
+      updateData.source_data.variants = processedVariants;
       console.log(`[enrich] Processed ${processedVariants.length} variants`);
     }
 
