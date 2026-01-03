@@ -25,6 +25,7 @@
     "mammoth": "^1.11.0",
     "next": "^14.2.35",
     "pdf-parse": "^2.4.5",
+    "puppeteer": "^24.34.0",
     "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

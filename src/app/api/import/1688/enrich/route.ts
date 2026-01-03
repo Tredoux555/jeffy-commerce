@@ -30,13 +30,16 @@ function calculateSellingPrice(costCNY: number): number {
   return Math.ceil(sellingPrice / 5) * 5 * 100;
 }
 
-function generateSlug(title: string): string {
-  return title
+function generateSlug(title: string, productId: string): string {
+  const baseSlug = title
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .slice(0, 80);
+    .slice(0, 60);
+  // Append part of product ID to ensure uniqueness
+  const suffix = productId.slice(0, 8);
+  return `${baseSlug}-${suffix}`;
 }
 
 /**
@@ -182,7 +185,7 @@ export async function PUT(request: NextRequest) {
     // Update name/title if provided
     if (title && title.length > 10) {
       updateData.name = title.substring(0, 200);
-      updateData.slug = generateSlug(title);
+      updateData.slug = generateSlug(title, existing.id);
     }
 
     // Update description if provided
