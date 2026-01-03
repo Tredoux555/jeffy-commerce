@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Configuration
-const API_BASE = process.env.API_URL || 'https://jeffy-commerce.up.railway.app';
+const API_BASE = process.env.API_URL || 'https://jeffy.co.za';
 const JSON_FILE = path.join(__dirname, '..', 'jeffy_1688_bulk_import_FINAL.json');
 const BATCH_SIZE = 10;
 const DELAY_MS = 1000;
