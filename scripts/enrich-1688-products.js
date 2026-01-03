@@ -255,18 +255,92 @@ async function scrapeProductData() {
         if (s) sales = parseInt(s[0]);
       }
       
-      // Get color/variant options
+      // Get color/variant options with images and prices
       let variants = [];
-      document.querySelectorAll('[class*="sku-item"], [class*="prop-item"]').forEach(el => {
+      
+      // Method 1: SKU items (most common)
+      document.querySelectorAll('[class*="sku-item"], [class*="prop-item"], [class*="sku-wrapper"] li, [class*="sku"] [class*="item"]').forEach(el => {
         const text = el.textContent.trim();
         const img = el.querySelector('img');
-        if (text && text.length < 50) {
-          variants.push({
-            name: text,
-            image: img ? getFullSizeUrl(img.src) : null
-          });
+        const priceEl = el.querySelector('[class*="price"]');
+        
+        if (text && text.length > 0 && text.length < 100) {
+          const variant = {
+            name: text.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim(),
+            image: null,
+            priceAdjustment: 0,
+            attributes: {}
+          };
+          
+          // Get variant image (high quality)
+          if (img) {
+            const imgSrc = img.src || img.dataset.src || img.dataset.lazySrc || img.dataset.big;
+            if (imgSrc) {
+              variant.image = getFullSizeUrl(imgSrc);
+            }
+          }
+          
+          // Extract price if shown
+          if (priceEl) {
+            const priceMatch = priceEl.textContent.match(/[\d.]+/);
+            if (priceMatch) {
+              variant.price = parseFloat(priceMatch[0]);
+            }
+          }
+          
+          // Try to identify attribute type
+          const lowerText = text.toLowerCase();
+          
+          // Length detection
+          const lengthMatch = text.match(/(\d+)\s*(inch|inches|cm|mm|"|'|寸)/i);
+          if (lengthMatch) {
+            variant.attributes.length = lengthMatch[0];
+          }
+          
+          // Color detection
+          const colors = ['black', 'brown', 'blonde', 'red', 'blue', 'white', 'pink', 'purple', 'green', 'gray', 'grey', 'gold', 'silver', 'orange', 'burgundy', 'ombre', 'natural', '1b', '2', '4', '27', '30', '33', '613', '99j', 't1b'];
+          for (const color of colors) {
+            if (lowerText.includes(color)) {
+              variant.attributes.color = color.charAt(0).toUpperCase() + color.slice(1);
+              break;
+            }
+          }
+          
+          // Size detection
+          const sizeMatch = text.match(/\b(XS|S|M|L|XL|XXL|XXXL|\d+g|\d+ml)\b/i);
+          if (sizeMatch) {
+            variant.attributes.size = sizeMatch[0].toUpperCase();
+          }
+          
+          // Only add if we have meaningful data
+          if (variant.name.length > 1 && !variant.name.match(/^[\d.]+$/)) {
+            variants.push(variant);
+          }
         }
       });
+      
+      // Method 2: Color swatches (backup)
+      if (variants.length === 0) {
+        document.querySelectorAll('[class*="color"] img, [class*="swatch"] img').forEach((img, idx) => {
+          const src = img.src || img.dataset.src;
+          const alt = img.alt || img.title || '';
+          if (src && !src.includes('placeholder')) {
+            variants.push({
+              name: alt || 'Variant ' + (idx + 1),
+              image: getFullSizeUrl(src),
+              attributes: alt ? { color: alt } : {}
+            });
+          }
+        });
+      }
+      
+      // Dedupe variants by name
+      const seenNames = new Set();
+      variants = variants.filter(v => {
+        if (seenNames.has(v.name)) return false;
+        seenNames.add(v.name);
+        return true;
+      }).slice(0, 30); // Max 30 variants
       
       return {
         success: true,
@@ -372,7 +446,7 @@ async function enrichProduct(product) {
   }
   
   const data = scraped.data;
-  console.log(`   📸 Found ${data.images?.length || 0} images`);
+  console.log(`   📸 Found ${data.images?.length || 0} images, ${data.variants?.length || 0} variants`);
   console.log(`   💰 Price: ¥${data.priceMin} - ¥${data.priceMax}`);
   
   // Send to Jeffy
@@ -380,7 +454,7 @@ async function enrichProduct(product) {
   const result = await sendToJeffy(data);
   
   if (result.success) {
-    console.log(`   ✅ Enriched! SKU: ${result.sku}, Images: ${result.imagesUploaded || 0}`);
+    console.log(`   ✅ Enriched! SKU: ${result.sku}, Images: ${result.imagesUploaded || 0}, Variants: ${result.variantsProcessed || 0}`);
     return { success: true, ...result };
   } else {
     console.log(`   ❌ Send failed: ${result.error}`);

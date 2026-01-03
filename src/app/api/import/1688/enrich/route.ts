@@ -104,11 +104,80 @@ export async function PUT(request: NextRequest) {
         descriptionOriginal,
         costPriceCNY,
         moq,
-        variants,
         scrapedAt,
         enrichedAt: new Date().toISOString()
       }
     };
+
+    // Process variants - download variant images too
+    let processedVariants: any[] = [];
+    if (variants && Array.isArray(variants) && variants.length > 0) {
+      console.log(`[enrich] Processing ${variants.length} variants...`);
+      const timestamp = Date.now();
+      
+      for (let i = 0; i < Math.min(variants.length, 30); i++) {
+        const v = variants[i];
+        const processed: any = {
+          name: v.name || `Variant ${i + 1}`,
+          sku_suffix: (v.name || '').substring(0, 10).toUpperCase().replace(/[^A-Z0-9]/g, ''),
+          price_adjustment: 0,
+          attributes: v.attributes || {},
+          in_stock: true
+        };
+        
+        // Calculate price adjustment if variant has different price
+        if (v.price && costPriceCNY && v.price !== costPriceCNY) {
+          const basePriceZAR = calculateSellingPrice(costPriceCNY);
+          const variantPriceZAR = calculateSellingPrice(v.price);
+          processed.price_adjustment = variantPriceZAR - basePriceZAR;
+        }
+        
+        // Download variant image if available
+        if (v.image && !v.image.includes('placeholder')) {
+          try {
+            const response = await fetch(v.image, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0',
+                'Referer': 'https://detail.1688.com/',
+              }
+            });
+            
+            if (response.ok) {
+              const buffer = await response.arrayBuffer();
+              if (buffer.byteLength > 3000) {
+                const contentType = response.headers.get('content-type') || 'image/jpeg';
+                let ext = 'jpg';
+                if (contentType.includes('png')) ext = 'png';
+                else if (contentType.includes('webp')) ext = 'webp';
+                
+                const fileName = `${existing.id}_var_${timestamp}_${i}.${ext}`;
+                const filePath = `products/${fileName}`;
+                
+                const { error: uploadError } = await supabase.storage
+                  .from('product-images')
+                  .upload(filePath, buffer, { contentType, upsert: true });
+                
+                if (!uploadError) {
+                  const { data: urlData } = supabase.storage
+                    .from('product-images')
+                    .getPublicUrl(filePath);
+                  if (urlData?.publicUrl) {
+                    processed.image = urlData.publicUrl;
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // Skip failed variant image
+          }
+        }
+        
+        processedVariants.push(processed);
+      }
+      
+      updateData.variants = processedVariants;
+      console.log(`[enrich] Processed ${processedVariants.length} variants`);
+    }
 
     // Update name/title if provided
     if (title && title.length > 10) {
@@ -232,7 +301,8 @@ export async function PUT(request: NextRequest) {
       name: updateData.name || existing.name,
       sellingPrice: sellingPrice,
       imagesUploaded: storedImages.length,
-      imagesProcessed: images.length
+      imagesProcessed: images.length,
+      variantsProcessed: processedVariants.length
     }, { headers: corsHeaders });
 
   } catch (error: any) {
