@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Trash2, ZoomIn, Languages, Upload, Plus, ImageIcon } from 'lucide-react';
+import { ArrowLeft, Loader2, Sparkles, Check, X, Scan, Star, Trash2, ZoomIn, Upload, Plus, ImageIcon, Search, Globe, ExternalLink } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,6 @@ export default function EditProductPage() {
   const [notFound, setNotFound] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [images, setImages] = useState<string[]>([]);
-  const [translating, setTranslating] = useState<string | null>(null);
   const [originalTitle, setOriginalTitle] = useState('');
   const [analyzing, setAnalyzing] = useState(false);
   const [imageAnalysis, setImageAnalysis] = useState<any>(null);
@@ -29,7 +28,6 @@ export default function EditProductPage() {
   // New states for enhanced media section
   const [newImageUrl, setNewImageUrl] = useState('');
   const [isDragging, setIsDragging] = useState(false);
-  const [translatingImage, setTranslatingImage] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   
   const [form, setForm] = useState({
@@ -119,33 +117,6 @@ export default function EditProductPage() {
       name,
       slug: slugify(name),
     });
-  };
-
-  const handleTranslate = async (field: 'title' | 'description') => {
-    const text = field === 'title' ? (originalTitle || form.name) : form.description;
-    if (!text) return;
-    
-    setTranslating(field);
-    try {
-      const res = await fetch('/api/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, type: field }),
-      });
-      const data = await res.json();
-      if (data.success && data.translation) {
-        if (field === 'title') {
-          handleNameChange(data.translation);
-        } else {
-          setForm({ ...form, description: data.translation });
-        }
-      } else {
-        alert(data.error || 'Translation failed');
-      }
-    } catch (error) {
-      alert('Translation failed');
-    }
-    setTranslating(null);
   };
 
   const selectImage = (url: string) => {
@@ -288,48 +259,6 @@ export default function EditProductPage() {
       uploadFiles(files);
     }
   };
-
-  // Translate single image
-  const translateSingleImage = async (index: number) => {
-    const imageUrl = images[index];
-    if (!imageUrl) return;
-    
-    setTranslatingImage(index);
-    
-    try {
-      const res = await fetch('/api/translate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl }),
-      });
-      
-      const data = await res.json();
-      
-      if (data.success && data.translated_image_url) {
-        // Replace the image in the array
-        const newImages = [...images];
-        newImages[index] = data.translated_image_url;
-        setImages(newImages);
-        
-        // If this was the selected image, update selection
-        if (form.imageUrl === imageUrl) {
-          setForm({ ...form, imageUrl: data.translated_image_url });
-        }
-        
-        // Clear analysis since images changed
-        setImageAnalysis(null);
-      } else {
-        alert(data.error || 'Translation failed');
-      }
-    } catch (error) {
-      console.error('Translation error:', error);
-      alert('Translation failed - check console for details');
-    }
-    
-    setTranslatingImage(null);
-  };
-
-  // ============ END NEW Functions ============
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -684,7 +613,7 @@ export default function EditProductPage() {
                   </div>
                   {imageAnalysis.summary.imagesWithChineseText > 0 && (
                     <p className="text-xs text-gray-600">
-                      💡 Hover over images with Chinese text and click the purple <Languages className="h-3 w-3 inline" /> button to translate
+                      💡 Images with Chinese text may need editing before use
                     </p>
                   )}
                 </div>
@@ -695,6 +624,115 @@ export default function EditProductPage() {
               )}
             </div>
           )}
+
+          {/* ============ FIND CLEAN IMAGES ============ */}
+          <div className="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <Globe className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-800">Find Clean Images</h3>
+                  <p className="text-xs text-gray-500">Search eBay for images without Chinese text</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={findCleanImages}
+                disabled={findingImages || !form.name}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 font-medium shadow-sm"
+              >
+                {findingImages ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Find Images
+                  </>
+                )}
+              </button>
+            </div>
+            
+            {/* Search Results */}
+            {showImageFinder && (
+              <div className="bg-white/80 rounded-lg p-3 space-y-3">
+                {searchInfo && (
+                  <div className="flex items-center justify-between text-sm">
+                    <div>
+                      <span className="text-gray-600">Searched: </span>
+                      <span className="font-medium">{searchInfo.searchQuery}</span>
+                    </div>
+                    {searchInfo.ebaySearchUrl && (
+                      <a 
+                        href={searchInfo.ebaySearchUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        View on eBay <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                )}
+                
+                {foundImages.length > 0 ? (
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      Found {foundImages.length} images - click to add to product
+                    </p>
+                    <div className="grid grid-cols-5 gap-2 max-h-48 overflow-y-auto">
+                      {foundImages.map((img, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => addFoundImage(img.url)}
+                          disabled={images.includes(img.url)}
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 hover:border-green-500 transition-all ${
+                            images.includes(img.url) 
+                              ? 'border-green-500 opacity-50' 
+                              : 'border-gray-200'
+                          }`}
+                        >
+                          <img 
+                            src={img.url} 
+                            alt={`Found ${idx + 1}`} 
+                            className="w-full h-full object-cover"
+                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                          />
+                          {images.includes(img.url) && (
+                            <div className="absolute inset-0 bg-green-500/30 flex items-center justify-center">
+                              <Check className="h-6 w-6 text-white" />
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : findingImages ? (
+                  <div className="flex items-center justify-center py-4 text-gray-500">
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    Searching eBay for clean images...
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 text-center py-2">
+                    Click "Find Images" to search for product images without Chinese text
+                  </p>
+                )}
+                
+                <button
+                  type="button"
+                  onClick={() => setShowImageFinder(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Hide results
+                </button>
+              </div>
+            )}
+          </div>
 
           {/* Image Gallery */}
           {images.length > 0 && (
@@ -707,7 +745,6 @@ export default function EditProductPage() {
                   const analysis = imageAnalysis?.analyses?.find((a: any) => a.index === idx);
                   const isBest = imageAnalysis?.bestImageIndex === idx;
                   const hasChineseText = analysis && !analysis.isClean;
-                  const isTranslating = translatingImage === idx;
                   
                   return (
                     <div key={idx} className="relative group">
@@ -742,13 +779,6 @@ export default function EditProductPage() {
                             中文 Chinese Text
                           </div>
                         )}
-                        
-                        {/* Translating overlay */}
-                        {isTranslating && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <Loader2 className="h-6 w-6 text-white animate-spin" />
-                          </div>
-                        )}
                       </button>
                       
                       {/* Action buttons - show on hover */}
@@ -762,18 +792,6 @@ export default function EditProductPage() {
                         >
                           <ZoomIn className="h-3 w-3" />
                         </button>
-                        
-                        {/* Translate button - only show if has Chinese text */}
-                        {hasChineseText && !isTranslating && (
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); translateSingleImage(idx); }}
-                            className="p-1.5 bg-purple-500 text-white rounded-full hover:bg-purple-600"
-                            title="Translate Chinese"
-                          >
-                            <Languages className="h-3 w-3" />
-                          </button>
-                        )}
                         
                         {/* Delete button */}
                         <button
@@ -790,7 +808,7 @@ export default function EditProductPage() {
                 })}
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                💡 Tip: Click "AI Analyze" to detect Chinese text, then hover and click the purple 🌐 button to translate individual images
+                💡 Tip: Click "Scan All Images" to detect Chinese text, then use "Find Images" to source clean replacements
               </p>
             </div>
           )}

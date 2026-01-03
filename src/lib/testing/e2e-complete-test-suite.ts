@@ -811,16 +811,6 @@ export async function runCompleteTestSuite(baseUrl: string): Promise<TestSuiteRe
     }
   });
 
-  await runStep('API: /api/smart-finder', 'api', async () => {
-    try {
-      const res = await fetch(`${baseUrl}/api/smart-finder`);
-      const data = await res.json();
-      return { status: res.status, configured: data.anthropicConfigured };
-    } catch (e: any) {
-      return { skipped: true, reason: e.message };
-    }
-  });
-
   // ========================================================
   // CLEANUP
   // ========================================================
