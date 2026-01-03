@@ -1,0 +1,212 @@
+{
+  "export_date": "2026-01-03",
+  "total_products": 88,
+  "pricing_formula": "(CNY × 3.2 + shipping) × 2.5",
+  "categories": [
+    {
+      "name": "Crochet Braids",
+      "category_slug": "hair-crochet-braids",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/581430625604.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/790136960770.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/625158447520.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/645677582963.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/723986705210.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/825233705404.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Box Braids",
+      "category_slug": "hair-box-braids",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/665185232354.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/824544771893.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/912526046327.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/1005233634177.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/804542764103.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/581496741824.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Passion Twist",
+      "category_slug": "hair-passion-twist",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/905068824920.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/967288791334.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/867629640330.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/942376515550.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/995165942484.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/973224417400.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Goddess Locs",
+      "category_slug": "hair-goddess-locs",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/810040556887.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/709168406049.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/986979054609.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/973767689930.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/887719059035.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/689400529336.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Gypsy Locs",
+      "category_slug": "hair-gypsy-locs",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/754074095674.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/596374103042.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/965562544643.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/897056849230.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/644573523193.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/826106657174.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "French Curl Crochet",
+      "category_slug": "hair-french-curl",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/899201932047.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/657976177320.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/888177348967.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/835242760077.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/853277643108.html", "priority": 5}
+      ]
+    },
+    {
+      "name": "Nail Art Tools",
+      "category_slug": "nails-tools",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/749991226618.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/717169094733.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/933067379384.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/984768438541.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/999381938290.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/680959992182.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Press-On Nails",
+      "category_slug": "nails-press-on",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/609243752912.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/845949186520.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/846185115375.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/994329126467.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/808774491845.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/897271895045.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Gel Nail Polish",
+      "category_slug": "nails-gel-polish",
+      "growth_trend": "+22%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/767738499440.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/1001278491644.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/768507446660.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/884454934779.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/948448439634.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/950167708045.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Perfume",
+      "category_slug": "fragrance-perfume",
+      "growth_trend": "+14%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/931037108029.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/738296084470.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/806931393073.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/818074403534.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/770233854287.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/619537747197.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Body Mist Spray",
+      "category_slug": "fragrance-body-mist",
+      "growth_trend": "+14%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/770233854287.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/987761159630.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/972304850958.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/989137909346.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/988385302160.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/950260792156.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "False Eyelashes",
+      "category_slug": "makeup-eyelashes",
+      "growth_trend": "stable",
+      "products": [
+        {"url": "https://detail.1688.com/offer/692253105312.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/953605703499.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/712169585797.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/792508557641.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/985739408685.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/937941302147.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Lip Gloss",
+      "category_slug": "makeup-lips",
+      "growth_trend": "-17%",
+      "products": [
+        {"url": "https://detail.1688.com/offer/638759033134.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/526150602100.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/966837984464.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/704695314980.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/559917662811.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/649017033448.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Makeup Brush Sets",
+      "category_slug": "makeup-brushes",
+      "growth_trend": "stable",
+      "products": [
+        {"url": "https://detail.1688.com/offer/856262679463.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/641527723190.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/906075432622.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/773379736027.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/744298356525.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/821750728667.html", "priority": 6}
+      ]
+    },
+    {
+      "name": "Face Serum",
+      "category_slug": "skincare-serum",
+      "growth_trend": "stable",
+      "products": [
+        {"url": "https://detail.1688.com/offer/986122742518.html", "priority": 1},
+        {"url": "https://detail.1688.com/offer/839227281293.html", "priority": 2},
+        {"url": "https://detail.1688.com/offer/868293205938.html", "priority": 3},
+        {"url": "https://detail.1688.com/offer/986700488552.html", "priority": 4},
+        {"url": "https://detail.1688.com/offer/1005695316895.html", "priority": 5},
+        {"url": "https://detail.1688.com/offer/986002981809.html", "priority": 6}
+      ]
+    }
+  ],
+  "recommended_colors_hair": [
+    {"code": "1b", "name": "Natural Black", "priority": "must_have"},
+    {"code": "2#", "name": "Dark Brown", "priority": "high"},
+    {"code": "4#", "name": "Medium Brown", "priority": "high"},
+    {"code": "1b/27", "name": "Black to Honey Ombre", "priority": "very_high"},
+    {"code": "1b/30", "name": "Black to Auburn Ombre", "priority": "high"},
+    {"code": "99j", "name": "Burgundy Wine", "priority": "high"},
+    {"code": "27#", "name": "Honey Blonde", "priority": "medium"},
+    {"code": "1b/613", "name": "Black to Blonde Ombre", "priority": "medium"},
+    {"code": "1b/pink", "name": "Black to Pink Ombre", "priority": "trendy"}
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "name": "jeffy-1688-browser",
+  "version": "1.0.0",
+  "description": "1688 Product Research Browser for Jeffy Commerce",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac"
+  },
+  "build": {
+    "appId": "com.jeffy.1688browser",
+    "productName": "Jeffy 1688 Research",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    }
+  },
+  "keywords": [
+    "1688",
+    "sourcing",
+    "ecommerce",
+    "china"
+  ],
+  "author": "Jeffy Commerce",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "electron-store": "^8.1.0"
+  }
+}
