@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { Loader2, CheckCircle, Users, Mail, Phone, ArrowRight, Gift, AlertCircle, Sparkles } from 'lucide-react';
+import { Loader2, CheckCircle, Users, Mail, Phone, ArrowRight, Gift, AlertCircle, Sparkles, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import Link from 'next/link';
 
 interface Want {
@@ -26,14 +26,17 @@ export default function WantVerificationPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Form expansion
+  const [showForm, setShowForm] = useState(false);
+
   // Verification form
-  const [method, setMethod] = useState<'email' | 'sms'>('email');
+  const [method, setMethod] = useState<'email' | 'phone' | 'whatsapp'>('whatsapp');
   const [contact, setContact] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  // OTP verification (for SMS)
+  // OTP verification
   const [showOtp, setShowOtp] = useState(false);
   const [otp, setOtp] = useState('');
   const [verifying, setVerifying] = useState(false);
@@ -69,14 +72,18 @@ export default function WantVerificationPage() {
     setSendError(null);
 
     try {
+      // For WhatsApp, treat it same as SMS but with whatsapp flag
+      const apiMethod = method === 'whatsapp' ? 'sms' : method;
+      
       const res = await fetch('/api/wants/request-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           want_id: wantId,
           ref_code: refCode || want?.creator_referral_code,
-          method,
+          method: apiMethod,
           contact,
+          via_whatsapp: method === 'whatsapp',
         }),
       });
 
@@ -84,7 +91,7 @@ export default function WantVerificationPage() {
 
       if (data.success) {
         setSent(true);
-        if (method === 'sms') {
+        if (method === 'phone' || method === 'whatsapp') {
           setShowOtp(true);
         }
       } else {
@@ -160,7 +167,7 @@ export default function WantVerificationPage() {
     );
   }
 
-  // Already verified or success state
+  // SUCCESS STATE
   if (verified) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
@@ -169,13 +176,13 @@ export default function WantVerificationPage() {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {verifyResult?.alreadyVerified ? 'Already Verified!' : 'Verified!'}
+            {verifyResult?.alreadyVerified ? 'Already Verified!' : '🎉 You\'re in!'}
           </h1>
           <p className="text-gray-500 mb-6">
             {verifyResult?.alreadyVerified 
               ? 'You have already verified this product request.'
               : verifyResult?.thresholdReached
-                ? '🎉 This product hit 10 verifications and is being sourced!'
+                ? '🔥 This product hit 10 verifications and is being sourced!'
                 : `Thanks! ${verifyResult?.remaining || remaining} more people needed.`
             }
           </p>
@@ -197,8 +204,14 @@ export default function WantVerificationPage() {
           </div>
 
           <Link 
+            href="/wants/create"
+            className="block w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 mb-3"
+          >
+            Create Your Own Want (Get FREE Stuff!)
+          </Link>
+          <Link 
             href="/wants"
-            className="inline-flex items-center gap-2 text-orange-600 font-medium hover:underline"
+            className="inline-flex items-center gap-2 text-gray-500 text-sm hover:underline"
           >
             Browse more products <ArrowRight className="h-4 w-4" />
           </Link>
@@ -207,7 +220,7 @@ export default function WantVerificationPage() {
     );
   }
 
-  // Email sent - waiting for click
+  // EMAIL SENT STATE
   if (sent && method === 'email') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
@@ -220,10 +233,10 @@ export default function WantVerificationPage() {
             We sent a verification link to <strong>{contact}</strong>
           </p>
           <p className="text-sm text-gray-400 mb-6">
-            Click the link in the email to confirm you want this product.
+            Click the link in the email to confirm your interest.
           </p>
           <button
-            onClick={() => { setSent(false); setContact(''); }}
+            onClick={() => { setSent(false); setContact(''); setShowForm(true); }}
             className="text-gray-500 text-sm hover:underline"
           >
             Use a different email
@@ -233,18 +246,23 @@ export default function WantVerificationPage() {
     );
   }
 
-  // SMS OTP entry
-  if (showOtp && method === 'sms') {
+  // OTP ENTRY STATE
+  if (showOtp) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl p-8 max-w-md w-full">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Phone className="h-8 w-8 text-orange-600" />
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              {method === 'whatsapp' ? (
+                <MessageCircle className="h-8 w-8 text-green-600" />
+              ) : (
+                <Phone className="h-8 w-8 text-orange-600" />
+              )}
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Enter Code</h1>
             <p className="text-gray-500">
               We sent a 6-digit code to <strong>{contact}</strong>
+              {method === 'whatsapp' && <span className="text-green-600"> via WhatsApp</span>}
             </p>
           </div>
 
@@ -278,7 +296,7 @@ export default function WantVerificationPage() {
 
             <button
               type="button"
-              onClick={() => { setShowOtp(false); setSent(false); setOtp(''); }}
+              onClick={() => { setShowOtp(false); setSent(false); setOtp(''); setShowForm(true); }}
               className="w-full text-gray-500 text-sm hover:underline"
             >
               Use a different number
@@ -289,7 +307,7 @@ export default function WantVerificationPage() {
     );
   }
 
-  // Main verification form
+  // MAIN VIEW
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800">
       {/* Header */}
@@ -298,7 +316,7 @@ export default function WantVerificationPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-8">
-        {/* Product Card with Image */}
+        {/* Product Card */}
         <div className="bg-white rounded-2xl overflow-hidden mb-6">
           {/* Product Image */}
           {want.image_url && (
@@ -352,97 +370,134 @@ export default function WantVerificationPage() {
           </div>
         </div>
 
-        {/* Value Prop */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-5 mb-6">
-          <div className="flex items-center gap-3">
-            <Sparkles className="h-6 w-6 shrink-0" />
-            <div>
-              <p className="font-medium">Would you buy this too?</p>
-              <p className="text-sm text-purple-200">
-                If 10 people verify, Jeffy will source it — and the person who requested it gets theirs FREE!
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Verification Form */}
-        <div className="bg-white rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Verify Your Interest</h2>
-
-          {/* Method Toggle */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setMethod('email')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
-                method === 'email' 
-                  ? 'bg-orange-100 text-orange-700' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Mail className="h-4 w-4" /> Email
-            </button>
-            <button
-              onClick={() => setMethod('sms')}
-              className={`flex-1 py-2 px-4 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
-                method === 'sms' 
-                  ? 'bg-orange-100 text-orange-700' 
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              <Phone className="h-4 w-4" /> Phone
-            </button>
-          </div>
-
-          <form onSubmit={handleSendVerification} className="space-y-4">
-            {method === 'email' ? (
+        {/* CLICKABLE PURPLE BANNER - Opens form when clicked */}
+        <button 
+          onClick={() => setShowForm(!showForm)}
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-2xl p-5 mb-4 text-left hover:from-purple-700 hover:to-indigo-700 transition-all"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-6 w-6 shrink-0" />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <p className="font-bold text-lg">Would you buy this too?</p>
+                <p className="text-sm text-purple-200">
+                  Tap here to verify — help them get it FREE!
+                </p>
+              </div>
+            </div>
+            {showForm ? (
+              <ChevronUp className="h-6 w-6 shrink-0" />
+            ) : (
+              <ChevronDown className="h-6 w-6 shrink-0 animate-bounce" />
+            )}
+          </div>
+        </button>
+
+        {/* EXPANDABLE VERIFICATION FORM */}
+        {showForm && (
+          <div className="bg-white rounded-2xl p-6 animate-in slide-in-from-top-2 duration-300">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">Quick Verify</h2>
+
+            {/* Method Selection - 3 options */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <button
+                onClick={() => setMethod('whatsapp')}
+                className={`py-3 px-2 rounded-xl font-medium flex flex-col items-center gap-1 transition ${
+                  method === 'whatsapp' 
+                    ? 'bg-green-100 text-green-700 ring-2 ring-green-500' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <MessageCircle className="h-5 w-5" />
+                <span className="text-xs">WhatsApp</span>
+              </button>
+              <button
+                onClick={() => setMethod('phone')}
+                className={`py-3 px-2 rounded-xl font-medium flex flex-col items-center gap-1 transition ${
+                  method === 'phone' 
+                    ? 'bg-orange-100 text-orange-700 ring-2 ring-orange-500' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Phone className="h-5 w-5" />
+                <span className="text-xs">SMS</span>
+              </button>
+              <button
+                onClick={() => setMethod('email')}
+                className={`py-3 px-2 rounded-xl font-medium flex flex-col items-center gap-1 transition ${
+                  method === 'email' 
+                    ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-500' 
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <Mail className="h-5 w-5" />
+                <span className="text-xs">Email</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSendVerification} className="space-y-4">
+              {method === 'email' ? (
                 <input
                   type="email"
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  placeholder="your@email.com"
+                  className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg"
                   required
+                  autoFocus
                 />
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                <input
-                  type="tel"
-                  value={contact}
-                  onChange={(e) => setContact(e.target.value)}
-                  placeholder="082 123 4567"
-                  className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">South African numbers only</p>
-              </div>
-            )}
-
-            {sendError && (
-              <p className="text-red-600 text-sm">{sendError}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={sending || !contact}
-              className="w-full py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {sending ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <>
-                  Yes, I&apos;d Buy This! <ArrowRight className="h-5 w-5" />
-                </>
+                <div>
+                  <input
+                    type="tel"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="082 123 4567"
+                    className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg"
+                    required
+                    autoFocus
+                  />
+                  {method === 'whatsapp' && (
+                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                      <MessageCircle className="h-3 w-3" /> We'll send the code to your WhatsApp
+                    </p>
+                  )}
+                </div>
               )}
-            </button>
-          </form>
 
-          <p className="text-xs text-gray-400 text-center mt-4">
-            We&apos;ll only contact you about this product. No spam.
-          </p>
+              {sendError && (
+                <p className="text-red-600 text-sm">{sendError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={sending || !contact}
+                className="w-full py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold rounded-xl hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 flex items-center justify-center gap-2 text-lg"
+              >
+                {sending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    Yes, I'd Buy This! <ArrowRight className="h-5 w-5" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            <p className="text-xs text-gray-400 text-center mt-4">
+              One verification per person. No spam, ever.
+            </p>
+          </div>
+        )}
+
+        {/* Create Your Own CTA */}
+        <div className="mt-6 text-center">
+          <Link 
+            href="/wants/create"
+            className="inline-flex items-center gap-2 text-orange-400 font-medium hover:text-orange-300"
+          >
+            Or create your own want & get it FREE <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </main>
     </div>
