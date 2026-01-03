@@ -33,20 +33,60 @@ const apiKeyInput = document.getElementById('apiKeyInput');
 // REMOTE CONTROL HANDLERS
 // ============================================
 
+// Track webview ready state
+let webviewReady = false;
+
 function setupRemoteControl() {
+  // Track when webview is ready
+  webview.addEventListener('dom-ready', () => {
+    webviewReady = true;
+    console.log('Webview DOM ready');
+  });
+  
+  webview.addEventListener('did-start-loading', () => {
+    webviewReady = false;
+  });
+  
+  webview.addEventListener('did-stop-loading', () => {
+    webviewReady = true;
+    console.log('Webview finished loading');
+  });
+
   // Handle navigate command
   window.electronAPI.onNavigate((url) => {
     console.log('Remote: Navigate to', url);
+    webviewReady = false;
     webview.loadURL(url);
   });
 
-  // Handle execute JS command
+  // Handle execute JS command - with better error handling
   window.electronAPI.onExecuteJs(async (code) => {
-    console.log('Remote: Execute JS');
+    console.log('Remote: Execute JS, webviewReady:', webviewReady);
+    
+    // Wait for webview to be ready if not
+    if (!webviewReady) {
+      console.log('Waiting for webview...');
+      await new Promise(resolve => {
+        const checkReady = setInterval(() => {
+          if (webviewReady) {
+            clearInterval(checkReady);
+            resolve();
+          }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(checkReady);
+          resolve();
+        }, 10000);
+      });
+    }
+    
     try {
+      // Execute code directly - caller should handle error catching
       const result = await webview.executeJavaScript(code);
+      console.log('Execute result:', typeof result);
       window.electronAPI.sendExecuteResult(result);
     } catch (error) {
+      console.error('Execute error:', error);
       window.electronAPI.sendExecuteResult({ error: error.message });
     }
   });
