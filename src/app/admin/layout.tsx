@@ -234,11 +234,15 @@ export default function AdminLayout({
             <NavLink 
               href="/admin/partners" 
               icon={Users} 
-              isActive={isActive('/admin/partners')}
+              isActive={pathname === '/admin/partners'}
               count={counts.partnersPending}
               countColor="orange"
             >
               Applications
+            </NavLink>
+            
+            <NavLink href="/admin/partners/finances" icon={DollarSign} isActive={isActive('/admin/partners/finances')}>
+              Finances
             </NavLink>
             
             <NavLink href="/admin/zones" icon={MapPin} isActive={isActive('/admin/zones')}>
