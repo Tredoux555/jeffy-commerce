@@ -748,6 +748,102 @@ export default function EditProductPage() {
           </div>
         </div>
 
+        {/* Variants Section */}
+        {variants.length > 0 && (
+          <div className="bg-purple-50 rounded-xl border border-purple-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-purple-900 flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Product Variants ({variants.length})
+                </h2>
+                <p className="text-sm text-purple-700">
+                  Different options available from 1688 supplier
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              {variants.map((variant, idx) => (
+                <div 
+                  key={idx} 
+                  className="bg-white rounded-lg border p-3 flex items-center gap-4"
+                >
+                  {/* Variant Image */}
+                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    {variant.image ? (
+                      <img 
+                        src={variant.image} 
+                        alt={variant.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <Package className="h-6 w-6" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Variant Info */}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">
+                      {variant.name}
+                    </p>
+                    <div className="flex items-center gap-3 mt-1 text-sm">
+                      {variant.sku_suffix && (
+                        <span className="text-gray-500">
+                          SKU: ...{variant.sku_suffix}
+                        </span>
+                      )}
+                      {variant.price_adjustment !== undefined && variant.price_adjustment !== 0 && (
+                        <span className={variant.price_adjustment > 0 ? 'text-red-600' : 'text-green-600'}>
+                          {variant.price_adjustment > 0 ? '+' : ''}{(variant.price_adjustment / 100).toFixed(0)} CNY
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Stock Status */}
+                  <div className="flex-shrink-0">
+                    {variant.in_stock ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                        In Stock
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded-full font-medium">
+                        Out of Stock
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Variant Summary */}
+            <div className="bg-purple-100 rounded-lg p-3 text-sm text-purple-800">
+              <p>
+                <strong>Note:</strong> Variants are synced from 1688. When ordering, 
+                specify the exact variant name (规格) to the agent.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Source Data Features */}
+        {sourceData.features && sourceData.features.length > 0 && (
+          <div className="bg-green-50 rounded-xl border border-green-200 p-6 space-y-4">
+            <h2 className="font-semibold text-green-900">Product Features</h2>
+            <ul className="space-y-2">
+              {sourceData.features.map((feature: string, idx: number) => (
+                <li key={idx} className="flex items-start gap-2 text-sm text-green-800">
+                  <Check className="h-4 w-4 mt-0.5 text-green-600 flex-shrink-0" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="flex gap-4">
           <Button type="submit" disabled={submitting}>
             {submitting ? (

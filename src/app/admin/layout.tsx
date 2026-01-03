@@ -26,7 +26,9 @@ import {
   Scale,
   Activity,
   Brain,
-  ShoppingBag
+  ShoppingBag,
+  Truck,
+  AlertTriangle
 } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
@@ -253,6 +255,10 @@ export default function AdminLayout({
             <NavLink href="/admin/starter-kit" icon={ShoppingBag} isActive={isActive('/admin/starter-kit')}>
               Starter Kit
             </NavLink>
+            
+            <NavLink href="/admin/agent-order" icon={Truck} isActive={isActive('/admin/agent-order')}>
+              Agent Order
+            </NavLink>
 
             {/* ==================== ORDERS ==================== */}
             <NavSection title="Orders" />
@@ -341,6 +347,9 @@ export default function AdminLayout({
                 
                 {/* System */}
                 <p className="text-xs text-gray-400 px-4 pt-4">System</p>
+                <NavLink href="/admin/category-fixer" icon={AlertTriangle} isActive={isActive('/admin/category-fixer')}>
+                  Category Fixer
+                </NavLink>
                 <NavLink href="/admin/seed-docs" icon={FileText} isActive={isActive('/admin/seed-docs')}>
                   Legal Docs
                 </NavLink>

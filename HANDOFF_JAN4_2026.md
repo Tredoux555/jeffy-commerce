@@ -1,135 +1,133 @@
-# HANDOFF: Jan 4, 2026
+# HANDOFF: Jan 4, 2026 (Updated)
 
 ## ✅ COMPLETED TODAY
 
-### Starter Kit Admin Page - NEW!
-- Created `/admin/starter-kit` page
-- Shows curated R5K product selection for Zone Partners
-- Displays by category with quantities and costs
-- Shows profit projection (100% ROI at 2x markup)
-- Added navigation in Partners section
+### 1. Agent Order Page - NEW!
+- **Location:** `/admin/agent-order`
+- **Purpose:** Generate shipping request for China agent
+- Features:
+  - Shows all starter kit products with 1688 links
+  - Variant selector for each product
+  - Editable quantities
+  - Live CNY/ZAR totals
+  - "Copy Order" generates bilingual document (English + Chinese)
+  - "View Order Doc" preview
 
-### 1688 Product Enrichment - DONE!
-- **151/172 products successfully enriched** (88% success rate)
-- All products now have:
-  - ✅ Clean, professional titles (no more Chinese company names)
-  - ✅ AI-written descriptions (Claude Haiku)
-  - ✅ Feature bullet points
-  - ✅ Category suggestions
-  - ✅ Images uploaded to Supabase
-  - ✅ Variants scraped and stored in `source_data`
+### 2. Variants UI - NEW!
+- **Location:** `/admin/products/[id]` (product editor)
+- Shows purple "Product Variants" section with:
+  - Variant images
+  - SKU suffixes
+  - Price adjustments
+  - Stock status (In Stock / Out of Stock)
+- Also shows "Product Features" section (green) with AI-generated features
 
-### Scraper v4 Built
-- File: `/scripts/enrich-premium-v4.js`
-- Uses Claude Haiku for copywriting (~$2-3 for all products)
-- Properly extracts title from `document.title` (not h1)
-- Cleans variant names, suggests categories
+### 3. Category Fixer Page - NEW!
+- **Location:** `/admin/category-fixer`
+- Shows 2 lists:
+  - Bad Names (18 products) - Chinese company names to delete
+  - Needs Categorization (14 products) - to fix
+- "Auto-Fix All" button for smart category assignment
+- Delete button for bad products
+
+### 4. Pricing Fix Script - NEW!
+- **File:** `scripts/fix-pricing-sea-freight.js`
+- Analyzes current vs new pricing with sea freight formula
+- Run: `node scripts/fix-pricing-sea-freight.js` (analyze)
+- Run: `node scripts/fix-pricing-sea-freight.js --apply` (apply changes)
+
+### 5. Price Update API - NEW!
+- **Location:** `/api/import/1688/update-price`
+- POST endpoint to update product pricing
+- Used by pricing fix script
+
+### 6. Category Audit Script
+- **File:** `scripts/audit-categories.js`
+- Run: `node scripts/audit-categories.js`
 
 ---
 
-## 🚨 PRICING DISCOVERY
+## 🔍 AUDIT RESULTS
 
-**Current pricing uses AIR FREIGHT assumption: R75/item**
-This is WAY too high for bulk sea freight!
-
-### Sea Freight Calculation
+### Pricing Issues
 ```
-Sea freight to SA: ~R1,500 per cubic meter
-Average items per CBM: ~1,500 (small beauty products)
-Shipping per item: R1.00 (not R75!)
+Current total retail: R54,995 (8-60x markups!)
+New total retail:     R27,430 (2.5x markup)
+Average change:       -50%
 ```
 
-### Price Comparison Example (¥25 product)
-| Method | Landed | Retail (2.5x) | Wholesale (1.3x) |
-|--------|--------|---------------|------------------|
-| Current (air) | R155 | R388 | - |
-| Sea freight | R81 | R202 | **R105** |
+Formula change:
+- OLD: CNY × 3.2 + R75 (air freight) × 2.5 = crazy prices
+- NEW: CNY × 3.2 + R1 (sea freight) × 2.5 = reasonable prices
 
-**Sea freight makes Zone Partner wholesale viable!**
-
----
-
-## 📋 TODO LIST
-
-### High Priority
-1. **Recalculate all prices with sea freight formula**
-   - Change: `shipping = R1` instead of `R75`
-   - Recalculate all 175 products
-   - Formula: `Landed = CNY × 3.2 + R1`
-
-2. **Create reseller/wholesale page**
-   - Separate pricing for Zone Partners
-   - Wholesale markup: 1.3x (not 2.5x retail)
-   - Zone Partners resell at 1.8-2x for their margin
-
-3. **Add variants UI to admin product page**
-   - Variants ARE scraped (stored in `source_data.variants`)
-   - Need UI to display/edit them
-   - Started work in `/src/app/admin/products/[id]/page.tsx`
-
-### Medium Priority
-4. **Remove empty categories**
-   - Clean up category list in admin
-
-5. **Retry failed products**
-   - 21 products failed enrichment
-   - 17 still have bad Chinese names
-   - Can re-run scraper on specific SKUs
-
-### Low Priority
-6. **Variant images**
-   - Some variants have images stored
-   - Could display in product gallery
+### Category Issues
+- 18 products with Chinese company names → Delete via Category Fixer
+- 14 products uncategorized/Other → Fix via Category Fixer
 
 ---
 
-## KEY FILES
+## 📋 NEXT STEPS (After Deploy)
 
-| File | Purpose |
-|------|---------|
-| `scripts/enrich-premium-v4.js` | Scraper with Claude copywriting |
-| `src/app/api/import/1688/enrich/route.ts` | Enrichment API |
-| `enrichment-v4.log` | Full log of today's enrichment run |
+### Immediate
+1. **Deploy to Railway** - Get new pages/APIs live
+2. **Open `/admin/category-fixer`** - Delete 18 bad products, fix 14 categories
+3. **Run pricing fix** - `node scripts/fix-pricing-sea-freight.js --apply`
+
+### Then
+4. **Test Agent Order page** - Generate a test order doc
+5. **Create Reseller page** - Wholesale pricing for Zone Partners
+
+---
+
+## KEY FILES CHANGED
+
+| File | Change |
+|------|--------|
+| `src/app/admin/agent-order/page.tsx` | NEW - Agent shipping request generator |
+| `src/app/admin/category-fixer/page.tsx` | NEW - Fix categories & delete bad products |
+| `src/app/admin/products/[id]/page.tsx` | UPDATED - Added variants & features display |
+| `src/app/admin/layout.tsx` | UPDATED - Added nav links + icons |
+| `src/app/api/import/1688/update-price/route.ts` | NEW - Price update API |
+| `scripts/fix-pricing-sea-freight.js` | NEW - Pricing analysis & fix |
+| `scripts/audit-categories.js` | NEW - Category audit |
+
+---
+
+## NAVIGATION ADDED
+
+**Partners Section:**
+- Agent Order (Truck icon)
+
+**More Tools > System:**
+- Category Fixer (AlertTriangle icon)
+
+---
 
 ## DATABASE STATE
 - **175 total products** from 1688
-- **154 with features** (AI copywritten)
-- **17 with bad names** (failed scrape)
-- **Variants stored** in `source_data.variants`
+- **154 with variants** stored in source_data
+- **149 with CNY prices** (can be repriced)
+- **18 with bad names** (Chinese company names)
+- **14 need categorization** (Uncategorized or Other)
 
-## TO CONTINUE
+---
+
+## QUICK COMMANDS
+
 ```bash
-# Check product stats
-curl -s "https://jeffy.co.za/api/import/1688?limit=200" | python3 -c "
-import sys, json
-data = json.load(sys.stdin)
-products = data.get('products', [])
-print(f'Total: {len(products)}')
-print(f'With features: {sum(1 for p in products if p.get(\"source_data\", {}).get(\"features\"))}')
-"
+# Category audit (view issues)
+node scripts/audit-categories.js
 
-# Browser for scraping (if needed)
-cd ~/Desktop/jeffy-mvp/jeffy-1688-browser && npm start
+# Pricing analysis (view changes)
+node scripts/fix-pricing-sea-freight.js
+
+# Apply pricing (after deploy)
+node scripts/fix-pricing-sea-freight.js --apply
+
+# Dev server
+npm run dev
 ```
 
 ---
 
-## QUICK WIN FOR TOMORROW
-
-Fastest impact: **Recalculate prices with sea freight**
-
-Update `/src/app/api/import/1688/enrich/route.ts`:
-```typescript
-// Change this:
-const SHIPPING_PER_KG = 150;
-const DEFAULT_WEIGHT = 0.5;  // = R75
-
-// To this:
-const SHIPPING_PER_ITEM = 1;  // Sea freight bulk
-```
-
-Then run a script to recalculate all 175 products.
-
----
-
-*Good session! 151 products enriched, pricing model clarified.*
+*Session: Fixed variants display, created agent order system, pricing/category tools*
