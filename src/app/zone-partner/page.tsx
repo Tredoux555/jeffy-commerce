@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageCircle, TrendingUp, Package, Users, Sparkles } from 'lucide-react';
+import { MessageCircle, TrendingUp, Package, Users, Sparkles, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ZonePartnerPage() {
@@ -12,7 +12,6 @@ export default function ZonePartnerPage() {
   const whatsappNumber = '27681491442'; // Update this to your number
   
   const openWhatsApp = () => {
-    // Personal, casual intro message
     const message = name 
       ? `Hi! I'm ${name}${area ? ` from ${area}` : ''}. I'm interested in becoming a Zone Partner.`
       : `Hi! I'm interested in becoming a Zone Partner.`;
@@ -33,35 +32,35 @@ export default function ZonePartnerPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
             <Sparkles className="h-4 w-4" />
-            50/50 Profit Share
+            Buy Wholesale, Sell Retail
           </div>
           <h1 className="text-3xl font-bold text-white mb-3">
-            Sell Jeffy in Your Area
+            Become a Zone Partner
           </h1>
           <p className="text-gray-400">
-            No stock needed. No upfront costs. Just customers.
+            Buy products at cost. Sell in your community. Keep the profit.
           </p>
         </div>
 
-        {/* Benefits - Simple */}
+        {/* Benefits - Accurate */}
         <div className="bg-white/5 rounded-2xl p-6 mb-8 space-y-4">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-orange-500/20 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-orange-400" />
+              <ShoppingBag className="h-5 w-5 text-orange-400" />
             </div>
             <div>
-              <p className="text-white font-medium">50% of every sale</p>
-              <p className="text-gray-400 text-sm">You sell, we split</p>
+              <p className="text-white font-medium">Wholesale prices from China</p>
+              <p className="text-gray-400 text-sm">We source, you buy at cost</p>
             </div>
           </div>
           
           <div className="flex items-start gap-4">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <Package className="h-5 w-5 text-blue-400" />
+            <div className="p-2 bg-green-500/20 rounded-lg">
+              <TrendingUp className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <p className="text-white font-medium">We handle everything</p>
-              <p className="text-gray-400 text-sm">Stock, shipping, support</p>
+              <p className="text-white font-medium">You set your prices</p>
+              <p className="text-gray-400 text-sm">Your margin, your profit</p>
             </div>
           </div>
           
@@ -70,15 +69,36 @@ export default function ZonePartnerPage() {
               <Users className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Your network = your income</p>
-              <p className="text-gray-400 text-sm">WhatsApp groups, stokvels, community</p>
+              <p className="text-white font-medium">Your community, your business</p>
+              <p className="text-gray-400 text-sm">WhatsApp groups, stokvels, spaza</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Example margin */}
+        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-5 mb-8">
+          <p className="text-green-400 text-sm font-medium mb-2">Example:</p>
+          <div className="flex items-center justify-between text-white">
+            <div>
+              <p className="text-gray-400 text-xs">You buy</p>
+              <p className="font-bold">R150</p>
+            </div>
+            <div className="text-2xl">→</div>
+            <div>
+              <p className="text-gray-400 text-xs">You sell</p>
+              <p className="font-bold">R299</p>
+            </div>
+            <div className="text-2xl">→</div>
+            <div>
+              <p className="text-gray-400 text-xs">You keep</p>
+              <p className="font-bold text-green-400">R149</p>
             </div>
           </div>
         </div>
 
         {/* Simple Form - Just name and area */}
         <div className="bg-white rounded-2xl p-6 mb-6">
-          <h2 className="font-bold text-gray-900 mb-4">Quick intro</h2>
+          <h2 className="font-bold text-gray-900 mb-4">Interested? Let's chat.</h2>
           
           <div className="space-y-4">
             <div>
@@ -118,33 +138,21 @@ export default function ZonePartnerPage() {
           Let's talk - no long forms, no hassle
         </p>
 
-        {/* Trust */}
-        <div className="mt-12 text-center">
-          <p className="text-gray-500 text-sm mb-3">Already partnered with sellers in</p>
-          <div className="flex justify-center gap-2 flex-wrap">
-            {['Soweto', 'Alex', 'Tembisa', 'Khayelitsha'].map((place) => (
-              <span key={place} className="bg-white/10 text-gray-300 px-3 py-1 rounded-full text-sm">
-                {place}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* How it works - Minimal */}
+        {/* How it works - Accurate */}
         <div className="mt-12 border-t border-white/10 pt-8">
           <h3 className="text-white font-bold text-center mb-6">How it works</h3>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
-              <p className="text-gray-300">Chat with us on WhatsApp</p>
+              <p className="text-gray-300">Chat with us, see the product catalog</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
-              <p className="text-gray-300">Get your unique Zone Partner link</p>
+              <p className="text-gray-300">Buy stock at wholesale prices</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
-              <p className="text-gray-300">Share products, earn 50%</p>
+              <p className="text-gray-300">Sell in your community, keep the profit</p>
             </div>
           </div>
         </div>
@@ -152,7 +160,7 @@ export default function ZonePartnerPage() {
         {/* FAQ teaser */}
         <div className="mt-8 text-center">
           <p className="text-gray-500 text-sm">
-            Questions? Just ask on WhatsApp - we reply fast 💬
+            Questions? Just ask on WhatsApp 💬
           </p>
         </div>
       </main>
