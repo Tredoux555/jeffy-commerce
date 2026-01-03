@@ -13,6 +13,105 @@
     "personal": 2
   },
 
+  "projects": [
+    {
+      "id": "township-strategy",
+      "name": "Township Market Strategy",
+      "category": "jeffy",
+      "status": "active",
+      "priority": 1,
+      "description": "R900B township economy - Soweto, Alexandra, Tembisa, Diepsloot, Orange Farm",
+      "dashboardUrl": "/admin/growth/township-strategy",
+      "targetMarket": {
+        "economy": "R900B",
+        "stokvelMembers": "11.5M",
+        "stokvelPool": "R50B",
+        "spazaShops": "150K+",
+        "whatsappAdoption": "74%"
+      },
+      "phases": [
+        {
+          "id": 1,
+          "name": "Foundation",
+          "duration": "Weeks 1-4",
+          "status": "active",
+          "progress": 0,
+          "tasks": [
+            { "id": "t1", "task": "Contact NASASA (087 470 0884)", "done": false, "priority": "critical" },
+            { "id": "t2", "task": "Set up WhatsApp Business API (Wati)", "done": false, "priority": "critical" },
+            { "id": "t3", "task": "Create voice note demand capture flow", "done": false, "priority": "high" },
+            { "id": "t4", "task": "Design COD system with spaza pickup", "done": false, "priority": "high" },
+            { "id": "t5", "task": "Build stokvel group registration", "done": false, "priority": "medium" },
+            { "id": "t6", "task": "Create agent recruitment page", "done": false, "priority": "medium" }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Pilot Launch",
+          "duration": "Weeks 5-8",
+          "status": "locked",
+          "progress": 0,
+          "tasks": [
+            { "id": "t7", "task": "Recruit 10 agents in Soweto", "done": false, "priority": "critical" },
+            { "id": "t8", "task": "Partner with 5 spaza shops", "done": false, "priority": "critical" },
+            { "id": "t9", "task": "First stokvel bulk order (20+ members)", "done": false, "priority": "high" },
+            { "id": "t10", "task": "Book Jozi FM interview (564K listeners)", "done": false, "priority": "high" },
+            { "id": "t11", "task": "Test China→Joburg→spaza pipeline", "done": false, "priority": "high" },
+            { "id": "t12", "task": "Collect 50+ wants from township", "done": false, "priority": "medium" }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Scale",
+          "duration": "Weeks 9-12",
+          "status": "locked",
+          "progress": 0,
+          "tasks": [
+            { "id": "t13", "task": "Expand to Alex and Tembisa", "done": false, "priority": "high" },
+            { "id": "t14", "task": "50 agents across 3 townships", "done": false, "priority": "high" },
+            { "id": "t15", "task": "20 spaza shop partners", "done": false, "priority": "high" },
+            { "id": "t16", "task": "Taxi rank presence at Bara", "done": false, "priority": "medium" },
+            { "id": "t17", "task": "Festive season stokvel orders", "done": false, "priority": "critical" },
+            { "id": "t18", "task": "500+ wants, 100+ orders", "done": false, "priority": "high" }
+          ]
+        }
+      ],
+      "keyContacts": [
+        { "org": "NASASA", "role": "Stokvel gateway (125K groups)", "phone": "087 470 0884", "email": "info@nasasa.co.za" },
+        { "org": "Jozi FM", "role": "Community radio (564K)", "phone": "011 938 1058", "email": "info@jozifm.co.za" },
+        { "org": "Alex FM", "role": "Community radio (130K)", "phone": "011 882 3674", "email": "info@alexfm.co.za" },
+        { "org": "Wati", "role": "WhatsApp API", "email": "sales@wati.io" }
+      ]
+    },
+    {
+      "id": "zone-partner-system",
+      "name": "Zone Partner System",
+      "category": "jeffy",
+      "status": "active",
+      "priority": 2,
+      "description": "50/50 profit sharing with local entrepreneurs",
+      "dashboardUrl": "/admin/partners"
+    },
+    {
+      "id": "wants-system",
+      "name": "Wants Collection System",
+      "category": "jeffy",
+      "status": "active",
+      "priority": 2,
+      "description": "Demand-driven product sourcing",
+      "dashboardUrl": "/admin/wants"
+    },
+    {
+      "id": "influencer-outreach",
+      "name": "Influencer Outreach Campaign",
+      "category": "jeffy",
+      "status": "waiting",
+      "priority": 3,
+      "description": "40 letters sent Jan 2, waiting for responses",
+      "dashboardUrl": "/admin/outreach"
+    }
+  ],
+
   "goals": {
     "jeffy": [
       {
@@ -25,12 +124,67 @@
         "deadline": "2026-06-01",
         "priority": 1,
         "status": "active",
+        "linkedProject": "zone-partner-system",
         "milestones": [
           { "value": 5, "label": "Minimum viable network", "reached": false },
           { "value": 10, "label": "Proof of concept", "reached": false },
           { "value": 20, "label": "Launch ready", "reached": false }
         ],
-        "notes": "Quality over speed. Each partner is a business owner, not a gig worker."
+        "notes": "Quality over speed. Each partner is a business owner."
+      },
+      {
+        "id": "township-agents",
+        "name": "Township Agents",
+        "target": 50,
+        "minimum": 10,
+        "current": 0,
+        "unit": "agents",
+        "deadline": "2026-03-31",
+        "priority": 1,
+        "status": "active",
+        "linkedProject": "township-strategy",
+        "milestones": [
+          { "value": 10, "label": "Soweto pilot", "reached": false },
+          { "value": 30, "label": "3 townships", "reached": false },
+          { "value": 50, "label": "Scale ready", "reached": false }
+        ],
+        "notes": "Target stokvel chairpersons as first agents."
+      },
+      {
+        "id": "spaza-partners",
+        "name": "Spaza Shop Partners",
+        "target": 20,
+        "minimum": 5,
+        "current": 0,
+        "unit": "shops",
+        "deadline": "2026-03-31",
+        "priority": 1,
+        "status": "active",
+        "linkedProject": "township-strategy",
+        "milestones": [
+          { "value": 5, "label": "Pilot network", "reached": false },
+          { "value": 10, "label": "Coverage", "reached": false },
+          { "value": 20, "label": "Full network", "reached": false }
+        ],
+        "notes": "Cash-on-delivery pickup points. Commission model."
+      },
+      {
+        "id": "stokvel-orders",
+        "name": "Stokvel Bulk Orders",
+        "target": 10,
+        "minimum": 1,
+        "current": 0,
+        "unit": "orders",
+        "deadline": "2026-12-15",
+        "priority": 2,
+        "status": "active",
+        "linkedProject": "township-strategy",
+        "milestones": [
+          { "value": 1, "label": "First order", "reached": false },
+          { "value": 5, "label": "Proven model", "reached": false },
+          { "value": 10, "label": "Festive season", "reached": false }
+        ],
+        "notes": "70% of stokvel purchases are food. Target Nov-Dec bulk orders."
       },
       {
         "id": "wants-collected",
@@ -42,6 +196,7 @@
         "deadline": "2026-06-01",
         "priority": 2,
         "status": "active",
+        "linkedProject": "wants-system",
         "milestones": [
           { "value": 100, "label": "Minimum for launch", "reached": false },
           { "value": 250, "label": "Strong signal", "reached": false },
@@ -76,12 +231,13 @@
         "deadline": "2026-01-20",
         "priority": 1,
         "status": "waiting",
+        "linkedProject": "influencer-outreach",
         "milestones": [
           { "value": 1, "label": "First response", "reached": false },
           { "value": 3, "label": "Momentum", "reached": false },
           { "value": 5, "label": "Strong interest", "reached": false }
         ],
-        "notes": "40 personalized letters sent Jan 2. Wait until Jan 15 before gentle follow-up."
+        "notes": "40 personalized letters sent Jan 2. Wait until Jan 15 before follow-up."
       }
     ],
     
@@ -162,6 +318,19 @@
           "action": "Created Life OS mission control system",
           "impact": "high",
           "goalId": null
+        },
+        {
+          "category": "jeffy",
+          "action": "Built Township Strategy dashboard with full playbook",
+          "impact": "high",
+          "goalId": null,
+          "linkedProject": "township-strategy"
+        },
+        {
+          "category": "jeffy",
+          "action": "Fixed Tailwind CSS v4→v3 build error",
+          "impact": "medium",
+          "goalId": null
         }
       ]
     }
@@ -169,25 +338,47 @@
 
   "actionQueue": [
     {
+      "id": "aq-000",
+      "task": "CALL NASASA TODAY - 087 470 0884",
+      "category": "jeffy",
+      "priority": 1,
+      "deadline": "2026-01-03",
+      "status": "urgent",
+      "linkedProject": "township-strategy",
+      "notes": "Gateway to 125K+ stokvel groups, R50B economy"
+    },
+    {
       "id": "aq-001",
       "task": "Wait for influencer responses (no follow-up yet)",
       "category": "jeffy",
-      "priority": 1,
+      "priority": 2,
       "deadline": "2026-01-15",
       "status": "waiting",
+      "linkedProject": "influencer-outreach",
       "notes": "If silence after Jan 15, one gentle follow-up"
     },
     {
       "id": "aq-002",
-      "task": "Continue collecting wants - daily check",
+      "task": "Set up WhatsApp Business API with Wati",
       "category": "jeffy",
       "priority": 2,
-      "deadline": null,
-      "status": "ongoing",
-      "notes": "Share want submission link in relevant groups"
+      "deadline": "2026-01-10",
+      "status": "pending",
+      "linkedProject": "township-strategy",
+      "notes": "sales@wati.io - primary commerce channel for township"
     },
     {
       "id": "aq-003",
+      "task": "Continue collecting wants - daily check",
+      "category": "jeffy",
+      "priority": 3,
+      "deadline": null,
+      "status": "ongoing",
+      "linkedProject": "wants-system",
+      "notes": "Share want submission link in relevant groups"
+    },
+    {
+      "id": "aq-004",
       "task": "Curate product catalog from 1688",
       "category": "jeffy",
       "priority": 3,
@@ -196,7 +387,7 @@
       "notes": "Quality over quantity. Check images for Chinese text."
     },
     {
-      "id": "aq-004",
+      "id": "aq-005",
       "task": "Research son's model portfolio requirements",
       "category": "family",
       "priority": 4,
@@ -205,7 +396,7 @@
       "notes": "What do agencies look for? DIY vs professional?"
     },
     {
-      "id": "aq-005",
+      "id": "aq-006",
       "task": "Research Qingdao international schools",
       "category": "career",
       "priority": 5,
