@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MessageCircle, TrendingUp, Package, Users, Sparkles, ShoppingBag } from 'lucide-react';
+import { MessageCircle, TrendingUp, Users, Sparkles, ShoppingBag, Handshake } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ZonePartnerPage() {
@@ -31,26 +31,26 @@ export default function ZonePartnerPage() {
         {/* Hero */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full text-sm font-medium mb-4">
-            <Sparkles className="h-4 w-4" />
-            Buy Wholesale, Sell Retail
+            <Handshake className="h-4 w-4" />
+            50/50 Partnership
           </div>
           <h1 className="text-3xl font-bold text-white mb-3">
             Become a Zone Partner
           </h1>
           <p className="text-gray-400">
-            Buy products at cost. Sell in your community. Keep the profit.
+            You sell. We supply. Split the profit 50/50.
           </p>
         </div>
 
-        {/* Benefits - Accurate */}
+        {/* Benefits */}
         <div className="bg-white/5 rounded-2xl p-6 mb-8 space-y-4">
           <div className="flex items-start gap-4">
             <div className="p-2 bg-orange-500/20 rounded-lg">
               <ShoppingBag className="h-5 w-5 text-orange-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Wholesale prices from China</p>
-              <p className="text-gray-400 text-sm">We source, you buy at cost</p>
+              <p className="text-white font-medium">We source from China</p>
+              <p className="text-gray-400 text-sm">Quality products at wholesale prices</p>
             </div>
           </div>
           
@@ -59,8 +59,8 @@ export default function ZonePartnerPage() {
               <TrendingUp className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <p className="text-white font-medium">You set your prices</p>
-              <p className="text-gray-400 text-sm">Your margin, your profit</p>
+              <p className="text-white font-medium">You buy stock, sell locally</p>
+              <p className="text-gray-400 text-sm">Set your own prices in your area</p>
             </div>
           </div>
           
@@ -69,29 +69,37 @@ export default function ZonePartnerPage() {
               <Users className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-white font-medium">Your community, your business</p>
+              <p className="text-white font-medium">Your community, our products</p>
               <p className="text-gray-400 text-sm">WhatsApp groups, stokvels, spaza</p>
             </div>
           </div>
         </div>
 
-        {/* Example margin */}
+        {/* Example margin - 50/50 split */}
         <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl p-5 mb-8">
-          <p className="text-green-400 text-sm font-medium mb-2">Example:</p>
-          <div className="flex items-center justify-between text-white">
-            <div>
-              <p className="text-gray-400 text-xs">You buy</p>
-              <p className="font-bold">R150</p>
+          <p className="text-green-400 text-sm font-medium mb-3">Example sale:</p>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between text-gray-400">
+              <span>You sell for</span>
+              <span className="text-white font-medium">R299</span>
             </div>
-            <div className="text-2xl">→</div>
-            <div>
-              <p className="text-gray-400 text-xs">You sell</p>
-              <p className="font-bold">R299</p>
+            <div className="flex justify-between text-gray-400">
+              <span>Product cost</span>
+              <span className="text-white font-medium">-R150</span>
             </div>
-            <div className="text-2xl">→</div>
-            <div>
-              <p className="text-gray-400 text-xs">You keep</p>
-              <p className="font-bold text-green-400">R149</p>
+            <div className="border-t border-white/10 my-2"></div>
+            <div className="flex justify-between text-gray-400">
+              <span>Profit</span>
+              <span className="text-white font-medium">R149</span>
+            </div>
+            <div className="border-t border-white/10 my-2"></div>
+            <div className="flex justify-between">
+              <span className="text-green-400 font-medium">You keep (50%)</span>
+              <span className="text-green-400 font-bold">R74.50</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-orange-400 font-medium">Jeffy keeps (50%)</span>
+              <span className="text-orange-400 font-bold">R74.50</span>
             </div>
           </div>
         </div>
@@ -138,21 +146,21 @@ export default function ZonePartnerPage() {
           Let's talk - no long forms, no hassle
         </p>
 
-        {/* How it works - Accurate */}
+        {/* How it works */}
         <div className="mt-12 border-t border-white/10 pt-8">
           <h3 className="text-white font-bold text-center mb-6">How it works</h3>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
-              <p className="text-gray-300">Chat with us, see the product catalog</p>
+              <p className="text-gray-300">Chat with us, see the catalog</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
-              <p className="text-gray-300">Buy stock at wholesale prices</p>
+              <p className="text-gray-300">Buy stock at wholesale</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
-              <p className="text-gray-300">Sell in your community, keep the profit</p>
+              <p className="text-gray-300">Sell locally, split profit 50/50</p>
             </div>
           </div>
         </div>
