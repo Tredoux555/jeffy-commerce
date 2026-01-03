@@ -279,6 +279,7 @@
       ],
       
       "documents": [
+        { "name": "ZP System Summary (Source of Truth)", "path": "/docs/JEFFY_ZP_SYSTEM_SUMMARY.md", "status": "complete" },
         { "name": "Zone Partner Terms", "path": "/docs/ZONE_PARTNER_TERMS.md", "status": "complete" },
         { "name": "WhatsApp Onboarding Playbook", "path": "/docs/ZP_WHATSAPP_PLAYBOOK.md", "status": "complete" },
         { "name": "Zone Partner Agreement (Legal)", "path": "/docs/legal/ZONE_PARTNER_AGREEMENT.pdf", "status": "needs review" }
