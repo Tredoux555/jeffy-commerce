@@ -47,7 +47,7 @@ export default function AdminPartnersPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'active'>('all');
+  const [filter, setFilter] = useState<'all' | 'inquiry' | 'pending' | 'approved' | 'active'>('all');
 
   const supabase = createClient();
 
@@ -139,6 +139,8 @@ export default function AdminPartnersPage() {
       return <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700">Active</span>;
     }
     switch (partner.status) {
+      case 'inquiry':
+        return <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">Inquiry</span>;
       case 'approved':
         return <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700">Approved</span>;
       case 'pending':
@@ -177,6 +179,7 @@ export default function AdminPartnersPage() {
   // Filter partners
   const filteredPartners = partners.filter(p => {
     if (filter === 'all') return true;
+    if (filter === 'inquiry') return p.status === 'inquiry';
     if (filter === 'pending') return p.status === 'pending';
     if (filter === 'approved') return p.status === 'approved' && !p.is_active;
     if (filter === 'active') return p.is_active;
@@ -185,6 +188,7 @@ export default function AdminPartnersPage() {
 
   const stats = {
     total: partners.length,
+    inquiry: partners.filter(p => p.status === 'inquiry').length,
     pending: partners.filter(p => p.status === 'pending').length,
     onboarding: partners.filter(p => p.status === 'approved' && !p.is_active).length,
     active: partners.filter(p => p.is_active).length,
@@ -223,7 +227,7 @@ export default function AdminPartnersPage() {
       )}
 
       {/* Stats Cards - Clickable Filters */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <button
           onClick={() => setFilter('all')}
           className={`text-left p-4 rounded-xl border transition-all ${
@@ -232,6 +236,15 @@ export default function AdminPartnersPage() {
         >
           <p className={`text-sm ${filter === 'all' ? 'text-gray-300' : 'text-gray-600'}`}>Total</p>
           <p className="text-2xl font-bold">{stats.total}</p>
+        </button>
+        <button
+          onClick={() => setFilter('inquiry')}
+          className={`text-left p-4 rounded-xl border transition-all ${
+            filter === 'inquiry' ? 'bg-purple-500 text-white border-purple-500' : 'bg-white border-gray-200 hover:border-purple-300'
+          }`}
+        >
+          <p className={`text-sm ${filter === 'inquiry' ? 'text-purple-100' : 'text-gray-600'}`}>Inquiry</p>
+          <p className={`text-2xl font-bold ${filter !== 'inquiry' ? 'text-purple-600' : ''}`}>{stats.inquiry}</p>
         </button>
         <button
           onClick={() => setFilter('pending')}
@@ -337,6 +350,24 @@ export default function AdminPartnersPage() {
                     </div>
                     
                     {/* Quick Actions */}
+                    {partner.status === 'inquiry' && (
+                      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                        <button
+                          onClick={() => updatePartnerStatus(partner.id, 'pending')}
+                          className="p-2 rounded-lg hover:bg-yellow-50 text-yellow-600 transition-colors"
+                          title="Mark as Qualified"
+                        >
+                          <CheckCircle2 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => updatePartnerStatus(partner.id, 'rejected')}
+                          className="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors"
+                          title="Reject"
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
                     {partner.status === 'pending' && (
                       <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                         <button
@@ -454,6 +485,22 @@ export default function AdminPartnersPage() {
                     
                     {/* Action Buttons */}
                     <div className="mt-6 pt-4 border-t border-gray-200 flex flex-wrap gap-3">
+                      {partner.status === 'inquiry' && (
+                        <>
+                          <button
+                            onClick={() => updatePartnerStatus(partner.id, 'pending')}
+                            className="px-4 py-2 bg-yellow-500 text-white font-medium rounded-lg hover:bg-yellow-600 transition-colors"
+                          >
+                            ✓ Qualified - Move to Pending
+                          </button>
+                          <button
+                            onClick={() => updatePartnerStatus(partner.id, 'rejected')}
+                            className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </>
+                      )}
                       {partner.status === 'pending' && (
                         <>
                           <button
