@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { AddToCartButton } from './add-to-cart-button';
+import { AddToCartWithVariants } from './add-to-cart-with-variants';
 import { ShareButtons } from '@/components/share-buttons';
 import { RelatedProducts } from '@/components/related-products';
 import { ProductDetailClient } from './product-detail-client';
@@ -32,6 +32,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
     : 0;
 
   const images = product.images?.length ? product.images : (product.primary_image_url ? [product.primary_image_url] : []);
+
+  // Extract variants from source_data
+  const variants = product.source_data?.variants || [];
+
+  // Extract features from source_data
+  const features = product.source_data?.features || [];
+
+  // Extract specs from source_data
+  const specs = product.source_data?.specs || {};
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -77,6 +86,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {hasDiscount && (
               <span className="text-xl text-gray-400 line-through">{formatCurrency(product.compare_at_price_cents!)}</span>
             )}
+            {hasDiscount && (
+              <span className="bg-red-100 text-red-700 text-sm font-medium px-2 py-1 rounded">
+                -{discountPercent}% OFF
+              </span>
+            )}
           </div>
 
           {/* Stock Status */}
@@ -94,16 +108,48 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <p className="text-gray-600 mb-6">{product.short_description}</p>
           )}
 
+          {/* Variants + Add to Cart */}
           <div className="mb-8">
-            <AddToCartButton product={product} />
+            <AddToCartWithVariants product={product} variants={variants} />
           </div>
 
+          {/* Features */}
+          {features.length > 0 && (
+            <div className="border-t pt-6 mb-6">
+              <h3 className="font-semibold mb-3">Features</h3>
+              <ul className="space-y-2">
+                {features.map((feature: string, idx: number) => (
+                  <li key={idx} className="flex items-start gap-2 text-gray-600">
+                    <span className="text-[#ff6b35] mt-1">✓</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Description */}
           {product.description && (
             <div className="border-t pt-6">
               <h3 className="font-semibold mb-3">Description</h3>
               <div className="text-gray-600 prose prose-sm max-w-none whitespace-pre-line">
                 {product.description}
               </div>
+            </div>
+          )}
+
+          {/* Specifications */}
+          {Object.keys(specs).length > 0 && (
+            <div className="border-t pt-6 mt-6">
+              <h3 className="font-semibold mb-3">Specifications</h3>
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                {Object.entries(specs).slice(0, 10).map(([key, value]) => (
+                  <div key={key} className="contents">
+                    <dt className="text-gray-500">{key}</dt>
+                    <dd className="text-gray-900">{String(value)}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
           )}
         </div>

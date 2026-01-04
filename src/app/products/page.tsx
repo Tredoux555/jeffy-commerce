@@ -35,7 +35,7 @@ function ProductsContent() {
     
     let query = supabase
       .from('products')
-      .select('*, categories(name, slug)')
+      .select('*, categories(name, slug), source_data')
       .eq('status', 'active');
 
     // Search filter

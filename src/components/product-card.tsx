@@ -22,9 +22,20 @@ export function ProductCard({ product }: ProductCardProps) {
     ? Math.round((1 - product.selling_price_cents / product.compare_at_price_cents!) * 100)
     : 0;
 
+  // Check if product has variants
+  const variants = (product as any).source_data?.variants || [];
+  const hasVariants = variants.length > 1;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // If has variants, go to product page instead
+    if (hasVariants) {
+      window.location.href = `/products/${product.slug}`;
+      return;
+    }
+    
     addItem(product, 1);
   };
 
@@ -68,6 +79,13 @@ export function ProductCard({ product }: ProductCardProps) {
             isHot={isProductHot(product.total_sold || 0)}
             quantity={product.quantity}
           />
+
+          {/* Variants Badge */}
+          {hasVariants && (
+            <span className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+              {variants.length} Options
+            </span>
+          )}
 
           {/* Quick View Button - Shows on hover */}
           <button
@@ -114,7 +132,7 @@ export function ProductCard({ product }: ProductCardProps) {
             size="sm"
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            Add to Cart
+            {hasVariants ? 'Select Options' : 'Add to Cart'}
           </Button>
         </div>
       </div>
