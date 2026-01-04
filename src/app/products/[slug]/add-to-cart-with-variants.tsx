@@ -73,7 +73,7 @@ export function AddToCartWithVariants({ product, variants = [] }: AddToCartWithV
     }
   };
 
-  const isOutOfStock = product.quantity <= 0 || (selectedVariant && !selectedVariant.in_stock);
+  const isOutOfStock = product.quantity <= 0 || (selectedVariant ? !selectedVariant.in_stock : false);
 
   return (
     <div className="space-y-4">
