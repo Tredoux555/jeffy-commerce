@@ -4,6 +4,39 @@ Rolling log of all work sessions. Most recent first.
 
 ---
 
+## 2026-01-04 Session 3 - Railway Build Fix
+
+### Issue
+Railway build failed after previous push. Error logs showed:
+1. `pdf-parse` import error in oem-research route
+2. `Cannot find module 'tailwindcss'` - dev deps not installed
+3. `Resend API key missing` - module-level initialization failing at build time
+
+### Fixed
+- **pdf-parse**: Changed `pdf()` to `parsePDF()` (already had stub function)
+- **Resend lazy loading**: Converted all 5 files from module-level `new Resend()` to lazy getter pattern:
+  - `src/lib/email/resend.ts`
+  - `src/lib/email/verification.ts`
+  - `src/app/api/test-email/route.ts`
+  - `src/app/api/wants/public/route.ts`
+  - (auth routes already had getResend pattern)
+
+### Build Result
+```
+✓ Compiled successfully
+✓ Generating static pages (168/168)
+```
+
+### Commits
+- 3946ebe: fix: lazy load Resend to fix Railway build - CHECKPOINT 1
+
+### Next
+- Monitor Railway deploy
+- Verify live site at jeffy.co.za
+- Continue with HANDOFF_JAN4_MISSION.md plan
+
+---
+
 ## 2026-01-04 Session 2 - System Audit & Mission Handoff
 
 ### Done
