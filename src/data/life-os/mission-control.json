@@ -3,7 +3,7 @@
     "lastUpdated": "2026-01-04",
     "lastAudit": null,
     "nextAudit": "2026-01-31",
-    "version": "1.4.0"
+    "version": "1.5.0"
   },
   
   "focusAllocation": {
@@ -15,11 +15,61 @@
 
   "projects": [
     {
+      "id": "wants-catalogue",
+      "name": "Wants Catalogue Launch",
+      "category": "jeffy",
+      "status": "active",
+      "priority": 1,
+      "description": "Build demand-driven catalogue before Zone Partner recruitment",
+      "dashboardUrl": "/admin/wants",
+      "phases": [
+        {
+          "id": 1,
+          "name": "Social Media Setup",
+          "duration": "Week 1",
+          "status": "active",
+          "progress": 0,
+          "tasks": [
+            { "id": "sm1", "task": "Create Jeffy Facebook page", "done": false, "priority": "critical" },
+            { "id": "sm2", "task": "Create Jeffy Instagram account", "done": false, "priority": "critical" },
+            { "id": "sm3", "task": "Create Jeffy TikTok account", "done": false, "priority": "high" },
+            { "id": "sm4", "task": "Create Jeffy Twitter/X account", "done": false, "priority": "medium" },
+            { "id": "sm5", "task": "Set up Linktree or similar", "done": false, "priority": "high" },
+            { "id": "sm6", "task": "Create first 5 posts (wants system explainer)", "done": false, "priority": "high" }
+          ]
+        },
+        {
+          "id": 2,
+          "name": "Seed Wants",
+          "duration": "Week 1-2",
+          "status": "active",
+          "progress": 0,
+          "tasks": [
+            { "id": "sw1", "task": "Create 10 wants yourself (trending products)", "done": false, "priority": "high" },
+            { "id": "sw2", "task": "Share wants link in personal WhatsApp groups", "done": false, "priority": "high" },
+            { "id": "sw3", "task": "Post wants link on new social media pages", "done": false, "priority": "high" }
+          ]
+        },
+        {
+          "id": 3,
+          "name": "Viral Growth",
+          "duration": "Week 2-4",
+          "status": "locked",
+          "progress": 0,
+          "tasks": [
+            { "id": "vg1", "task": "First want hits 10 verifications", "done": false, "priority": "critical" },
+            { "id": "vg2", "task": "Source and fulfill first free product", "done": false, "priority": "critical" },
+            { "id": "vg3", "task": "Document success story for social proof", "done": false, "priority": "high" }
+          ]
+        }
+      ]
+    },
+    {
       "id": "township-strategy",
       "name": "Township Market Strategy",
       "category": "jeffy",
       "status": "active",
-      "priority": 1,
+      "priority": 2,
       "description": "R900B township economy - Soweto, Alexandra, Tembisa, Diepsloot, Orange Farm",
       "dashboardUrl": "/admin/growth/township-strategy",
       "targetMarket": {
@@ -37,10 +87,10 @@
           "status": "active",
           "progress": 0,
           "tasks": [
-            { "id": "t1", "task": "Contact NASASA (087 470 0884)", "done": false, "priority": "critical" },
-            { "id": "t2", "task": "Set up WhatsApp Business API (Wati)", "done": false, "priority": "critical" },
-            { "id": "t3", "task": "Create voice note demand capture flow", "done": false, "priority": "high" },
-            { "id": "t4", "task": "Design COD system with spaza pickup", "done": false, "priority": "high" },
+            { "id": "t1", "task": "Contact NASASA (087 470 0884)", "done": false, "priority": "high" },
+            { "id": "t2", "task": "Set up WhatsApp Business API (Wati)", "done": false, "priority": "high" },
+            { "id": "t3", "task": "Create voice note demand capture flow", "done": false, "priority": "medium" },
+            { "id": "t4", "task": "Design COD system with spaza pickup", "done": false, "priority": "medium" },
             { "id": "t5", "task": "Build stokvel group registration", "done": false, "priority": "medium" },
             { "id": "t6", "task": "Create agent recruitment page", "done": false, "priority": "medium" }
           ]
@@ -87,11 +137,12 @@
       "id": "zone-partner-system",
       "name": "Zone Partner System",
       "category": "jeffy",
-      "status": "active",
-      "priority": 1,
-      "description": "Wholesale model with trade credit - ZPs buy stock, own it, sell retail",
+      "status": "waiting",
+      "priority": 3,
+      "description": "Wholesale model with trade credit - waiting for wants catalogue validation",
       "dashboardUrl": "/admin/partners",
-      "modelDecision": "2026-01-03: Rejected consignment model (disguised employment risk). Adopted wholesale + trade credit.",
+      "modelDecision": "2026-01-04: Paused ZP recruitment. Strategy: Build wants catalogue first, prove demand, then recruit ZPs.",
+      "note": "System built and ready. Activate after wants catalogue shows traction.",
       
       "operationalModel": {
         "summary": "Wholesale Purchase + Net 7 Trade Credit",
@@ -138,123 +189,6 @@
         }
       },
       
-      "starterPackage": {
-        "totalValue": 4500,
-        "categories": {
-          "beautyPersonalCare": { "percent": 30, "value": 1350, "items": "Eyelash sets, lip gloss, edge control, braiding hair" },
-          "phoneAccessories": { "percent": 20, "value": 900, "items": "Charger cables, phone cases, Bluetooth earbuds" },
-          "householdEssentials": { "percent": 20, "value": 900, "items": "LED lamps, organizers, storage containers" },
-          "fashionAccessories": { "percent": 15, "value": 675, "items": "Sunglasses, watches" },
-          "kidsToys": { "percent": 15, "value": 675, "items": "LED shoes, toy cars, bubble machines" }
-        },
-        "retailPotential": 10350,
-        "zpProfitPotential": 5850,
-        "roiFirstPack": "130%"
-      },
-      
-      "paymentTerms": {
-        "standard": {
-          "day1to7": "Normal payment window",
-          "day8to10": "Grace period - no penalty",
-          "day11": "Late fee (R100 or 5%)",
-          "day14": "Account suspended - no new stock",
-          "day21": "Final notice",
-          "day28": "Contract terminated, zone forfeited, debt pursued"
-        },
-        "creditTiers": {
-          "new": { "weeks": "1-4", "terms": "Pay before delivery", "limit": 2500 },
-          "trusted": { "weeks": "5-12", "terms": "Net 7", "limit": 2500 },
-          "proven": { "months": "3+", "terms": "Net 7", "limit": 5000 },
-          "vip": { "months": "6+", "terms": "Net 14", "limit": 10000 }
-        }
-      },
-      
-      "exitTerms": {
-        "voluntaryExit": {
-          "notice": "14 days written (WhatsApp accepted)",
-          "stockBuyback": "70% of wholesale (unopened only)",
-          "deposit": "Returned in full if no debt",
-          "nonCompete": "30 days in same zone"
-        },
-        "terminationOffenses": [
-          "Late payment (3rd time)",
-          "Poaching another ZP's customers",
-          "Fraud (fake orders, fake payments)",
-          "Selling counterfeit as Jeffy",
-          "Damaging Jeffy reputation publicly"
-        ]
-      },
-      
-      "weeklyOperatingRhythm": {
-        "founder": {
-          "monday": "Check ZP payments due, flag overdue, compile restock orders, send to agent",
-          "tuesday": "Agent confirms availability, approve/adjust order",
-          "wedToFri": "Agent ships or stages, prep delivery schedule, handle support",
-          "saturday": "Delivery day - you or agent delivers to ZPs",
-          "sunday": "Payment deadline, week closes out"
-        },
-        "zp": {
-          "monToSat": "Sell from stock, track what moves, take customer orders",
-          "saturday": "Receive new stock, check against invoice, confirm receipt",
-          "sunday": "Pay for LAST week's stock, submit restock request"
-        },
-        "agent": {
-          "ongoing": "Monitor JHB inventory, flag low stock, source new products",
-          "onOrder": "Pick from warehouse, pack into ZP bins, arrange delivery",
-          "monthly": "Consolidate restock needs, order from 1688, ship bulk to JHB"
-        }
-      },
-      
-      "agentModel": {
-        "relationship": "Commission via shipping fees",
-        "howItWorks": "Agent charges shipping fees on all orders - that's his cut, built into costs",
-        "warehouse": "Agent's existing JHB warehouse - no rent for you",
-        "responsibilities": {
-          "agent": "Source from 1688, ship to JHB, store inventory, pick/pack ZP orders, deliver",
-          "jeffy": "Set product catalog, manage ZP relationships, collect payments, send consolidated orders"
-        },
-        "noSeparateFee": true
-      },
-      
-      "inventoryLevels": {
-        "level1_warehouse": {
-          "location": "Agent's JHB warehouse",
-          "owner": "Jeffy (you)",
-          "reorderPoint": "When < 2 weeks supply",
-          "reorderQty": "4-6 weeks supply (bulk)"
-        },
-        "level2_zp": {
-          "location": "ZP's home/vehicle",
-          "owner": "ZP (they bought it)",
-          "reorderPoint": "When < 3 units per SKU",
-          "reorderQty": "Based on sales velocity"
-        }
-      },
-      
-      "deliveryOptions": {
-        "phase1": {
-          "primary": "ZPs collect from JHB warehouse",
-          "backup": "You deliver on Saturday run (first 10-20 ZPs)",
-          "distant": "Courier (Pargo/Paxi) for Cape Town, Durban"
-        },
-        "phase2": {
-          "primary": "Agent delivers via route",
-          "cost": "R50-100 per ZP built into margin"
-        }
-      },
-      
-      "cashFlowTimeline": {
-        "week0": "You pay agent R100,000 for first bulk order",
-        "week1to2": "Agent sources, consolidates, ships",
-        "week3to4": "Stock arrives JHB, sorted into ZP bins + buffer",
-        "week4": "First deliveries to ~20 ZPs (R4,500 each = R90,000 deployed)",
-        "week5": "ZPs selling, you wait",
-        "week5_day7": "First payments due - R90,000 back",
-        "week6plus": "Rolling cycle - R100k stays 'in the system' permanently",
-        "yourMargin": "15-20% markup on landed cost (hidden in wholesale price)",
-        "steadyState": "At 50 ZPs: ~R75,000/month gross margin"
-      },
-      
       "preLaunchChecklist": [
         { "id": "zp-1", "task": "Zone Partner Agreement - wholesale terms", "done": true, "priority": "critical" },
         { "id": "zp-2", "task": "1-Page Explainer component", "done": true, "priority": "critical" },
@@ -263,19 +197,10 @@
         { "id": "zp-5", "task": "WhatsApp Onboarding Playbook", "done": true, "priority": "critical" },
         { "id": "zp-6", "task": "Quick Add lead capture (/zp-add)", "done": true, "priority": "high" },
         { "id": "zp-7", "task": "ZP payment tracking system (DB + UI)", "done": false, "priority": "high", "note": "Built but not deployed - run migration 013" },
-        { "id": "zp-8", "task": "Define starter stock package (actual 1688 products)", "done": false, "priority": "high" },
-        { "id": "zp-9", "task": "First bulk order to agent", "done": false, "priority": "high" },
+        { "id": "zp-8", "task": "Define starter stock package (actual 1688 products)", "done": true, "priority": "high", "note": "148 products sourced" },
+        { "id": "zp-9", "task": "First bulk order to agent", "done": false, "priority": "high", "note": "PAUSED - R25k max budget when ready" },
         { "id": "zp-10", "task": "Build ZP dashboard (stock, sales, payments)", "done": false, "priority": "medium" },
         { "id": "zp-11", "task": "Test full cycle: deposit → stock → sale → payment → restock", "done": false, "priority": "critical" }
-      ],
-      
-      "riskRegister": [
-        { "risk": "ZP doesn't pay on time", "likelihood": "medium", "impact": "medium", "mitigation": "3-day grace, then late fee, then suspend, then terminate" },
-        { "risk": "ZP claims employment status", "likelihood": "very low", "impact": "critical", "mitigation": "Wholesale agreement, they own stock, set prices, bear risk" },
-        { "risk": "Stock theft/loss at ZP", "likelihood": "low", "impact": "low", "mitigation": "ZP's problem - they own it" },
-        { "risk": "ZP can't sell stock", "likelihood": "medium", "impact": "low", "mitigation": "Start with fast-moving products, small quantities, 70% buyback option" },
-        { "risk": "Agent doesn't deliver", "likelihood": "low", "impact": "high", "mitigation": "Established relationship, his income depends on volume" },
-        { "risk": "Cash flow gap in first 5 weeks", "likelihood": "certain", "impact": "medium", "mitigation": "R100k float covers gap until payments cycle" }
       ],
       
       "documents": [
@@ -286,26 +211,11 @@
       ]
     },
     {
-      "id": "wants-system",
-      "name": "Wants Collection System",
-      "category": "jeffy",
-      "status": "active",
-      "priority": 2,
-      "description": "Demand-driven product sourcing - one-click WhatsApp verification",
-      "dashboardUrl": "/admin/wants",
-      "features": {
-        "oneClickVerify": true,
-        "whatsappSharing": true,
-        "viralLoop": true,
-        "termsPage": "/wants/terms"
-      }
-    },
-    {
       "id": "influencer-outreach",
       "name": "Influencer Outreach Campaign",
       "category": "jeffy",
       "status": "waiting",
-      "priority": 3,
+      "priority": 4,
       "description": "40 letters sent Jan 2, waiting for responses",
       "dashboardUrl": "/admin/outreach"
     }
@@ -314,6 +224,42 @@
   "goals": {
     "jeffy": [
       {
+        "id": "wants-collected",
+        "name": "Wants Collected",
+        "target": 500,
+        "minimum": 50,
+        "current": 0,
+        "unit": "wants",
+        "deadline": "2026-03-01",
+        "priority": 1,
+        "status": "active",
+        "linkedProject": "wants-catalogue",
+        "milestones": [
+          { "value": 50, "label": "Proof of concept", "reached": false },
+          { "value": 100, "label": "Strong signal", "reached": false },
+          { "value": 500, "label": "Catalogue ready", "reached": false }
+        ],
+        "notes": "Each want is market research that converts to revenue."
+      },
+      {
+        "id": "social-media-followers",
+        "name": "Social Media Followers",
+        "target": 1000,
+        "minimum": 100,
+        "current": 0,
+        "unit": "followers",
+        "deadline": "2026-03-01",
+        "priority": 1,
+        "status": "active",
+        "linkedProject": "wants-catalogue",
+        "milestones": [
+          { "value": 100, "label": "Initial audience", "reached": false },
+          { "value": 500, "label": "Growing presence", "reached": false },
+          { "value": 1000, "label": "Launch ready", "reached": false }
+        ],
+        "notes": "Combined across all platforms."
+      },
+      {
         "id": "zone-partners",
         "name": "Zone Partner Recruitment",
         "target": 20,
@@ -321,104 +267,15 @@
         "current": 0,
         "unit": "partners",
         "deadline": "2026-06-01",
-        "priority": 1,
-        "status": "active",
+        "priority": 2,
+        "status": "waiting",
         "linkedProject": "zone-partner-system",
         "milestones": [
           { "value": 5, "label": "Minimum viable network", "reached": false },
           { "value": 10, "label": "Proof of concept", "reached": false },
           { "value": 20, "label": "Wave 1 complete", "reached": false }
         ],
-        "notes": "Wave 1: R5,000 buy-in. Quality over speed."
-      },
-      {
-        "id": "township-agents",
-        "name": "Township Agents",
-        "target": 50,
-        "minimum": 10,
-        "current": 0,
-        "unit": "agents",
-        "deadline": "2026-03-31",
-        "priority": 1,
-        "status": "active",
-        "linkedProject": "township-strategy",
-        "milestones": [
-          { "value": 10, "label": "Soweto pilot", "reached": false },
-          { "value": 30, "label": "3 townships", "reached": false },
-          { "value": 50, "label": "Scale ready", "reached": false }
-        ],
-        "notes": "Target stokvel chairpersons as first agents."
-      },
-      {
-        "id": "spaza-partners",
-        "name": "Spaza Shop Partners",
-        "target": 20,
-        "minimum": 5,
-        "current": 0,
-        "unit": "shops",
-        "deadline": "2026-03-31",
-        "priority": 1,
-        "status": "active",
-        "linkedProject": "township-strategy",
-        "milestones": [
-          { "value": 5, "label": "Pilot network", "reached": false },
-          { "value": 10, "label": "Coverage", "reached": false },
-          { "value": 20, "label": "Full network", "reached": false }
-        ],
-        "notes": "COD pickup points."
-      },
-      {
-        "id": "stokvel-orders",
-        "name": "Stokvel Bulk Orders",
-        "target": 10,
-        "minimum": 1,
-        "current": 0,
-        "unit": "orders",
-        "deadline": "2026-12-15",
-        "priority": 2,
-        "status": "active",
-        "linkedProject": "township-strategy",
-        "milestones": [
-          { "value": 1, "label": "First order", "reached": false },
-          { "value": 5, "label": "Proven model", "reached": false },
-          { "value": 10, "label": "Festive season", "reached": false }
-        ],
-        "notes": "70% of stokvel purchases are food. Target Nov-Dec."
-      },
-      {
-        "id": "wants-collected",
-        "name": "Wants Collected",
-        "target": 500,
-        "minimum": 100,
-        "current": 0,
-        "unit": "wants",
-        "deadline": "2026-06-01",
-        "priority": 2,
-        "status": "active",
-        "linkedProject": "wants-system",
-        "milestones": [
-          { "value": 100, "label": "Minimum for launch", "reached": false },
-          { "value": 250, "label": "Strong signal", "reached": false },
-          { "value": 500, "label": "Excellent validation", "reached": false }
-        ],
-        "notes": "Each want is market research that converts to revenue."
-      },
-      {
-        "id": "monthly-revenue",
-        "name": "Monthly Net Profit",
-        "target": 50000,
-        "minimum": 30000,
-        "current": 0,
-        "unit": "ZAR",
-        "deadline": "2027-12-31",
-        "priority": 3,
-        "status": "future",
-        "milestones": [
-          { "value": 10000, "label": "Ramen profitable", "reached": false },
-          { "value": 30000, "label": "Sustainable", "reached": false },
-          { "value": 50000, "label": "Financial freedom", "reached": false }
-        ],
-        "notes": "15-20% margin on wholesale × volume. At 50 ZPs = ~R75k/month gross."
+        "notes": "PAUSED - activate after wants catalogue validation."
       },
       {
         "id": "influencer-response",
@@ -428,7 +285,7 @@
         "current": 0,
         "unit": "responses",
         "deadline": "2026-01-20",
-        "priority": 1,
+        "priority": 3,
         "status": "waiting",
         "linkedProject": "influencer-outreach",
         "milestones": [
@@ -487,6 +344,41 @@
 
   "dailyLog": [
     {
+      "date": "2026-01-04",
+      "entries": [
+        {
+          "category": "jeffy",
+          "action": "Strategy pivot: Build wants catalogue FIRST, then Zone Partners",
+          "impact": "critical",
+          "goalId": null
+        },
+        {
+          "category": "jeffy",
+          "action": "Social media setup added to Mission Control",
+          "impact": "high",
+          "goalId": "social-media-followers"
+        },
+        {
+          "category": "jeffy",
+          "action": "Reduced first order budget from R100k to R25k max",
+          "impact": "high",
+          "goalId": null
+        },
+        {
+          "category": "jeffy",
+          "action": "Verified Wants system fully built and ready",
+          "impact": "medium",
+          "goalId": "wants-collected"
+        },
+        {
+          "category": "jeffy",
+          "action": "Git repo clean - all code committed",
+          "impact": "low",
+          "goalId": null
+        }
+      ]
+    },
+    {
       "date": "2026-01-02",
       "entries": [
         {
@@ -504,66 +396,6 @@
         {
           "category": "jeffy",
           "action": "All 62 E2E tests passing, production deployment verified",
-          "impact": "high",
-          "goalId": null
-        }
-      ]
-    },
-    {
-      "date": "2026-01-04",
-      "entries": [
-        {
-          "category": "jeffy",
-          "action": "Verified all systems working: suppliers, followers, categories, wants",
-          "impact": "medium",
-          "goalId": null
-        },
-        {
-          "category": "jeffy",
-          "action": "Fixed pricing (50-75% reduction), deleted 19 bad products, fixed 13 categories",
-          "impact": "high",
-          "goalId": null
-        },
-        {
-          "category": "jeffy",
-          "action": "Built supplier registration system (Spaza directory)",
-          "impact": "high",
-          "goalId": null,
-          "linkedProject": "township-strategy"
-        },
-        {
-          "category": "jeffy",
-          "action": "Created Mission Control Protocol - mandatory session-end updates",
-          "impact": "critical",
-          "goalId": null
-        },
-        {
-          "category": "jeffy",
-          "action": "Created SESSION_LOG.md - rolling history of all work",
-          "impact": "high",
-          "goalId": null
-        },
-        {
-          "category": "jeffy",
-          "action": "Audited variant system - working in source_data.variants",
-          "impact": "medium",
-          "goalId": null
-        },
-        {
-          "category": "jeffy",
-          "action": "Verified checkout system fully functional",
-          "impact": "medium",
-          "goalId": null
-        },
-        {
-          "category": "jeffy",
-          "action": "Created HANDOFF_JAN4_MISSION.md with segmented TODO list",
-          "impact": "high",
-          "goalId": null
-        },
-        {
-          "category": "whale",
-          "action": "Set up Whale Mission Control (protocol, session log, json)",
           "impact": "high",
           "goalId": null
         }
@@ -589,75 +421,11 @@
           "category": "jeffy",
           "action": "One-click verification + WhatsApp viral sharing for Wants",
           "impact": "high",
-          "goalId": null,
-          "linkedProject": "wants-system"
+          "goalId": null
         },
         {
           "category": "jeffy",
           "action": "Zone Partner model finalized: Wholesale + Net 7 trade credit",
-          "impact": "critical",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Wave pricing structure defined: R5k → R10k → R25k → R50k",
-          "impact": "critical",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Payment terms finalized: 7 days + 3 grace, escalating consequences",
-          "impact": "critical",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Agent model confirmed: commission via shipping fees (built into costs)",
-          "impact": "high",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Weekly operating rhythm documented: Founder, ZP, Agent schedules",
-          "impact": "high",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Starter pack defined: 5 categories, R4,500 wholesale, R10k retail potential",
-          "impact": "high",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Created Zone Partner Terms doc (firm but fair)",
-          "impact": "high",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Created WhatsApp Onboarding Playbook (copy-paste scripts)",
-          "impact": "high",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Built /zp-add quick lead capture for WhatsApp inquiries",
-          "impact": "medium",
-          "goalId": null,
-          "linkedProject": "zone-partner-system"
-        },
-        {
-          "category": "jeffy",
-          "action": "Cash flow timeline mapped: R100k float, 5-week gap, then cycling",
           "impact": "critical",
           "goalId": null,
           "linkedProject": "zone-partner-system"
@@ -668,131 +436,94 @@
 
   "actionQueue": [
     {
-      "id": "aq-015",
-      "task": "Import first 50 products from 1688 pipeline",
+      "id": "aq-016",
+      "task": "Create Jeffy social media pages (FB, IG, TikTok)",
       "category": "jeffy",
       "priority": 1,
       "deadline": "2026-01-07",
       "status": "active",
-      "linkedProject": "zone-partner-system",
-      "notes": "Use jeffy_1688_bulk_import_FINAL.json. Start with hair products (+22% growth)"
+      "linkedProject": "wants-catalogue",
+      "notes": "Need these to spread the word about wants system"
     },
     {
-      "id": "aq-000",
-      "task": "CALL NASASA TODAY - 087 470 0884",
+      "id": "aq-017",
+      "task": "Create first 5 social media posts explaining wants system",
       "category": "jeffy",
       "priority": 1,
-      "deadline": "2026-01-03",
-      "status": "urgent",
-      "linkedProject": "township-strategy",
-      "notes": "Gateway to 125K+ stokvel groups, R50B economy"
+      "deadline": "2026-01-08",
+      "status": "pending",
+      "linkedProject": "wants-catalogue",
+      "notes": "Co-creator angle: 'You build our catalogue, you get free products'"
+    },
+    {
+      "id": "aq-018",
+      "task": "Seed 10 wants yourself with trending products",
+      "category": "jeffy",
+      "priority": 1,
+      "deadline": "2026-01-10",
+      "status": "pending",
+      "linkedProject": "wants-catalogue",
+      "notes": "Stanley dupes, viral TikTok products, hair products"
     },
     {
       "id": "aq-011",
       "task": "Run migration 013 (ZP payment tracking)",
       "category": "jeffy",
-      "priority": 1,
-      "deadline": "2026-01-04",
-      "status": "pending",
-      "linkedProject": "zone-partner-system",
-      "notes": "Built but not deployed. Run in Supabase SQL Editor."
-    },
-    {
-      "id": "aq-012",
-      "task": "Commit all uncommitted Jeffy code",
-      "category": "jeffy",
-      "priority": 1,
-      "deadline": "2026-01-04",
-      "status": "pending",
-      "linkedProject": "zone-partner-system",
-      "notes": "~47 modified files + ZP finances system"
-    },
-    {
-      "id": "aq-010",
-      "task": "Source actual 1688 products for starter pack",
-      "category": "jeffy",
-      "priority": 1,
+      "priority": 2,
       "deadline": "2026-01-10",
-      "status": "complete",
+      "status": "pending",
       "linkedProject": "zone-partner-system",
-      "notes": "DONE: 148 products in jeffy_1688_bulk_import_FINAL.json"
+      "notes": "Not urgent - ZP system on hold. Run when ready."
     },
     {
-      "id": "aq-013",
-      "task": "First bulk order to agent (R100k)",
+      "id": "aq-000",
+      "task": "Call NASASA - 087 470 0884",
       "category": "jeffy",
-      "priority": 1,
+      "priority": 2,
       "deadline": "2026-01-15",
       "status": "pending",
-      "linkedProject": "zone-partner-system",
-      "notes": "Start the 5-week clock to stock arriving in JHB"
+      "linkedProject": "township-strategy",
+      "notes": "Moved down - focus on wants catalogue first"
     },
     {
       "id": "aq-001",
       "task": "Wait for influencer responses (no follow-up yet)",
       "category": "jeffy",
-      "priority": 2,
+      "priority": 3,
       "deadline": "2026-01-15",
       "status": "waiting",
       "linkedProject": "influencer-outreach",
       "notes": "If silence after Jan 15, one gentle follow-up"
     },
     {
-      "id": "aq-002",
-      "task": "Set up WhatsApp Business API with Wati",
+      "id": "aq-013",
+      "task": "First bulk order to agent (R25k max)",
       "category": "jeffy",
-      "priority": 2,
-      "deadline": "2026-01-10",
-      "status": "pending",
-      "linkedProject": "township-strategy",
-      "notes": "sales@wati.io - primary commerce channel for township"
+      "priority": 3,
+      "deadline": "2026-02-01",
+      "status": "waiting",
+      "linkedProject": "zone-partner-system",
+      "notes": "HOLD - only after wants show traction. Budget reduced to R25k."
     },
     {
       "id": "aq-014",
       "task": "Onboard first Zone Partner (full cycle test)",
       "category": "jeffy",
-      "priority": 1,
-      "deadline": "2026-01-20",
-      "status": "pending",
+      "priority": 3,
+      "deadline": "2026-02-15",
+      "status": "waiting",
       "linkedProject": "zone-partner-system",
-      "notes": "End-to-end: inquiry → deposit → stock → sale → payment"
+      "notes": "HOLD - after wants validation and first order placed"
     },
     {
       "id": "aq-003",
-      "task": "Continue collecting wants - daily check",
+      "task": "Share wants link in WhatsApp groups",
       "category": "jeffy",
-      "priority": 3,
+      "priority": 2,
       "deadline": null,
       "status": "ongoing",
-      "linkedProject": "wants-system",
-      "notes": "Share want submission link in relevant groups"
-    },
-    {
-      "id": "aq-004",
-      "task": "Curate product catalog from 1688",
-      "category": "jeffy",
-      "priority": 3,
-      "deadline": null,
-      "status": "ongoing",
-      "notes": "Quality over quantity. Check images for Chinese text."
-    },
-    {
-      "id": "aq-005",
-      "task": "Research son's model portfolio requirements",
-      "category": "family",
-      "priority": 4,
-      "deadline": "2026-01-15",
-      "status": "pending",
-      "notes": "What do agencies look for? DIY vs professional?"
-    },
-    {
-      "id": "aq-006",
-      "task": "Research Qingdao international schools",
-      "category": "career",
-      "priority": 5,
-      "deadline": "2026-02-01",
-      "status": "pending",
-      "notes": "Need Montessori or similar approach"
+      "linkedProject": "wants-catalogue",
+      "notes": "After social media pages are set up"
     }
   ],
 

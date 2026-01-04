@@ -4,6 +4,58 @@ Rolling log of all work sessions. Most recent first.
 
 ---
 
+## 2026-01-04 Session 5 - Strategy Pivot: Wants First
+
+### Strategic Decision
+**New approach:** Build wants catalogue and social media presence BEFORE Zone Partner recruitment.
+
+### Rationale
+- Validate demand before spending capital
+- Lower risk (R25k max vs R100k)
+- Wants catalogue = free marketing + market research
+- Zone Partners see proven demand when recruited
+
+### Changes Made
+- Updated mission-control.json with new priorities
+- Created "Wants Catalogue Launch" project (priority 1)
+- Demoted Zone Partner System to "waiting" status
+- Added social media setup tasks
+- Reduced first bulk order budget: R100k → R25k
+
+### New Priority Order
+1. **Social media pages** - FB, IG, TikTok for Jeffy
+2. **Seed wants** - Create 10 wants with trending products
+3. **Spread the word** - Share in WhatsApp groups
+4. **Validate** - First want hits 10 verifications
+5. **Then** - Zone Partner recruitment begins
+
+### Urgent Actions Cleaned Up
+- ✅ Git commit (was clean)
+- ✅ 1688 sourcing (148 products done)
+- 📋 Migration 013 - moved to priority 2 (not urgent)
+- 📋 NASASA call - moved to priority 2
+- 📋 First bulk order - on hold until wants show traction
+
+### Wants System Status
+- Public page: jeffy.co.za/wants ✅
+- Admin: /admin/wants ✅
+- Photo upload ✅
+- WhatsApp sharing ✅
+- 10 verifications = free product ✅
+
+### Next Actions
+1. Create Jeffy Facebook page
+2. Create Jeffy Instagram account
+3. Create Jeffy TikTok account
+4. Create first 5 posts explaining wants system
+5. Seed 10 wants with trending products
+
+### Files Changed
+- Updated: src/data/life-os/mission-control.json
+- Updated: docs/mission-control/SESSION_LOG.md
+
+---
+
 ## 2026-01-04 Session 3 - Railway Build Fix
 
 ### Issue
