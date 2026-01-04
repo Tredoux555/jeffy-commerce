@@ -1,11 +1,8 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { AddToCartWithVariants } from './add-to-cart-with-variants';
-import { ShareButtons } from '@/components/share-buttons';
-import { RelatedProducts } from '@/components/related-products';
+import { ProductClient } from './product-client';
 import { ProductDetailClient } from './product-detail-client';
-import { ProductImageGallery } from './product-image-gallery';
-import { formatCurrency } from '@/lib/utils';
+import { RelatedProducts } from '@/components/related-products';
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -26,24 +23,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const hasDiscount = product.compare_at_price_cents && product.compare_at_price_cents > product.selling_price_cents;
-  const discountPercent = hasDiscount
-    ? Math.round((1 - product.selling_price_cents / product.compare_at_price_cents!) * 100)
-    : 0;
-
-  const images = product.images?.length ? product.images : (product.primary_image_url ? [product.primary_image_url] : []);
-
-  // Extract variants from source_data
+  // Prepare data
+  const images = product.images?.length 
+    ? product.images 
+    : (product.primary_image_url ? [product.primary_image_url] : []);
   const variants = product.source_data?.variants || [];
-
-  // Extract features from source_data
   const features = product.source_data?.features || [];
-
-  // Extract specs from source_data
   const specs = product.source_data?.specs || {};
+  
+  // Extract category info (comes as object from join)
+  const category = product.categories as { name: string; slug: string } | null;
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Track recently viewed */}
       <ProductDetailClient product={{
         id: product.id,
         name: product.name,
@@ -52,110 +45,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
         image: product.primary_image_url,
       }} />
 
-      <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Images - Interactive Gallery */}
-        <ProductImageGallery 
-          images={images} 
-          productName={product.name} 
-          discountPercent={hasDiscount ? discountPercent : 0} 
-        />
+      {/* Main product section */}
+      <ProductClient
+        product={product}
+        variants={variants}
+        images={images}
+        features={features}
+        specs={specs}
+        categoryName={category?.name}
+        categorySlug={category?.slug}
+      />
 
-        {/* Product Info */}
-        <div>
-          {/* Breadcrumb */}
-          <nav className="text-sm text-gray-500 mb-4">
-            <a href="/products" className="hover:text-gray-700">Products</a>
-            {product.categories && (
-              <>
-                <span className="mx-2">/</span>
-                <a href={`/products?category=${(product.categories as { slug: string }).slug}`} className="hover:text-gray-700">
-                  {(product.categories as { name: string }).name}
-                </a>
-              </>
-            )}
-          </nav>
-
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
-            <ShareButtons url={`/products/${product.slug}`} title={product.name} />
-          </div>
-
-          {/* Price */}
-          <div className="flex items-baseline gap-3 mb-6">
-            <span className="text-3xl font-bold text-gray-900">{formatCurrency(product.selling_price_cents)}</span>
-            {hasDiscount && (
-              <span className="text-xl text-gray-400 line-through">{formatCurrency(product.compare_at_price_cents!)}</span>
-            )}
-            {hasDiscount && (
-              <span className="bg-red-100 text-red-700 text-sm font-medium px-2 py-1 rounded">
-                -{discountPercent}% OFF
-              </span>
-            )}
-          </div>
-
-          {/* Stock Status */}
-          <div className="mb-6">
-            {product.quantity > 10 ? (
-              <span className="text-green-600 font-medium">✓ In Stock</span>
-            ) : product.quantity > 0 ? (
-              <span className="text-orange-600 font-medium">Only {product.quantity} left!</span>
-            ) : (
-              <span className="text-red-600 font-medium">Out of Stock</span>
-            )}
-          </div>
-
-          {product.short_description && (
-            <p className="text-gray-600 mb-6">{product.short_description}</p>
-          )}
-
-          {/* Variants + Add to Cart */}
-          <div className="mb-8">
-            <AddToCartWithVariants product={product} variants={variants} />
-          </div>
-
-          {/* Features */}
-          {features.length > 0 && (
-            <div className="border-t pt-6 mb-6">
-              <h3 className="font-semibold mb-3">Features</h3>
-              <ul className="space-y-2">
-                {features.map((feature: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2 text-gray-600">
-                    <span className="text-[#ff6b35] mt-1">✓</span>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Description */}
-          {product.description && (
-            <div className="border-t pt-6">
-              <h3 className="font-semibold mb-3">Description</h3>
-              <div className="text-gray-600 prose prose-sm max-w-none whitespace-pre-line">
-                {product.description}
-              </div>
-            </div>
-          )}
-
-          {/* Specifications */}
-          {Object.keys(specs).length > 0 && (
-            <div className="border-t pt-6 mt-6">
-              <h3 className="font-semibold mb-3">Specifications</h3>
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                {Object.entries(specs).slice(0, 10).map(([key, value]) => (
-                  <div key={key} className="contents">
-                    <dt className="text-gray-500">{key}</dt>
-                    <dd className="text-gray-900">{String(value)}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
-        </div>
-      </div>
-
-      <RelatedProducts currentProductId={product.id} categoryId={product.category_id} />
+      {/* Related products */}
+      <RelatedProducts 
+        currentProductId={product.id} 
+        categoryId={product.category_id} 
+      />
     </div>
   );
 }

@@ -1,26 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ProductImageGalleryProps {
   images: string[];
   productName: string;
   discountPercent: number;
+  variantImage?: string | null;
 }
 
-export function ProductImageGallery({ images, productName, discountPercent }: ProductImageGalleryProps) {
+export function ProductImageGallery({ 
+  images, 
+  productName, 
+  discountPercent,
+  variantImage
+}: ProductImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [useVariantImage, setUseVariantImage] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  // When variant changes, show variant image and reset error state
+  useEffect(() => {
+    setUseVariantImage(true);
+    setImageError(false);
+  }, [variantImage]);
+
+  // Determine what to display
+  const displayImage = (useVariantImage && variantImage && !imageError) 
+    ? variantImage 
+    : (images[selectedIndex] || images[0]);
+
+  const handleThumbnailClick = (index: number) => {
+    setSelectedIndex(index);
+    setUseVariantImage(false);
+  };
 
   const goToPrevious = () => {
     setSelectedIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    setUseVariantImage(false);
   };
 
   const goToNext = () => {
     setSelectedIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    setUseVariantImage(false);
   };
 
-  if (!images.length) {
+  const handleImageError = () => {
+    setImageError(true);
+    setUseVariantImage(false);
+  };
+
+  if (!images.length && !variantImage) {
     return (
       <div className="aspect-square bg-gray-100 rounded-xl flex items-center justify-center text-gray-400">
         No image
@@ -33,9 +64,10 @@ export function ProductImageGallery({ images, productName, discountPercent }: Pr
       {/* Main Image */}
       <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
         <img 
-          src={images[selectedIndex]} 
-          alt={`${productName} - Image ${selectedIndex + 1}`} 
-          className="w-full h-full object-cover" 
+          src={displayImage} 
+          alt={productName}
+          className="w-full h-full object-cover"
+          onError={handleImageError}
         />
         
         {discountPercent > 0 && (
@@ -63,7 +95,7 @@ export function ProductImageGallery({ images, productName, discountPercent }: Pr
 
         {images.length > 1 && (
           <div className="absolute bottom-4 right-4 bg-black/60 text-white text-sm px-3 py-1 rounded-full">
-            {selectedIndex + 1} / {images.length}
+            {useVariantImage && variantImage && !imageError ? 'Variant' : `${selectedIndex + 1} / ${images.length}`}
           </div>
         )}
       </div>
@@ -74,12 +106,18 @@ export function ProductImageGallery({ images, productName, discountPercent }: Pr
           {images.map((img, index) => (
             <button
               key={index}
-              onClick={() => setSelectedIndex(index)}
+              onClick={() => handleThumbnailClick(index)}
               className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden ${
-                index === selectedIndex ? 'ring-2 ring-[#ff6b35] ring-offset-2' : 'opacity-60 hover:opacity-100'
+                !useVariantImage && index === selectedIndex 
+                  ? 'ring-2 ring-[#ff6b35] ring-offset-2' 
+                  : 'opacity-60 hover:opacity-100'
               }`}
             >
-              <img src={img} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+              <img 
+                src={img} 
+                alt={`Thumbnail ${index + 1}`} 
+                className="w-full h-full object-cover" 
+              />
             </button>
           ))}
         </div>
