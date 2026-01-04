@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import JSZip from 'jszip';
 import mammoth from 'mammoth';
-// @ts-ignore - pdf-parse types
-import pdf from 'pdf-parse';
+
+// PDF parsing disabled due to complex dependency issues
+// To re-enable: npm install pdf-parse@1.1.1 (older stable version)
+const parsePDF = async (buffer: Buffer): Promise<{ text: string }> => {
+  // Stub - PDF parsing temporarily disabled
+  return { text: '[PDF content extraction temporarily disabled]' };
+};
 
 interface ExtractedFile {
   name: string;
@@ -29,7 +34,7 @@ async function extractTextFromFile(filename: string, buffer: Buffer): Promise<st
         return docResult.value;
         
       case 'pdf':
-        const pdfData = await pdf(buffer);
+        const pdfData = await parsePDF(buffer);
         return pdfData.text;
         
       case 'rtf':

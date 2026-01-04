@@ -8,7 +8,14 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
 
 function generateToken(): string {
@@ -213,7 +220,7 @@ export async function POST(request: NextRequest) {
     try {
       console.log('Sending email to:', normalizedEmail);
       
-      const emailResult = await resend.emails.send({
+      const emailResult = await getResend().emails.send({
         from: 'Jeffy <hello@jeffy.co.za>',
         to: normalizedEmail,
         subject: `Your Want "${product_name}" is live! 🎉`,

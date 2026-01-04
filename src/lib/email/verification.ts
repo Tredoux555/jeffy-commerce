@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
 const FROM_EMAIL = 'Jeffy <hello@jeffy.co.za>';
 
@@ -20,7 +27,7 @@ export async function sendVerificationEmail(data: VerificationEmailData) {
   const firstName = creatorName?.split(' ')[0] || 'Someone';
 
   try {
-    const { data: result, error } = await resend.emails.send({
+    const { data: result, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to,
       subject: `${firstName} wants your opinion on something`,
@@ -123,7 +130,7 @@ export async function sendVerificationConfirmation(data: {
   const { to, productName, verifiedCount, remaining } = data;
 
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: FROM_EMAIL,
       to,
       subject: `Thanks for verifying! ${remaining > 0 ? `${remaining} more needed` : '🎉 Product being sourced!'}`,

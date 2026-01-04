@@ -1,6 +1,13 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Lazy initialization to avoid build-time errors
+let resend: Resend | null = null;
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://jeffy.co.za';
 const FROM_EMAIL = 'Jeffy <hello@jeffy.co.za>';
@@ -32,7 +39,7 @@ export async function sendWaitlistWelcome(data: WaitlistWelcomeData) {
   const nextMilestone = rewardTier.nextAt ? rewardTier.nextAt - data.referralCount : null;
 
   try {
-    const { data: result, error } = await resend.emails.send({
+    const { data: result, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: email,
       subject: `You're #${position} on the Jeffy Waitlist! 🎉`,
@@ -193,7 +200,7 @@ export async function sendZonePartnerWelcome(data: {
   }
 
   try {
-    const { data: result, error } = await resend.emails.send({
+    const { data: result, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: email,
       subject: `You're Zone Partner #${position} for ${zone}! 🎯`,
