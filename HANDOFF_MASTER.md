@@ -1,5 +1,5 @@
 # JEFFY COMMERCE - MASTER HANDOFF
-## Date: January 4, 2026
+## Date: January 4, 2026 (Updated)
 
 ---
 
@@ -20,21 +20,36 @@
 ---
 
 ### System 2: THE SPAZA PROJECT (jeffy.co.za/hustle)
-**Purpose:** Township supplier network + income generation
-**Audience:** Township hustlers, local buyers
+**Purpose:** Township supplier directory (NOT starter kits)
+**Audience:** Township hustlers (suppliers) + local buyers (customers)
 
-**NEW VISION (not starter kits):**
-- Hustlers = independent suppliers with their own stock
-- They register on Jeffy with their location
-- Customers browse Jeffy products
-- Customer clicks "Find Local Supplier"
-- We show nearest hustler who has that product
-- Customer contacts hustler directly via WhatsApp
-- Hustler handles sale and delivery
+**THE MODEL:**
+```
+┌─────────────────────────────────────────────────────────┐
+│                    THE SPAZA PROJECT                     │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│   HUSTLER (Supplier)              CUSTOMER               │
+│   ──────────────────              ────────               │
+│   1. Has own stock                1. Browses jeffy.co.za │
+│   2. Registers on Jeffy           2. Sees product        │
+│   3. Lists their location         3. Clicks "Find Local" │
+│   4. Gets customers from us       4. Sees nearest hustler│
+│   5. Handles sale directly        5. WhatsApp them       │
+│                                   6. Buys from hustler   │
+│                                                          │
+│   WE ARE THE MIDDLEMAN FOR DISCOVERY, NOT SALES          │
+└─────────────────────────────────────────────────────────┘
+```
 
-**This is a SUPPLIER DIRECTORY, not us selling kits.**
+**Benefits:**
+- No inventory risk for Jeffy
+- Hustlers source stock however they want
+- Jeffy is a directory, not a warehouse
+- Scales infinitely
+- Hustlers WANT to register (free customers)
 
-**Status:** Landing page built, supplier system NOT built yet ❌
+**Status:** BUILT ✅ (Jan 4, 2026)
 
 ---
 
@@ -80,8 +95,6 @@ Retail = Landed × 2.5 (rounded to R5)
 
 **To Apply:** Run `node scripts/fix-pricing-sea-freight.js --apply` after deploy
 
-**Note:** `/hustle/kit` page calculates correct prices on-the-fly regardless of DB state
-
 ---
 
 ## 🗄️ DATABASE TABLES
@@ -93,7 +106,9 @@ Retail = Landed × 2.5 (rounded to R5)
 - `zone_partners` - Formal partner applications
 - `orders`, `order_items` - E-commerce orders
 
-### NEW Table Needed (followers):
+### NEW Tables Needed:
+
+**1. followers table:**
 ```sql
 CREATE TABLE followers (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -108,22 +123,40 @@ CREATE TABLE followers (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
-**Run in Supabase SQL Editor** - API is ready, table not created yet.
 
-### NEW Table Needed (suppliers - for Spaza Project):
+**2. suppliers table (for Spaza Project):**
 ```sql
 CREATE TABLE suppliers (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   phone VARCHAR(20) NOT NULL UNIQUE,
   name VARCHAR(100) NOT NULL,
   whatsapp VARCHAR(20),
-  location_name VARCHAR(255), -- "Soweto, Diepkloof"
+  location_name VARCHAR(255),
   latitude DECIMAL(10, 8),
   longitude DECIMAL(11, 8),
-  products_available TEXT[], -- product IDs they stock
-  status VARCHAR(20) DEFAULT 'pending', -- pending, active, inactive
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  products_available TEXT[],
+  categories TEXT[],
+  bio TEXT,
+  profile_image_url TEXT,
+  status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'inactive')),
+  verified_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+CREATE INDEX idx_suppliers_location ON suppliers(latitude, longitude) WHERE status = 'active';
+CREATE INDEX idx_suppliers_status ON suppliers(status);
+
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can view active suppliers" ON suppliers FOR SELECT USING (status = 'active');
+CREATE POLICY "Anyone can register as supplier" ON suppliers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Service role has full access to suppliers" ON suppliers FOR ALL USING (auth.jwt() ->> 'role' = 'service_role');
+
+GRANT SELECT ON suppliers TO anon;
+GRANT INSERT ON suppliers TO anon;
+GRANT ALL ON suppliers TO authenticated;
+GRANT ALL ON suppliers TO service_role;
 ```
 
 ---
@@ -137,7 +170,7 @@ CREATE TABLE suppliers (
 | Agent Order | `/admin/agent-order` | Generate China shipping requests |
 | Followers | `/admin/followers` | View/export follower list |
 | Products | `/admin/products` | Product management |
-| Starter Kit | `/admin/starter-kit` | Kit composition |
+| **Suppliers** | `/admin/suppliers` | **Manage supplier registrations** |
 
 ### Public Pages:
 | Page | URL | Purpose |
@@ -145,51 +178,60 @@ CREATE TABLE suppliers (
 | Home | `/` | Wants platform landing |
 | Wants | `/wants` | Browse/vote on wants |
 | Products | `/products` | Product catalog |
-| Hustle | `/hustle` | Spaza Project landing |
+| Hustle | `/hustle` | **Spaza supplier directory landing** |
 | Kit Catalog | `/hustle/kit` | View all products with prices |
+| **Supplier Register** | `/hustle/register` | **Register as a supplier** |
 
-### Scripts:
-| Script | Purpose |
-|--------|---------|
-| `scripts/fix-pricing-sea-freight.js` | Fix product pricing |
-| `scripts/audit-categories.js` | Audit product categories |
-| `scripts/enrich-premium-v4.js` | AI product enrichment |
+### API Routes:
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/suppliers/register` | POST | Register new supplier |
+| `/api/suppliers/search` | GET | Search active suppliers |
+| `/api/admin/suppliers` | GET/PATCH/DELETE | Admin supplier management |
 
 ### Components:
 | Component | Purpose |
 |-----------|---------|
 | `components/follow-form.tsx` | Reusable follower signup form |
 | `components/product-card.tsx` | Product display card |
+| **`components/supplier-finder.tsx`** | **"Find Local Supplier" modal** |
 
 ---
 
-## ✅ COMPLETED THIS SESSION
+## ✅ COMPLETED THIS SESSION (Jan 4)
 
+### Previously Done:
 1. **Variants UI** - Product editor shows variants with images
 2. **Agent Order Page** - Bilingual order generator for China agent
 3. **Category Fixer Page** - UI to delete/fix problem products
 4. **Pricing Fix Script** - Ready to apply sea freight formula
 5. **Followers System** - API + admin page + form component
-6. **Spaza Project Landing** - `/hustle` with real product counts
-7. **Kit Catalog** - `/hustle/kit` showing all products with prices
+6. **Kit Catalog** - `/hustle/kit` showing all products with prices
+
+### Just Built (Session 2):
+7. **Supplier Registration** - `/hustle/register` with 3-step form
+8. **Supplier Search API** - `/api/suppliers/search` with category filter
+9. **Admin Suppliers Page** - `/admin/suppliers` to approve/manage
+10. **Supplier Finder Component** - `supplier-finder.tsx` for products
+11. **Updated Hustle Landing** - Now reflects supplier directory model
 
 ---
 
 ## ❌ NOT DONE YET
 
 ### Immediate (before launch):
-1. **Run followers migration SQL** in Supabase
+1. **Run SQL migrations** in Supabase:
+   - `followers` table
+   - `suppliers` table
 2. **Delete 18 bad products** via `/admin/category-fixer`
 3. **Fix 14 category issues** via `/admin/category-fixer`
 4. **Apply pricing fix** - `node scripts/fix-pricing-sea-freight.js --apply`
 
-### For Spaza Supplier Network:
-1. **Create suppliers table** in Supabase
-2. **Supplier registration page** - `/hustle/register`
-3. **Supplier profile page** - `/supplier/[id]`
-4. **"Find Local Supplier" button** on products
-5. **Location-based supplier search** - show nearest suppliers
-6. **Supplier dashboard** - manage their product list
+### Future Enhancements:
+1. **Add supplier finder to product pages** - integrate component
+2. **Supplier public profiles** - `/supplier/[id]` page
+3. **Location-based search** - use lat/lng for "near me" feature
+4. **Supplier analytics** - track how many views/contacts
 
 ---
 
@@ -224,8 +266,10 @@ git add -A && git commit -m "message" && git push origin main
 
 - **Main Site:** https://jeffy.co.za
 - **Spaza Project:** https://jeffy.co.za/hustle
+- **Supplier Registration:** https://jeffy.co.za/hustle/register
 - **Kit Catalog:** https://jeffy.co.za/hustle/kit
 - **Admin:** https://jeffy.co.za/admin
+- **Admin Suppliers:** https://jeffy.co.za/admin/suppliers
 - **GitHub:** https://github.com/Tredoux555/jeffy-commerce
 
 ---
@@ -238,11 +282,12 @@ git add -A && git commit -m "message" && git push origin main
 
 ## 🎯 NEXT SESSION PRIORITIES
 
-1. **Clean up products** - delete 18, fix 14 categories
-2. **Build supplier registration** - `/hustle/register`
-3. **Build supplier finder** - "Find local supplier" on products
-4. **Create suppliers table** in database
+1. **Run the SQL** - Create `followers` and `suppliers` tables
+2. **Clean up products** - delete 18, fix 14 categories
+3. **Test supplier registration** - register a test supplier
+4. **Test admin approval** - approve supplier, verify they appear in search
+5. **Integrate supplier finder** - add to product detail pages
 
 ---
 
-*Last updated: Jan 4, 2026, 08:30*
+*Last updated: Jan 4, 2026, Session 2*
