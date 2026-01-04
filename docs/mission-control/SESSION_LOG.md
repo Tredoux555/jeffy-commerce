@@ -181,3 +181,34 @@ Key completed milestones:
 - Zone Partner app Phase 1 complete
 - Wants system built
 - Spaza supplier directory built
+
+
+---
+
+## 2026-01-04 - Variant Image Sync
+
+### Problem
+Tapping color swatch didn't update main product image. Gallery and AddToCart were sibling components with separate state.
+
+### Solution
+Created `ProductClient` wrapper with shared `selectedVariant` state. Passes `variantImage` prop to gallery.
+
+### Done
+- Modified `product-image-gallery.tsx` - added variantImage prop
+- Created `product-client.tsx` - new wrapper component  
+- Simplified `page.tsx` - delegates to ProductClient
+- Deleted `add-to-cart-with-variants.tsx` - merged into ProductClient
+- Build passes, TypeScript clean
+- Deployed to production
+
+### Commit
+`515de3b feat: sync variant selection with product image`
+
+### Test URL
+https://jeffy.co.za/products/colorful-laser-glitter-hair-extensions-120cm-braiding-rope-efe337c9
+
+### Needs
+- Manual UX verification (tap swatch → image changes)
+
+### Handoff
+`docs/HANDOFF_JAN4_2026_VARIANT_SYNC.md`
