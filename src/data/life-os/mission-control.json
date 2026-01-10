@@ -3,7 +3,7 @@
     "lastUpdated": "2026-01-04",
     "lastAudit": null,
     "nextAudit": "2026-01-31",
-    "version": "1.5.0"
+    "version": "1.6.0"
   },
   
   "focusAllocation": {
@@ -28,14 +28,14 @@
           "name": "Social Media Setup",
           "duration": "Week 1",
           "status": "active",
-          "progress": 0,
+          "progress": 40,
           "tasks": [
-            { "id": "sm1", "task": "Create Jeffy Facebook page", "done": false, "priority": "critical" },
+            { "id": "sm1", "task": "Create Jeffy Facebook page", "done": true, "priority": "critical", "completedDate": "2026-01-04" },
             { "id": "sm2", "task": "Create Jeffy Instagram account", "done": false, "priority": "critical" },
             { "id": "sm3", "task": "Create Jeffy TikTok account", "done": false, "priority": "high" },
             { "id": "sm4", "task": "Create Jeffy Twitter/X account", "done": false, "priority": "medium" },
             { "id": "sm5", "task": "Set up Linktree or similar", "done": false, "priority": "high" },
-            { "id": "sm6", "task": "Create first 5 posts (wants system explainer)", "done": false, "priority": "high" }
+            { "id": "sm6", "task": "Create first 5 posts (wants system explainer)", "done": false, "priority": "high", "note": "First post LIVE on Facebook" }
           ]
         },
         {
@@ -218,6 +218,24 @@
       "priority": 4,
       "description": "40 letters sent Jan 2, waiting for responses",
       "dashboardUrl": "/admin/outreach"
+    },
+    {
+      "id": "claude-brain",
+      "name": "Claude Brain (Autonomous System)",
+      "category": "jeffy",
+      "status": "active",
+      "priority": 5,
+      "description": "Autonomous Mac control system - daemon running in loop mode",
+      "location": "/Users/tredouxwillemse/Desktop/tredoux-OS",
+      "components": {
+        "daemon": "daemon.py - runs in loop, executes commands every 2 seconds",
+        "brain": "brain.json - state and memory",
+        "commands": "commands.json - pending commands queue",
+        "log": "activity.log - execution history"
+      },
+      "capabilities": ["shell commands", "keyboard control", "mouse control", "notifications", "open apps", "screenshots", "file operations"],
+      "limitations": ["cannot see screen in real-time", "click coordinates need to be precise", "needs pyautogui permissions"],
+      "installedDate": "2026-01-04"
     }
   ],
 
@@ -246,7 +264,7 @@
         "name": "Social Media Followers",
         "target": 1000,
         "minimum": 100,
-        "current": 0,
+        "current": 1,
         "unit": "followers",
         "deadline": "2026-03-01",
         "priority": 1,
@@ -257,7 +275,7 @@
           { "value": 500, "label": "Growing presence", "reached": false },
           { "value": 1000, "label": "Launch ready", "reached": false }
         ],
-        "notes": "Combined across all platforms."
+        "notes": "Combined across all platforms. Facebook page LIVE as of Jan 4."
       },
       {
         "id": "zone-partners",
@@ -346,6 +364,24 @@
     {
       "date": "2026-01-04",
       "entries": [
+        {
+          "category": "jeffy",
+          "action": "FACEBOOK PAGE LIVE - Jeffy on Facebook with logo, cover, bio",
+          "impact": "critical",
+          "goalId": "social-media-followers"
+        },
+        {
+          "category": "jeffy",
+          "action": "FIRST POST LIVE - 'You don't shop at Jeffy. You BUILD Jeffy.'",
+          "impact": "critical",
+          "goalId": "social-media-followers"
+        },
+        {
+          "category": "jeffy",
+          "action": "Claude Brain installed - autonomous Mac control daemon running",
+          "impact": "high",
+          "goalId": null
+        },
         {
           "category": "jeffy",
           "action": "Strategy pivot: Build wants catalogue FIRST, then Zone Partners",
@@ -441,9 +477,9 @@
       "category": "jeffy",
       "priority": 1,
       "deadline": "2026-01-07",
-      "status": "active",
+      "status": "in-progress",
       "linkedProject": "wants-catalogue",
-      "notes": "Need these to spread the word about wants system"
+      "notes": "Facebook DONE. Instagram and TikTok next."
     },
     {
       "id": "aq-017",
@@ -451,9 +487,9 @@
       "category": "jeffy",
       "priority": 1,
       "deadline": "2026-01-08",
-      "status": "pending",
+      "status": "in-progress",
       "linkedProject": "wants-catalogue",
-      "notes": "Co-creator angle: 'You build our catalogue, you get free products'"
+      "notes": "First post DONE on Facebook. 4 more to go."
     },
     {
       "id": "aq-018",
@@ -526,6 +562,33 @@
       "notes": "After social media pages are set up"
     }
   ],
+
+  "socialMedia": {
+    "facebook": {
+      "handle": "Jeffy",
+      "url": "https://facebook.com/profile.php?id=61585843271315",
+      "created": "2026-01-04",
+      "status": "live",
+      "followers": 0,
+      "posts": 1
+    },
+    "instagram": {
+      "handle": "@jeffy.za",
+      "url": null,
+      "created": null,
+      "status": "pending",
+      "followers": 0,
+      "posts": 0
+    },
+    "tiktok": {
+      "handle": "@jeffy.za",
+      "url": null,
+      "created": null,
+      "status": "pending",
+      "followers": 0,
+      "posts": 0
+    }
+  },
 
   "monthlyAudits": []
 }

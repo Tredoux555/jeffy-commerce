@@ -28,7 +28,8 @@ import {
   Brain,
   ShoppingBag,
   Truck,
-  AlertTriangle
+  AlertTriangle,
+  Megaphone
 } from 'lucide-react';
 import { AdminNotifications } from '@/components/admin-notifications';
 
@@ -296,6 +297,10 @@ export default function AdminLayout({
             
             <NavLink href="/admin/outreach" icon={Send} isActive={isActive('/admin/outreach')}>
               Influencer Outreach
+            </NavLink>
+            
+            <NavLink href="/admin/advertisements" icon={Megaphone} isActive={isActive('/admin/advertisements')}>
+              Advertisements
             </NavLink>
             
             <NavLink href="/admin/roadmap" icon={Rocket} isActive={isActive('/admin/roadmap')}>
