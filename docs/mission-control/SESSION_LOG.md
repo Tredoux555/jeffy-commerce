@@ -100,3 +100,14 @@
 1. Import 20 high-growth products (hair categories)
 2. Test full order flow with imported products
 3. Send WhatsApp outreach (ready in Marketing Command Center)
+
+### Also Built: Bulk Import Tool
+
+**Admin Page:** `/admin/bulk-import`
+- One-click import of all 148 sourced products
+- Category-by-category with progress tracking
+- Creates stub products linked to correct categories
+- Visual log of import progress
+
+**Commit:**
+- `b355f28` - Bulk Import page with progress tracking

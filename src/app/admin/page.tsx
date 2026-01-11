@@ -124,16 +124,19 @@ export default async function AdminDashboard() {
 
       {/* Quick Links */}
       <div className="mb-8 flex flex-wrap gap-3">
+        <Link href="/admin/bulk-import" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-cyan-500 text-white hover:from-blue-700 hover:to-cyan-600 transition font-medium text-sm">
+          📦 Bulk 1688 Import
+        </Link>
+        <Link href="/admin/quick-import" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700 transition font-medium text-sm">
+          ⚡ Quick Import
+        </Link>
         <Link href="/admin/launch" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600 transition font-medium text-sm animate-pulse">
           🔥 Guerrilla Launch
         </Link>
-        <Link href="/admin/roadmap" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition font-medium text-sm">
-          🚀 Launch Roadmap
+        <Link href="/admin/advertisements" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 transition font-medium text-sm">
+          📣 Marketing
         </Link>
-        <Link href="/admin/outreach" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition font-medium text-sm">
-          📧 Outreach CRM
-        </Link>
-        <Link href="/admin/products/new" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition font-medium text-sm">
+        <Link href="/admin/products/new" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition font-medium text-sm">
           + Add Product
         </Link>
         <Link href="/admin/notifications" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#25D366] text-white hover:bg-green-600 transition font-medium text-sm">
