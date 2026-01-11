@@ -16,15 +16,16 @@ const nextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/coming-soon',
-        permanent: false, // Use false so it's easy to remove later
-      },
-    ];
-  },
+  // Redirects removed for launch - site is now LIVE
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/',
+  //       destination: '/coming-soon',
+  //       permanent: false,
+  //     },
+  //   ];
+  // },
 };
 
 module.exports = nextConfig;
