@@ -111,3 +111,23 @@
 
 **Commit:**
 - `b355f28` - Bulk Import page with progress tracking
+- `0ee35a7` - Added import quick links to admin dashboard
+
+### Admin Dashboard Updated
+Quick links now include:
+- 📦 Bulk 1688 Import
+- ⚡ Quick Import
+- 📣 Marketing Command Center
+- 🔥 Guerrilla Launch
+- 💬 WhatsApp Queue
+
+---
+
+### URLs Summary
+
+| Tool | URL | Purpose |
+|------|-----|----------|
+| Bulk Import | `/admin/bulk-import` | Import all 148 sourced products |
+| Quick Import | `/admin/quick-import` | Manual single product import |
+| Marketing | `/admin/advertisements` | All ad copy + strategy |
+| Products | `/admin/products` | Manage product catalog |
