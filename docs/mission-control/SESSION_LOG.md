@@ -57,5 +57,46 @@
 
 ---
 
-*Last updated: January 10, 2026*
-*Status: PAUSED - Whale priority until Jan 16*
+*Last updated: January 12, 2026*
+*Status: ACTIVE - 1688 Import Pipeline*
+
+---
+
+## SESSION 7 - January 12, 2026
+
+### Built: Quick Import System
+
+**New Admin Page:** `/admin/quick-import`
+- Paste 1688 URL + product details
+- Auto-calculates ZAR price from CNY
+- Pricing formula: `(CNY × 3.2 + shipping) × 2.5`
+- Shows profit margin
+- Category selector
+- Variants note field
+- One-click import to database
+
+**New API:** `/api/admin/products/create`
+- JSON POST endpoint for product creation
+- Duplicate detection by source_product_id
+- Auto-generates slug and SKU
+- Handles 1688 source tracking
+
+### How to Use:
+1. Browse 1688.com, find product
+2. Copy URL, title, price, image URLs
+3. Go to jeffy.co.za/admin/quick-import
+4. Paste data, auto-price calculates
+5. Click Import → Product created as draft
+6. Activate when ready to sell
+
+### Files Created:
+- `src/app/admin/quick-import/page.tsx`
+- `src/app/api/admin/products/create/route.ts`
+
+### Commit:
+- `1b26ec4` - Quick Import admin page with auto-pricing
+
+### Next Steps:
+1. Import 20 high-growth products (hair categories)
+2. Test full order flow with imported products
+3. Send WhatsApp outreach (ready in Marketing Command Center)
