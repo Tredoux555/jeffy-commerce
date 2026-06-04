@@ -87,7 +87,8 @@ export async function GET(request: NextRequest) {
 // POST - Submit a new want
 export async function POST(request: NextRequest) {
   try {
-    const { product_name, description, category, user_email, user_name, image_url } = await request.json();
+    const { product_name, description, category, user_email, user_name, image_url,
+            price_willing_cents, buy_frequency, suburb, latitude, longitude } = await request.json();
 
     console.log('Creating want:', { product_name, user_email, image_url: !!image_url });
 
@@ -212,6 +213,25 @@ export async function POST(request: NextRequest) {
       // Ignore
     }
 
+    // Structured Wish List capture (price/frequency/location).
+    // Defensive: runs only if migration 003 columns exist; never breaks want creation.
+    if (price_willing_cents != null || buy_frequency || suburb || latitude != null) {
+      try {
+        await supabase
+          .from('wants')
+          .update({
+            price_willing_cents: price_willing_cents ?? null,
+            buy_frequency: buy_frequency ?? null,
+            suburb: suburb ?? null,
+            latitude: latitude ?? null,
+            longitude: longitude ?? null,
+          })
+          .eq('id', want.id);
+      } catch (e) {
+        // Columns not migrated yet — ignore, core want still created.
+      }
+    }
+
     // ALWAYS send email - different content based on user status
     const shareUrl = `${SITE_URL}/want/${want.id}?ref=${want.creator_referral_code}`;
     const verifyUrl = verificationToken ? `${SITE_URL}/auth/verify?token=${verificationToken}` : null;
@@ -223,7 +243,7 @@ export async function POST(request: NextRequest) {
       const emailResult = await getResend().emails.send({
         from: 'Jeffy <hello@jeffy.co.za>',
         to: normalizedEmail,
-        subject: `Your Want "${product_name}" is live! 🎉`,
+        subject: `Your wish "${product_name}" is live! 🎉`,
         html: `
 <!DOCTYPE html>
 <html>
@@ -241,11 +261,11 @@ export async function POST(request: NextRequest) {
     <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 24px; padding: 32px; border: 1px solid #334155;">
       
       <h2 style="color: #ffffff; font-size: 24px; font-weight: 800; margin: 0 0 16px 0; text-align: center;">
-        Your Want is Live! 🎉
+        Your Wish is Live! 🎉
       </h2>
 
       <p style="color: #94a3b8; font-size: 16px; line-height: 1.6; margin: 0 0 8px 0; text-align: center;">
-        You requested:
+        You wished for:
       </p>
       <p style="color: #ffffff; font-size: 20px; font-weight: 700; margin: 0 0 24px 0; text-align: center;">
         "${product_name}"
@@ -253,12 +273,12 @@ export async function POST(request: NextRequest) {
 
       <div style="background: rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid rgba(34, 197, 94, 0.3);">
         <p style="color: #4ade80; font-size: 16px; font-weight: 600; margin: 0; text-align: center;">
-          🎁 Get 10 people to verify and it's yours FREE!
+          🎁 Rally backers — popular wishes get sourced, and one wish is granted free every month!
         </p>
       </div>
 
       <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
-        Share your link with friends and family. When they verify they'd buy it too, you get closer to your free product!
+        Share your link with friends and family. The more people back it, the stronger the demand — and your wish stays in the running for the monthly free draw!
       </p>
 
       <div style="background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 24px; word-break: break-all;">
@@ -269,7 +289,7 @@ export async function POST(request: NextRequest) {
       <div style="border-top: 1px solid #334155; padding-top: 24px; margin-top: 24px;">
         ${needsVerification ? `
         <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
-          Set up your account to track verifications:
+          Set up your account to track your backers:
         </p>
         <div style="text-align: center;">
           <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">
@@ -278,11 +298,11 @@ export async function POST(request: NextRequest) {
         </div>
         ` : `
         <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
-          Track your verifications in your dashboard:
+          Track your backers in your dashboard:
         </p>
         <div style="text-align: center;">
           <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">
-            View My Wants →
+            View My Wishes →
           </a>
         </div>
         `}
@@ -292,7 +312,7 @@ export async function POST(request: NextRequest) {
 
     <div style="text-align: center; margin-top: 32px;">
       <p style="color: #64748b; font-size: 12px; margin: 0;">
-        You're receiving this because you created a Want on Jeffy.
+        You're receiving this because you added a wish on Jeffy.
       </p>
     </div>
 
