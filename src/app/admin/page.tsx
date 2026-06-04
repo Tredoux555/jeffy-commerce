@@ -133,8 +133,8 @@ export default async function AdminDashboard() {
         <Link href="/admin/launch" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600 transition font-medium text-sm animate-pulse">
           🔥 Guerrilla Launch
         </Link>
-        <Link href="/admin/advertisements" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 transition font-medium text-sm">
-          📣 Marketing
+        <Link href="/admin/campaign" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 transition font-medium text-sm">
+          📣 Wishlist Campaign
         </Link>
         <Link href="/admin/products/new" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition font-medium text-sm">
           + Add Product

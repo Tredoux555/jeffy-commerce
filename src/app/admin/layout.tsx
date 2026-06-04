@@ -22,10 +22,8 @@ import {
   RotateCcw,
   Star,
   FileText,
-  Search,
   Scale,
   Activity,
-  Brain,
   ShoppingBag,
   Truck,
   AlertTriangle,
@@ -121,9 +119,9 @@ export default function AdminLayout({
         return count >= 10;
       }).length || 0;
       
-      // Pending partner applications
+      // Pending reseller (distributor) applications
       const { count: partnersPending } = await supabase
-        .from('zone_partners')
+        .from('distributors')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
       
@@ -154,9 +152,7 @@ export default function AdminLayout({
 
   // Check if current path is in "More" section
   const isMoreSection = [
-    '/admin/oem-research',
     '/admin/factories',
-    '/admin/commissions',
     '/admin/refunds',
     '/admin/reviews',
     '/admin/categories',
@@ -165,7 +161,6 @@ export default function AdminLayout({
     '/admin/customers',
     '/admin/inventory',
     '/admin/promotions',
-    '/admin/reports',
     '/admin/analytics',
     '/admin/survey',
     '/admin/zones'
@@ -208,13 +203,6 @@ export default function AdminLayout({
               Command Center
             </NavLink>
 
-            {/* ==================== LIFE OS ==================== */}
-            <NavSection title="Life OS" />
-            
-            <NavLink href="/admin/life-os" icon={Brain} isActive={isActive('/admin/life-os')}>
-              Mission Control
-            </NavLink>
-
             {/* ==================== SOURCING PIPELINE ==================== */}
             <NavSection title="Sourcing Pipeline" />
             
@@ -232,23 +220,27 @@ export default function AdminLayout({
               Products
             </NavLink>
 
-            {/* ==================== PARTNERS ==================== */}
-            <NavSection title="Partners" />
-            
-            <NavLink 
-              href="/admin/partners" 
-              icon={Users} 
-              isActive={pathname === '/admin/partners'}
+            {/* ==================== RESELLERS ==================== */}
+            <NavSection title="Resellers" />
+
+            <NavLink
+              href="/admin/distributors"
+              icon={Users}
+              isActive={isActive('/admin/distributors')}
               count={counts.partnersPending}
               countColor="orange"
             >
-              Applications
+              Distributors
             </NavLink>
-            
-            <NavLink href="/admin/partners/finances" icon={DollarSign} isActive={isActive('/admin/partners/finances')}>
-              Finances
+
+            <NavLink href="/admin/wholesale" icon={DollarSign} isActive={isActive('/admin/wholesale')}>
+              Wholesale prices
             </NavLink>
-            
+
+            <NavLink href="/admin/finance" icon={DollarSign} isActive={isActive('/admin/finance')}>
+              Finance
+            </NavLink>
+
             <NavLink href="/admin/zones" icon={MapPin} isActive={isActive('/admin/zones')}>
               Zones
             </NavLink>
@@ -286,7 +278,11 @@ export default function AdminLayout({
 
             {/* ==================== GROWTH ==================== */}
             <NavSection title="Growth" />
-            
+
+            <NavLink href="/admin/campaign" icon={Megaphone} isActive={isActive('/admin/campaign')}>
+              Wishlist Campaign
+            </NavLink>
+
             <NavLink href="/admin/followers" icon={Users} isActive={isActive('/admin/followers')}>
               Followers
             </NavLink>
@@ -297,10 +293,6 @@ export default function AdminLayout({
             
             <NavLink href="/admin/outreach" icon={Send} isActive={isActive('/admin/outreach')}>
               Influencer Outreach
-            </NavLink>
-            
-            <NavLink href="/admin/advertisements" icon={Megaphone} isActive={isActive('/admin/advertisements')}>
-              Advertisements
             </NavLink>
             
             <NavLink href="/admin/roadmap" icon={Rocket} isActive={isActive('/admin/roadmap')}>
@@ -326,9 +318,6 @@ export default function AdminLayout({
               <div className="space-y-1 pl-2 border-l-2 border-gray-100 ml-4">
                 {/* Research */}
                 <p className="text-xs text-gray-400 px-4 pt-2">Research</p>
-                <NavLink href="/admin/oem-research" icon={Search} isActive={isActive('/admin/oem-research')}>
-                  OEM Research
-                </NavLink>
                 <NavLink href="/admin/factories" icon={Factory} isActive={isActive('/admin/factories')}>
                   Factory Database
                 </NavLink>
@@ -338,9 +327,6 @@ export default function AdminLayout({
                 
                 {/* Finance */}
                 <p className="text-xs text-gray-400 px-4 pt-4">Finance</p>
-                <NavLink href="/admin/commissions" icon={DollarSign} isActive={isActive('/admin/commissions')}>
-                  Commissions
-                </NavLink>
                 <NavLink href="/admin/refunds" icon={RotateCcw} isActive={isActive('/admin/refunds')}>
                   Refunds
                 </NavLink>

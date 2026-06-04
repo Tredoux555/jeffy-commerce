@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { generateOrderNumber } from '@/lib/utils';
+import { routeOrder } from '@/lib/distributors/routing';
+import { VAT_REGISTERED, splitInclusive } from '@/lib/vat';
 import crypto from 'crypto';
 
 interface CartItemInput {
@@ -117,7 +119,9 @@ export async function POST(request: NextRequest) {
       }
 
       const itemTotal = product.selling_price_cents * item.quantity;
-      const itemCost = (product.cost_price_cents || 0) * item.quantity;
+      // Use true landed cost when available; fall back to legacy cost_price_cents.
+      const unitCost = product.landed_cost_cents ?? product.cost_price_cents ?? 0;
+      const itemCost = unitCost * item.quantity;
       subtotalCents += itemTotal;
       totalCostCents += itemCost;
 
@@ -128,7 +132,7 @@ export async function POST(request: NextRequest) {
         variant_name: null,
         quantity: item.quantity,
         unit_price_cents: product.selling_price_cents,
-        unit_cost_cents: product.cost_price_cents || 0,
+        unit_cost_cents: unitCost,
         total_cents: itemTotal,
       });
     }
@@ -136,31 +140,46 @@ export async function POST(request: NextRequest) {
     const orderNumber = generateOrderNumber();
     const totalCents = subtotalCents;
     
-    // Calculate profit split (50/50 between platform and partner)
+    // Gross profit. Seller margin is handled by the two-tier split below (buy-sell model);
+    // the legacy 50/50 franchise split is retired.
     const profitCents = totalCents - totalCostCents;
-    const franchiseShareCents = Math.floor(profitCents / 2);
-    const platformShareCents = profitCents - franchiseShareCents;
 
     // Generate QR code data (unique identifier for delivery)
     const qrCodeData = `JEFFY-${orderNumber}-${Date.now()}`;
+
+    // Resolve a customer identity by email (best-effort) so orders aren't anonymous.
+    let resolvedUserId = '00000000-0000-0000-0000-000000000000';
+    try {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', customer.email)
+        .maybeSingle();
+      if (existingUser?.id) resolvedUserId = existingUser.id as string;
+    } catch {
+      // users lookup is best-effort; fall back to the guest placeholder
+    }
 
     // Create order with delivery info
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         order_number: orderNumber,
-        user_id: '00000000-0000-0000-0000-000000000000', // Guest checkout - TODO: use real user
+        user_id: resolvedUserId,
+        customer_email: customer.email,
+        customer_name: `${customer.firstName} ${customer.lastName}`.trim(),
+        customer_phone: customer.phone,
         delivery_latitude: delivery?.latitude || 0,
         delivery_longitude: delivery?.longitude || 0,
         delivery_address: `${customer.address}, ${customer.city}, ${customer.province}, ${customer.postalCode}`,
-        zone_id: delivery?.zoneId || null,
-        franchise_id: delivery?.partnerId || null,
-        is_franchise_delivery: !!delivery?.partnerId,
+        zone_id: null,
+        franchise_id: null,
+        is_franchise_delivery: false,
         subtotal_cents: subtotalCents,
         total_cents: totalCents,
         profit_cents: profitCents,
-        franchise_share_cents: franchiseShareCents,
-        platform_share_cents: platformShareCents,
+        franchise_share_cents: 0,
+        platform_share_cents: profitCents,
         payment_method: paymentMethod,
         payment_status: 'pending',
         status: 'pending_payment',
@@ -183,29 +202,73 @@ export async function POST(request: NextRequest) {
       console.error('Order items error:', itemsError);
     }
 
-    // Create delivery record if partner is assigned
-    if (delivery?.partnerId) {
-      const { error: deliveryError } = await supabase
-        .from('deliveries')
-        .insert({
-          order_id: order.id,
-          franchisee_id: delivery.partnerId,
-          qr_code: qrCodeData,
-          status: 'pending',
-          scheduled_date: new Date().toISOString().split('T')[0], // Today
-          recipient_name: `${customer.firstName} ${customer.lastName}`,
-          recipient_phone: customer.phone,
-        });
+    // --- Reseller network: route to nearest reseller + two-tier split ---
+    // Additive and defensive: if the distributor columns/tables aren't present
+    // yet (pre-migration), this logs and is skipped without breaking checkout.
+    let splitMerchantId: string | null = null;
+    let splitAmountCents = 0;
+    try {
+      const patch: Record<string, unknown> = {};
 
-      if (deliveryError) {
-        console.error('Delivery creation error:', deliveryError);
-      } else {
-        // Update partner's total deliveries count
-        await supabase.rpc('increment_partner_deliveries', {
-          p_partner_id: delivery.partnerId,
-        });
+      // Two-tier split from wholesale prices when every line has one.
+      let wholesaleTotal = 0;
+      let haveWholesale = true;
+      for (const item of items) {
+        const product = products.find((p) => p.id === item.productId);
+        const w = (product as { wholesale_price_cents?: number | null } | undefined)?.wholesale_price_cents;
+        if (w == null) { haveWholesale = false; break; }
+        wholesaleTotal += w * item.quantity;
       }
+      let sellerMarginCents = 0;
+      if (haveWholesale) {
+        sellerMarginCents = Math.max(subtotalCents - wholesaleTotal, 0);
+        patch.jeffy_wholesale_cents = wholesaleTotal;
+        patch.seller_margin_cents = sellerMarginCents;
+        // VAT ends at the wholesale leg: record Jeffy's output VAT on the wholesale
+        // supply when registered (resellers are too small to register).
+        if (VAT_REGISTERED) {
+          const { netCents, vatCents } = splitInclusive(wholesaleTotal);
+          patch.vat_cents = vatCents;
+          patch.net_wholesale_cents = netCents;
+        }
+      }
+
+      // Stock-aware geo-routing: nearest active reseller that holds every line in stock.
+      if (delivery?.latitude && delivery?.longitude) {
+        const outcome = await routeOrder(
+          delivery.latitude,
+          delivery.longitude,
+          items.map((i) => ({ productId: i.productId, quantity: i.quantity }))
+        );
+        if (outcome.result) {
+          patch.distributor_id = outcome.result.distributor.id;
+          patch.routing_status = 'routed';
+          // Real-time PayFast Split: pay the seller's margin straight to their PayFast
+          // merchant account. If they're not PayFast-enabled, the webhook accrues the
+          // margin as a withdrawable ledger credit instead (fallback).
+          const merchantId = outcome.result.distributor.payfast_merchant_id;
+          if (merchantId && sellerMarginCents > 0) {
+            splitMerchantId = merchantId;
+            splitAmountCents = sellerMarginCents;
+            patch.split_to_merchant_id = merchantId;
+            patch.split_amount_cents = sellerMarginCents;
+          }
+        } else {
+          // No reseller could fulfil — flag for admin assignment / Jeffy-direct.
+          patch.routing_status = outcome.reason;
+        }
+      }
+
+      if (Object.keys(patch).length > 0) {
+        const { error: routeError } = await supabase.from('orders').update(patch).eq('id', order.id);
+        if (routeError) console.error('Reseller routing/split (non-fatal):', routeError.message);
+      }
+    } catch (e) {
+      console.error('Reseller routing/split threw (non-fatal):', e instanceof Error ? e.message : String(e));
     }
+
+    // (Legacy franchise delivery record removed — the buy-sell model dispatches stock
+    //  to resellers via the distributor ledger, not per-order delivery rows.)
 
     // Decrement product stock
     for (const item of items) {
@@ -234,6 +297,20 @@ export async function POST(request: NextRequest) {
         amount: (totalCents / 100).toFixed(2),
         item_name: `Order ${orderNumber}`,
       };
+
+      // PayFast Split Payments: route the seller's margin to their merchant account in
+      // real time. Placed before signature so it's included in the hash.
+      if (splitMerchantId && splitAmountCents > 0 && Number.isFinite(Number(splitMerchantId))) {
+        data.setup = JSON.stringify({
+          split_payment: {
+            merchant_id: Number(splitMerchantId),
+            amount: splitAmountCents,
+            percentage: 0,
+            min: 100,
+            max: splitAmountCents,
+          },
+        });
+      }
 
       // Generate signature
       const passphrase = process.env.PAYFAST_PASSPHRASE || '';

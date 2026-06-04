@@ -35,7 +35,7 @@ export default function WantsPage() {
   
   // New want form
   const [showForm, setShowForm] = useState(false);
-  const [newWant, setNewWant] = useState({ product_name: '', description: '', category: 'General', email: '' });
+  const [newWant, setNewWant] = useState({ product_name: '', description: '', category: 'General', email: '', price_willing: '', buy_frequency: '', suburb: '' });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -235,7 +235,10 @@ export default function WantsPage() {
           description: newWant.description,
           category: newWant.category,
           user_email: newWant.email,
-          image_url: imageUrl
+          image_url: imageUrl,
+          price_willing_cents: newWant.price_willing ? Math.round(parseFloat(newWant.price_willing) * 100) : null,
+          buy_frequency: newWant.buy_frequency || null,
+          suburb: newWant.suburb || null
         })
       });
       const data = await res.json();
@@ -246,7 +249,7 @@ export default function WantsPage() {
           text: 'Product requested! Share your link to get verifications.',
           want: data.want
         });
-        setNewWant({ product_name: '', description: '', category: 'General', email: newWant.email });
+        setNewWant({ product_name: '', description: '', category: 'General', email: newWant.email, price_willing: '', buy_frequency: '', suburb: '' });
         setImageFile(null);
         setImagePreview(null);
         localStorage.setItem('jeffy_voter_email', newWant.email);
@@ -423,18 +426,18 @@ export default function WantsPage() {
               <h3 className="text-2xl font-black mb-4">Want more than a free product?</h3>
               
               <p className="text-slate-300 mb-2">
-                <span className="text-white font-bold">Become a Zone Partner.</span> Secure your territory. Build something real.
+                <span className="text-white font-bold">Become a Reseller.</span> Secure your territory. Build something real.
               </p>
               <p className="text-xl text-white font-black mb-6">
                 This could change your life. <span className="text-purple-400">Your destiny.</span>
               </p>
               
               <Link 
-                href="/partner"
+                href="/distributors/join"
                 className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold px-6 py-3 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all hover:scale-105"
               >
                 <MapPin className="h-5 w-5" />
-                See Zone Partner Opportunities
+                Become a Reseller
               </Link>
             </div>
           </div>
@@ -606,6 +609,45 @@ export default function WantsPage() {
                     <option>Kitchen</option>
                     <option>Other</option>
                   </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">What would you pay? (R)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newWant.price_willing}
+                      onChange={(e) => setNewWant(prev => ({ ...prev, price_willing: e.target.value }))}
+                      placeholder="e.g. 150"
+                      className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">How often?</label>
+                    <select
+                      value={newWant.buy_frequency}
+                      onChange={(e) => setNewWant(prev => ({ ...prev, buy_frequency: e.target.value }))}
+                      className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      <option value="">—</option>
+                      <option value="once">Once-off</option>
+                      <option value="monthly">Monthly</option>
+                      <option value="weekly">Weekly</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Your area / suburb</label>
+                  <input
+                    type="text"
+                    value={newWant.suburb}
+                    onChange={(e) => setNewWant(prev => ({ ...prev, suburb: e.target.value }))}
+                    placeholder="e.g. Soweto, Sandton, Khayelitsha"
+                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Helps us send stock to a distributor near you.</p>
                 </div>
 
                 <div>

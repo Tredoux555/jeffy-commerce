@@ -1,0 +1,321 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import {
+  Megaphone, MessageCircle, PhoneMissed, Sparkles, Heart, ShieldCheck,
+  Calendar, Users, Radio, Building2, CheckCircle2, Circle, DollarSign, Gift,
+} from 'lucide-react';
+
+// Wishlist Campaign — action-plan dashboard.
+// Canonical source: docs/JEFFY_WISHLIST_CAMPAIGN.md + docs/JEFFY_CAMPAIGN_MANAGER_HIRING.md
+// Strategy: we don't buy reach — we manufacture it by granting real wishes and turning
+// each into a story the internet shares for free. Step 1 = hire the SA-based manager.
+
+const STORAGE_KEY = 'jeffy_campaign_checklist_v1';
+
+const NEXT_ACTIONS = [
+  { id: 'hire', step: 'STEP 1', text: 'Hire the SA-based social media / campaign manager', note: 'Everything waits on this. See the Hiring section below.' },
+  { id: 'whatsapp', step: '', text: 'Register the WhatsApp Business line + missed-call backup number', note: 'Voice-note friendly. Free entry, no smartphone required.' },
+  { id: 'scripts', step: '', text: 'Draft the launch script pack', note: 'Launch video, WhatsApp auto-reply flow, consent script.' },
+  { id: 'firstwish', step: '', text: 'Identify and pre-grant the first hero wish', note: 'Launch with proof, not a request.' },
+  { id: 'partners', step: '', text: 'Build the corporate-partner CSI/CSR target list', note: 'Retailers, banks, telcos — for Phase 3 leverage.' },
+];
+
+const PHASES = [
+  {
+    n: 1, name: 'PROVE IT', months: 'Months 1–3', tone: 'border-orange-300 bg-orange-50',
+    points: [
+      'Hire the manager (Month 0–1).',
+      'Stand up the WhatsApp line + missed-call backup.',
+      'Launch with proof: pre-film & grant the FIRST wish before going public.',
+      'Grant 1–2 wishes. Film raw and honest. Post FB + TikTok + Reels + Shorts.',
+      'Boost only what already performs organically (R2–5k/month).',
+    ],
+    goal: 'Validate the mechanic floods the WhatsApp line and the story format moves people. Cheap learning before scaling.',
+  },
+  {
+    n: 2, name: 'FIND THE FORMULA', months: 'Months 4–8', tone: 'border-amber-300 bg-amber-50',
+    points: [
+      'Double down on whatever video format won in Phase 1.',
+      'Daily cadence locked in via the multi-cut method.',
+      'Approach community radio (campus + local, R150–R800/spot, NOT SABC) — many run feel-good stories free.',
+      'Start a light corporate-partner outreach list.',
+    ],
+    goal: 'Lock the repeatable format and begin building free amplification + partner pipeline.',
+  },
+  {
+    n: 3, name: 'LEVERAGE', months: 'Months 9–12', tone: 'border-emerald-300 bg-emerald-50',
+    points: [
+      'Use 8–10 proven hero stories as the pitch deck to corporate CSI/CSR partners.',
+      'Unlock: a partner funds the wishes + granting for brand association.',
+      'Now paid radio becomes affordable — someone else pays, amplifying something already proven.',
+      'Consider a "Year in Wishes" annual flagship compilation.',
+    ],
+    goal: 'Turn proof into partner-funded scale so growth no longer comes off Jeffy’s own budget.',
+  },
+];
+
+const ETHICS = [
+  'Proper, recorded consent for every recipient, before filming — plain-language, in their own language.',
+  'Frame recipients as people with dreams, not objects of pity. The story is aspiration, not destitution.',
+  'NEVER make anyone perform gratitude for the camera. No staged crying, no "say thank you to Jeffy."',
+  'Let people keep their pride — dignity in framing, editing, and captions.',
+  'Anyone can decline to be filmed and still receive their wish.',
+];
+
+type DrawWinner = {
+  wantId: string; title: string; name: string | null; phone: string | null;
+  email: string | null; emailNotified: boolean; whatsappLink: string | null;
+};
+type DrawState =
+  | { status: 'idle' }
+  | { status: 'drawing' }
+  | { status: 'winner'; winner: DrawWinner }
+  | { status: 'none' }
+  | { status: 'error'; message: string };
+
+export default function CampaignPage() {
+  const [done, setDone] = useState<Record<string, boolean>>({});
+  const [draw, setDraw] = useState<DrawState>({ status: 'idle' });
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setDone(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  const runDraw = async () => {
+    if (draw.status === 'drawing') return;
+    if (!confirm('Draw a random winner from the eligible wishes now? This records the winner and cannot be undone.')) return;
+    setDraw({ status: 'drawing' });
+    try {
+      const res = await fetch('/api/admin/wishlist/draw', { method: 'POST' });
+      const j = await res.json();
+      if (!res.ok || !j.success) { setDraw({ status: 'error', message: j.error || 'Draw failed.' }); return; }
+      if (!j.drawn) { setDraw({ status: 'none' }); return; }
+      setDraw({ status: 'winner', winner: j.winner });
+    } catch {
+      setDraw({ status: 'error', message: 'Network error.' });
+    }
+  };
+
+  const toggle = (id: string) => {
+    setDone((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const completed = NEXT_ACTIONS.filter((a) => done[a.id]).length;
+
+  return (
+    <div className="max-w-5xl">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <Megaphone className="h-6 w-6 text-[#ff6b35]" /> Wishlist Campaign
+        </h1>
+        <p className="text-gray-600">The content engine that funds the mission. Year-1 budget envelope R200k–R420k.</p>
+      </div>
+
+      {/* One-line strategy */}
+      <div className="rounded-xl bg-gradient-to-r from-[#ff6b35] to-[#ff8c42] p-5 text-white mb-6 shadow-sm">
+        <p className="text-xs font-semibold uppercase tracking-wide opacity-90">The one-line strategy</p>
+        <p className="mt-1 text-lg font-semibold leading-snug">
+          We don&apos;t buy reach. We manufacture it — by granting real wishes and turning each one into a story the internet shares for free.
+        </p>
+        <p className="mt-2 text-sm opacity-90">
+          One filmed wish = 8–15 pieces of content. 12 wishes/year = a year of anchor stories. Radio is a round-2 amplifier, ideally on a partner&apos;s budget — never the launch tool.
+        </p>
+      </div>
+
+      {/* Draw a winner (on-demand) */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Gift className="h-4 w-4 text-[#ff6b35]" /> Grant a wish — draw a winner</h2>
+            <p className="mt-0.5 text-sm text-slate-500">Picks a random eligible wish and records the winner. Run it whenever you&apos;re ready to film the next one — no fixed schedule.</p>
+          </div>
+          <button
+            onClick={runDraw}
+            disabled={draw.status === 'drawing'}
+            className="rounded-lg bg-[#ff6b35] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+          >
+            {draw.status === 'drawing' ? 'Drawing…' : 'Draw a winner'}
+          </button>
+        </div>
+
+        {draw.status === 'winner' && (
+          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
+            <p className="font-semibold text-green-800">🎉 Winner drawn</p>
+            <p className="mt-1 text-sm text-green-800">
+              <strong>{draw.winner.name || 'A Jeffy customer'}</strong> — &ldquo;{draw.winner.title}&rdquo;
+            </p>
+            <p className="mt-1 text-xs text-green-700">
+              {draw.winner.email ? `Email: ${draw.winner.email}${draw.winner.emailNotified ? ' (notified ✓)' : ' (email not sent — set RESEND_API_KEY)'}` : 'No email on file.'}
+              {draw.winner.phone ? ` · Phone: ${draw.winner.phone}` : ''}
+            </p>
+            {draw.winner.whatsappLink && (
+              <a href={draw.winner.whatsappLink} target="_blank" rel="noopener noreferrer"
+                 className="mt-2 inline-block rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white">
+                Message on WhatsApp
+              </a>
+            )}
+            <p className="mt-2 text-xs text-green-700">Recorded in wishlist_grants and shown publicly as a winner. Remember: recorded consent before filming.</p>
+          </div>
+        )}
+        {draw.status === 'none' && (
+          <p className="mt-4 text-sm text-slate-500">No eligible wishes right now (need active wishes with at least one supporter that haven&apos;t already won).</p>
+        )}
+        {draw.status === 'error' && (
+          <p className="mt-4 text-sm text-red-600">{draw.message}</p>
+        )}
+      </section>
+
+      {/* Next actions checklist */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-6">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2"><Sparkles className="h-4 w-4 text-[#ff6b35]" /> Immediate next actions</h2>
+          <span className="text-xs text-slate-500">{completed} / {NEXT_ACTIONS.length} done</span>
+        </div>
+        <ul className="space-y-2">
+          {NEXT_ACTIONS.map((a) => (
+            <li key={a.id}>
+              <button
+                onClick={() => toggle(a.id)}
+                className={`w-full text-left flex items-start gap-3 rounded-lg border p-3 transition-colors ${done[a.id] ? 'border-green-200 bg-green-50' : 'border-slate-200 hover:bg-slate-50'}`}
+              >
+                {done[a.id]
+                  ? <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+                  : <Circle className="h-5 w-5 text-slate-300 shrink-0 mt-0.5" />}
+                <span>
+                  <span className={`font-medium ${done[a.id] ? 'text-green-800 line-through' : 'text-slate-800'}`}>
+                    {a.step && <span className="mr-2 rounded bg-[#ff6b35] px-1.5 py-0.5 text-[10px] font-bold text-white align-middle">{a.step}</span>}
+                    {a.text}
+                  </span>
+                  <span className="block text-xs text-slate-500 mt-0.5">{a.note}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-3 text-xs text-slate-400">Progress is saved in this browser.</p>
+      </section>
+
+      {/* The mechanic */}
+      <section className="grid md:grid-cols-2 gap-4 mb-6">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">The mechanic — keep it brutally simple</h2>
+          <div className="space-y-3 text-sm text-slate-700">
+            <p className="flex gap-2"><MessageCircle className="h-4 w-4 text-green-600 shrink-0 mt-0.5" /><span><strong>WhatsApp line (primary).</strong> Free, voice-note friendly so low-literacy entrants can just talk their wish. Auto-reply confirms entry.</span></p>
+            <p className="flex gap-2"><PhoneMissed className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" /><span><strong>Missed-call number (backup).</strong> Entrant calls, hangs up, costs R0. We SMS / call back.</span></p>
+            <p className="flex gap-2"><Heart className="h-4 w-4 text-[#ff6b35] shrink-0 mt-0.5" /><span><strong>The single question:</strong> &ldquo;If we could grant one wish to change your life, what would it be — and why?&rdquo; The <em>why</em> is the story pipeline.</span></p>
+            <p className="flex gap-2"><Calendar className="h-4 w-4 text-purple-600 shrink-0 mt-0.5" /><span><strong>Cadence:</strong> grant one wish per month, filmed start to finish.</span></p>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-slate-900 mb-3">Posting & platforms</h2>
+          <p className="text-sm text-slate-700 mb-3">Consistency beats volume. Target <strong>1 post/day, 5–7 days/week</strong> — a strong 5/week beats a burnt-out 7/week. One filmed wish becomes weeks of daily posts (teaser → the &ldquo;why&rdquo; → reveal → reaction → BTS → 1-month follow-up → per-platform cuts).</p>
+          <ol className="text-sm text-slate-700 space-y-1 list-decimal pl-5">
+            <li><strong>Facebook</strong> — PRIMARY. Where lower-income SA actually lives.</li>
+            <li><strong>TikTok</strong> — the free virality lottery.</li>
+            <li><strong>Instagram Reels + YouTube Shorts</strong> — repurpose the same vertical cuts.</li>
+          </ol>
+        </div>
+      </section>
+
+      {/* Budget scenarios */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-6">
+        <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2"><DollarSign className="h-4 w-4 text-green-600" /> Budget scenarios</h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="rounded-lg border border-slate-200 p-4">
+            <p className="text-sm font-semibold text-slate-800">Scenario A — without a manager</p>
+            <p className="text-xs text-slate-500 mb-2">~R5k–15k/month → R60k–180k/year</p>
+            <p className="text-sm text-slate-600">Lean and doable, but caps growth — consistency suffers when you&apos;re running everything else. Fallback only if hiring slips.</p>
+          </div>
+          <div className="rounded-lg border-2 border-[#ff6b35] bg-orange-50 p-4">
+            <p className="text-sm font-semibold text-slate-800">Scenario B — with a manager <span className="ml-1 rounded bg-[#ff6b35] px-1.5 py-0.5 text-[10px] font-bold text-white">RECOMMENDED</span></p>
+            <p className="text-xs text-slate-500 mb-2">~R15k–39k/month → ~R180k–420k/year (inside the envelope)</p>
+            <p className="text-sm text-slate-600">The manager changes the math via content volume, consistency, and inbox management — not by buying reach. Under one-tenth of a radio-only plan, far more effective.</p>
+          </div>
+        </div>
+        <div className="overflow-x-auto mt-4">
+          <table className="w-full text-left text-sm">
+            <thead><tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400">
+              <th className="py-2 pr-3">Line item (Scenario B)</th><th className="py-2 px-3">Monthly</th><th className="py-2 pl-3">Year 1</th>
+            </tr></thead>
+            <tbody className="text-slate-700">
+              <tr className="border-b border-slate-50"><td className="py-2 pr-3">Campaign / social manager salary</td><td className="py-2 px-3">R8k–20k</td><td className="py-2 pl-3">R96k–240k</td></tr>
+              <tr className="border-b border-slate-50"><td className="py-2 pr-3">Paid boosts (best performers only)</td><td className="py-2 px-3">R3k–8k</td><td className="py-2 pl-3">R36k–96k</td></tr>
+              <tr className="border-b border-slate-50"><td className="py-2 pr-3">The wishes themselves (avg)</td><td className="py-2 px-3">R3k–8k</td><td className="py-2 pl-3">R36k–96k</td></tr>
+              <tr className="border-b border-slate-50"><td className="py-2 pr-3">Production extras (travel, props, editing)</td><td className="py-2 px-3">R1k–3k</td><td className="py-2 pl-3">R12k–36k</td></tr>
+              <tr className="font-semibold"><td className="py-2 pr-3">Total</td><td className="py-2 px-3">R15k–39k</td><td className="py-2 pl-3">~R180k–420k</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* 12-month roadmap */}
+      <section className="mb-6">
+        <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2"><Calendar className="h-4 w-4 text-[#ff6b35]" /> 12-month roadmap</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          {PHASES.map((p) => (
+            <div key={p.n} className={`rounded-xl border p-4 ${p.tone}`}>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Phase {p.n} · {p.months}</p>
+              <p className="text-lg font-bold text-slate-900 mb-2">{p.name}</p>
+              <ul className="text-sm text-slate-700 space-y-1.5 list-disc pl-4">
+                {p.points.map((pt, i) => <li key={i}>{pt}</li>)}
+              </ul>
+              <p className="mt-3 text-xs text-slate-600 border-t border-slate-200/60 pt-2"><strong>Goal:</strong> {p.goal}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Ethics */}
+      <section className="rounded-xl border-2 border-rose-200 bg-rose-50 p-5 shadow-sm mb-6">
+        <h2 className="text-base font-bold text-rose-900 mb-2 flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-rose-600" /> Non-negotiable ethics — dignity protects the brand for decades</h2>
+        <p className="text-sm text-rose-800 mb-3">Filmed poverty reads as either genuine upliftment or exploitative spectacle — and which one the public perceives attaches <em>permanently</em> to the Jeffy and Isibani names. These are hard rules for the manager and every edit; put them in the contract.</p>
+        <ul className="text-sm text-rose-900 space-y-1.5">
+          {ETHICS.map((e, i) => <li key={i} className="flex gap-2"><ShieldCheck className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" /><span>{e}</span></li>)}
+        </ul>
+      </section>
+
+      {/* Hiring Step 1 */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-10">
+        <h2 className="text-base font-semibold text-slate-900 mb-3 flex items-center gap-2"><Users className="h-4 w-4 text-[#ff6b35]" /> Step 1 — hire the campaign / social media manager</h2>
+        <div className="grid md:grid-cols-2 gap-4 text-sm text-slate-700">
+          <div>
+            <p className="font-semibold text-slate-800 mb-1">Who you&apos;re looking for</p>
+            <ul className="space-y-1 list-disc pl-4">
+              <li>Storyteller first, marketer second — the emotion in the wish is the product.</li>
+              <li>Phone-native video editor, CapCut-fluent, non-corporate vertical video.</li>
+              <li>Emotionally mature inbox manager (the WhatsApp line is heavy).</li>
+              <li>Culturally fluent in low-income SA; ideally isiZulu and/or isiXhosa.</li>
+              <li>Self-starting & remote-reliable (managed from Beijing).</li>
+            </ul>
+            <p className="mt-2 text-xs text-slate-500">Tiers: R8k–12k junior-but-hungry · <strong>R12k–20k mid-level = recommended target.</strong></p>
+          </div>
+          <div>
+            <p className="font-semibold text-slate-800 mb-1">Where to find them</p>
+            <ol className="space-y-1 list-decimal pl-4">
+              <li>LinkedIn — campaign / NGO / cause content. Judge their posts, not their CV.</li>
+              <li>Instagram / TikTok — DM SA creators already making emotional human-interest content.</li>
+              <li>OfferZen / RecruitMyMom / Pnet / Careers24.</li>
+              <li>University comms / journalism grads (Rhodes, Wits, UJ, DUT).</li>
+              <li>Your own network — referrals beat cold hires for trust-heavy work.</li>
+            </ol>
+            <p className="mt-2 text-xs text-slate-600 flex gap-2"><Radio className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" /><span><strong>Screening test:</strong> paid trial brief — 60s of footage → one FB post, one TikTok cut, a caption. Hire on the dignity instinct + edit quality.</span></p>
+          </div>
+        </div>
+        <div className="mt-4 rounded-lg bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600 flex gap-2">
+          <Building2 className="h-4 w-4 text-slate-400 shrink-0 mt-0.5" />
+          <span>Payment routes through Montree Commerce → Montree Limited (HK) via Wallex during trial, same rails as the existing SA hire. Full job spec, pitch, and onboarding in <code className="rounded bg-slate-200 px-1 text-xs">docs/JEFFY_CAMPAIGN_MANAGER_HIRING.md</code>; full plan in <code className="rounded bg-slate-200 px-1 text-xs">docs/JEFFY_WISHLIST_CAMPAIGN.md</code>.</span>
+        </div>
+      </section>
+    </div>
+  );
+}

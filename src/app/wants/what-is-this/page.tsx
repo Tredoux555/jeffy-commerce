@@ -200,7 +200,7 @@ export default function WhatIsWantsPage() {
               
               <div className="space-y-4 text-lg text-slate-300 mb-8">
                 <p>
-                  <span className="text-white font-bold">Become a Zone Partner.</span> Secure your territory. Build something real.
+                  <span className="text-white font-bold">Become a Reseller.</span> Secure your territory. Build something real.
                 </p>
                 <p>
                   This isn&apos;t just about saving money.
@@ -211,11 +211,11 @@ export default function WhatIsWantsPage() {
               </div>
               
               <Link 
-                href="/partner"
+                href="/distributors/join"
                 className="inline-flex items-center gap-3 bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-bold text-lg px-8 py-4 rounded-full hover:shadow-lg hover:shadow-purple-500/25 transition-all hover:scale-105"
               >
                 <MapPin className="h-5 w-5" />
-                See Zone Partner Opportunities
+                Become a Reseller
               </Link>
             </div>
           </div>

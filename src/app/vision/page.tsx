@@ -252,9 +252,9 @@ export default function VisionPage() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/partner/apply">
+              <Link href="/distributors/join">
                 <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
-                  Become a Zone Partner
+                  Become a Reseller
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>

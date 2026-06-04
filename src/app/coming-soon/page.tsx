@@ -57,14 +57,14 @@ export default function ComingSoonPage() {
               </div>
             </Link>
 
-            {/* Path 2: Become a Zone Partner */}
-            <Link href="/partner" className="group">
+            {/* Path 2: Become a Reseller */}
+            <Link href="/distributors/join" className="group">
               <div className="bg-slate-800/50 backdrop-blur rounded-3xl p-8 border border-slate-700 hover:border-emerald-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 h-full">
                 <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
                   <MapPin className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">
-                  Become a Zone Partner
+                  Become a Reseller
                 </h3>
                 <p className="text-slate-400 mb-6">
                   Own your territory. Build something real. 

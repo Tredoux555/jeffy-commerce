@@ -40,9 +40,9 @@ export default async function HomePage() {
           <div className="hidden md:flex items-center gap-6">
             <Link href="/wants" className="text-gray-300 hover:text-white transition">Wants</Link>
             <Link href="/products" className="text-gray-300 hover:text-white transition">Shop</Link>
-            <Link href="/partner/apply">
+            <Link href="/distributors/join">
               <Button variant="outline" className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white">
-                Become a Zone Partner
+                Become a Reseller
               </Button>
             </Link>
           </div>
@@ -264,7 +264,7 @@ export default async function HomePage() {
                   ))}
                 </div>
 
-                <Link href="/partner/apply">
+                <Link href="/distributors/join">
                   <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
                     Apply Now
                     <ArrowRight className="ml-2 h-5 w-5" />
@@ -333,7 +333,7 @@ export default async function HomePage() {
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-400">
               <Link href="/products" className="hover:text-white">Shop</Link>
               <Link href="/wants" className="hover:text-white">Wants</Link>
-              <Link href="/partner/apply" className="hover:text-white">Zone Partners</Link>
+              <Link href="/distributors/join" className="hover:text-white">Resellers</Link>
               <Link href="/story" className="hover:text-white">Our Story</Link>
               <Link href="/vision" className="hover:text-white">The Vision</Link>
             </div>
