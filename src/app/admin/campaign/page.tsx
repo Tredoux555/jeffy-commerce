@@ -77,6 +77,7 @@ type DrawState =
 export default function CampaignPage() {
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [draw, setDraw] = useState<DrawState>({ status: 'idle' });
+  const [showPack, setShowPack] = useState(false);
 
   useEffect(() => {
     try {
@@ -362,6 +363,80 @@ We grant one real wish a month to a South African and film the story — with di
           <li>RecruitMyMom + student job boards; and your own network (referrals win for trust-heavy work).</li>
         </ul>
         <p className="mt-3 text-xs text-slate-500">Screen with a paid trial: 60s of footage → one FB post, one TikTok cut, a caption. Hire on edit quality + whether they instinctively get the dignity rule.</p>
+      </section>
+
+      {/* Trial brief + launch script pack (collapsible) */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-10">
+        <button
+          onClick={() => setShowPack(!showPack)}
+          className="flex w-full items-center justify-between text-left"
+        >
+          <span className="text-base font-semibold text-slate-900 flex items-center gap-2"><Radio className="h-4 w-4 text-[#ff6b35]" /> Trial brief &amp; launch script pack</span>
+          <span className="text-sm text-slate-400">{showPack ? 'Hide' : 'Show'}</span>
+        </button>
+        <p className="mt-1 text-sm text-slate-500">The paid finalist test, the proof-first launch film, the WhatsApp auto-replies, and the recorded-consent script. Full copy also in <code className="rounded bg-slate-200 px-1 text-xs">docs/JEFFY_CAMPAIGN_LAUNCH_PACK.md</code>.</p>
+
+        {showPack && (
+          <div className="mt-4 space-y-5">
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Paid trial brief (to finalists)</p>
+              <pre className="whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">{`Hi [name] — thanks for putting your hand up. This is a short PAID task so we can see how you work. Pay: [R___ flat], due within [3 days].
+
+The story: Jeffy grants one real wish a month to an ordinary South African and tells it honestly, with dignity — never as a pity show.
+
+Your task: from the ~60s of raw footage we sent [link], produce:
+1) One Facebook post — a cut (up to ~60s) + caption.
+2) One TikTok / Reels vertical cut — 15–30s.
+3) The caption copy for each.
+
+What we're looking for: hook in the first 2 seconds; subtitles (people watch on mute); real emotion WITHOUT exploiting the person; an SA-authentic voice, not corporate.
+
+The rule that matters most: the story is about the person's DREAM, never their poverty. No staged gratitude.
+
+Send to [email/WhatsApp] by [date].`}</pre>
+            </div>
+
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Launch film — "we granted the first wish" (60–90s, vertical)</p>
+              <pre className="whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">{`0–2s · HOOK (on-screen text): "We asked one South African what would change their life. Then we made it happen."
+2–15s · Their "why" in their own words (their voice, subtitled). Don't narrate over it — this is the heart.
+15–35s · The reveal / the moment we grant it. Hold on the real reaction. Silence is fine.
+35–55s · Let it breathe — a beat of genuine emotion. Their words, not ours.
+55–75s · Invitation: "Every month we grant one wish. Next month it could be you — or someone you love."
+CTA card: "Tell us your wish. WhatsApp a voice note or message to [number]. It's free. No catch."
+
+Editor dignity notes: subtitle everything; never cut for poverty-shock; if the emotion isn't real, don't fake it; get the person's sign-off on the final cut where you can.`}</pre>
+            </div>
+
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">WhatsApp wish-line auto-replies</p>
+              <pre className="whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">{`On first message:
+"Hi 👋 You've reached the Jeffy Wish List. Here's the only question:
+‘If we could grant one wish to change your life, what would it be — and why?’
+You can type it or just send a voice note — whatever's easier. Take your time. 💛"
+
+If they only say hi:
+"No rush 🙂 Whenever you're ready, tell us: if we could grant one wish to change your life, what would it be — and why? A voice note is perfect."
+
+Once they've sent their wish:
+"Got it — thank you for trusting us with that. 🙏 Every month we choose a wish to grant and film the story (only ever with your permission). It's completely free and there's nothing to buy. If yours is chosen, we'll message you here first. Either way, thank you. 💛"
+
+(Real replies to heavy messages should be human, not canned — these just set expectations.)`}</pre>
+            </div>
+
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Recorded consent script (before any filming · translate to their language)</p>
+              <pre className="whitespace-pre-wrap rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-900">{`"Before we film anything — this is completely your choice.
+We'd like to share your story on the internet — Facebook, TikTok, and similar — so other people can see it. Is that okay with you?
+You can say no to being filmed and STILL receive your wish — that doesn't change.
+If we film and you want us to stop at any point, just say so, and we will.
+You don't owe us anything and you don't have to thank anyone. We just want to tell your story with respect.
+Are you happy for us to film and share this?"
+
+Keep the recorded "yes" with the footage. If anyone hesitates, default to NOT filming.`}</pre>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
