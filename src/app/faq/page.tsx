@@ -6,7 +6,7 @@ import Link from 'next/link';
 
 const faqCategories = [
   {
-    name: 'Jeffy Wants',
+    name: 'Jeffy Wish List',
     icon: Gift,
     color: 'text-orange-500',
     bgColor: 'bg-orange-50',
@@ -23,8 +23,8 @@ const faqCategories = [
     color: 'text-blue-500',
     bgColor: 'bg-blue-50',
     questions: [
-      { q: 'How long does delivery take?', a: 'Standard delivery takes 2-4 weeks. Local Zone Partner delivery is usually 1-3 days once the product arrives.' },
-      { q: 'Do you deliver to my area?', a: 'We deliver across South Africa through our Zone Partner network. Check at checkout if delivery is available.' },
+      { q: 'How long does delivery take?', a: 'Local reseller delivery is usually 1-3 days once the product is in stock near you.' },
+      { q: 'Do you deliver to my area?', a: 'We deliver across South Africa through our network of independent local resellers. Check at checkout if delivery is available.' },
       { q: 'How can I track my order?', a: 'Use the Track Order page with your order number and phone number.' },
     ],
   },
@@ -50,13 +50,13 @@ const faqCategories = [
     ],
   },
   {
-    name: 'Zone Partners',
+    name: 'Resellers',
     icon: Users,
     color: 'text-indigo-500',
     bgColor: 'bg-indigo-50',
     questions: [
-      { q: 'How do I become a Zone Partner?', a: 'Apply through our Zone Partner page. You need a smartphone, reliable transport, and passion for service!' },
-      { q: 'How much can I earn?', a: 'Active partners typically earn R5,000-R15,000+ per month through deliveries and profit sharing.' },
+      { q: 'How do I become a Jeffy reseller?', a: 'Apply through our reseller page (Become a Reseller). You buy stock at wholesale and keep the retail margin — you run it as your own independent business.' },
+      { q: 'How does it work?', a: 'Resellers buy Jeffy stock at wholesale and resell at retail, keeping the margin. New resellers can start on credit and graduate to buying upfront as they grow.' },
     ],
   },
 ];
