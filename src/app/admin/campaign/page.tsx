@@ -316,6 +316,53 @@ export default function CampaignPage() {
           <span>Payment routes through Montree Commerce → Montree Limited (HK) via Wallex during trial, same rails as the existing SA hire. Full job spec, pitch, and onboarding in <code className="rounded bg-slate-200 px-1 text-xs">docs/JEFFY_CAMPAIGN_MANAGER_HIRING.md</code>; full plan in <code className="rounded bg-slate-200 px-1 text-xs">docs/JEFFY_WISHLIST_CAMPAIGN.md</code>.</span>
         </div>
       </section>
+
+      {/* Manager advert — ready to post (student / side-hustle) */}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm mb-10">
+        <h2 className="text-base font-semibold text-slate-900 mb-1 flex items-center gap-2"><Megaphone className="h-4 w-4 text-[#ff6b35]" /> Manager advert — ready to post</h2>
+        <p className="text-sm text-slate-500 mb-4">Targeting a media/journalism/film student, AI-current, CapCut-fluent — a part-time side-hustle, not an employee. Set the pay figure (suggested R5,000–R9,000/month part-time), then post on university channels.</p>
+
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Version A — university career pages / LinkedIn (full)</p>
+        <pre className="whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 mb-5">{`Side-hustle: Social Storyteller for a South African startup with a heart (remote, part-time)
+
+We're Jeffy. Once a month we grant one real wish to an ordinary South African — and we film it, honestly and with dignity, then share the story. Behind it is a bigger mission: building toward free, merit-based schools for kids who deserve a shot.
+
+We're looking for one student to be the eyes and voice of that — not as an employee, as a paid side-hustle you run around your studies.
+
+What you'd do
+• Run our WhatsApp "wish line" — read the entries, spot the stories worth telling.
+• Shoot and cut short vertical video (CapCut is perfect) that doesn't look corporate.
+• Post across Facebook, TikTok, Instagram Reels and YouTube Shorts; learn what makes people share.
+• Use AI tools to work faster — we want someone already curious about that.
+
+You might be our person if you're
+• Studying media, journalism, film, communications or marketing (or just genuinely good at this).
+• Phone-native with video — you already make content people actually watch.
+• Emotionally switched-on — the wish line carries heavy, real stories.
+• Culturally fluent in SA; isiZulu and/or isiXhosa is a big plus.
+• Self-driven — we're a small team managing remotely.
+
+The deal
+• Remote, flexible around your timetable. [R___/month], part-time to start — room to grow.
+• Real ownership of a brand from the ground floor.
+
+One non-negotiable: every person we film gives consent first, we never make anyone perform gratitude for a camera, and we tell stories about people's dreams, never their poverty.
+
+To apply: send your Instagram/TikTok or a reel you're proud of (portfolio over CV), and one line on why this matters to you → [your email / WhatsApp].`}</pre>
+
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Version B — Instagram / TikTok DM + notice board (short)</p>
+        <pre className="whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700 mb-5">{`📲 Paid side-hustle for a student creator (remote)
+We grant one real wish a month to a South African and film the story — with dignity, never as a pity show. Want to run the WhatsApp wish line + shoot/edit the videos (CapCut), part-time around your studies? Mission-led SA startup, ground floor. isiZulu/isiXhosa a plus. Show us a reel you're proud of, not a CV. DM/email [___].`}</pre>
+
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-700">Where to post (university-first)</p>
+        <ul className="text-sm text-slate-700 space-y-1 list-disc pl-5">
+          <li>Media/journalism/film department pages + student WhatsApp/Facebook groups: Rhodes (JMS), Wits, UJ, Stellenbosch/CPUT (film), UCT, DUT, TUT.</li>
+          <li>Campus career portals (part-time / remote student-jobs boards).</li>
+          <li>Instagram / TikTok — DM SA student creators already making emotional human-interest content.</li>
+          <li>RecruitMyMom + student job boards; and your own network (referrals win for trust-heavy work).</li>
+        </ul>
+        <p className="mt-3 text-xs text-slate-500">Screen with a paid trial: 60s of footage → one FB post, one TikTok cut, a caption. Hire on edit quality + whether they instinctively get the dignity rule.</p>
+      </section>
     </div>
   );
 }
