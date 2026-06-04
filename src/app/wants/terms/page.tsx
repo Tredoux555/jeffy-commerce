@@ -13,7 +13,10 @@ export default function WantsTermsPage() {
         </Link>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Terms and Conditions</h1>
-        <p className="text-gray-500 mb-8">Jeffy Wants Program - Last updated: January 2026</p>
+        <p className="text-gray-500 mb-2">Jeffy Wish List - Last updated: January 2026</p>
+        <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm mb-8">
+          Note: these terms are being updated to the current Wish List model (demand signal + monthly free draw). For the draw rules, see <a href="/wish-list-rules" className="underline font-medium">the Wish List draw rules</a>. The clauses below ("Want Request", verification threshold) reflect an earlier version and remain discretionary and non-binding as stated.
+        </p>
 
         <div className="bg-white rounded-xl border p-8 prose prose-gray max-w-none text-sm leading-relaxed">
           

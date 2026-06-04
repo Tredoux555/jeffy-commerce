@@ -63,12 +63,12 @@ export default function WhatIsWantsPage() {
             
             {/* The reward */}
             <div className="mt-10 pt-10 border-t border-slate-700">
-              <p className="text-slate-400 text-lg mb-3">For your help?</p>
+              <p className="text-slate-400 text-lg mb-3">Every month?</p>
               <p className="text-3xl md:text-4xl font-black text-white">
-                Your product. <span className="text-green-400">100% free.</span>
+                One wish, <span className="text-green-400">granted free.</span>
               </p>
               <p className="text-xl text-slate-400 mt-2">
-                Gratis. No strings attached.
+                We grant a wish each month and film the story. Add yours to enter.
               </p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function WhatIsWantsPage() {
               </div>
               
               <h2 className="text-3xl md:text-4xl font-black mb-6">
-                Want more than a free product?
+                Want more than a wish?
               </h2>
               
               <div className="space-y-4 text-lg text-slate-300 mb-8">

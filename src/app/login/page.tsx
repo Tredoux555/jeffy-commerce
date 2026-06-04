@@ -133,7 +133,7 @@ export default function LoginPage() {
             <p className="text-gray-500 text-sm">
               Don&apos;t have an account?{' '}
               <Link href="/wants" className="text-orange-600 font-medium hover:underline">
-                Create a Want first
+                Make a Wish first
               </Link>
             </p>
           </div>

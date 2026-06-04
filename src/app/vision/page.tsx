@@ -258,9 +258,9 @@ export default function VisionPage() {
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link href="/wants/create">
+              <Link href="/wants">
                 <Button size="lg" className="bg-white/10 hover:bg-white/20 border border-white/30">
-                  Start with a Want
+                  Start with a Wish
                 </Button>
               </Link>
             </div>

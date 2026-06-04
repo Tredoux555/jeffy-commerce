@@ -11,10 +11,10 @@ const faqCategories = [
     color: 'text-orange-500',
     bgColor: 'bg-orange-50',
     questions: [
-      { q: 'How does Jeffy Wants work?', a: 'Create a "want" for any product, share your unique link with friends. When 10 people click and agree they want it too, you get the product completely FREE!' },
-      { q: 'Is the product really free?', a: 'Yes! For products under R1,000, once you get 10 agrees within 7 days, we source and deliver the product at no cost.' },
-      { q: 'How long do I have to get 10 agrees?', a: 'You have 7 days from when you create your want. After that, the want expires but you can create a new one!' },
-      { q: 'Can I create multiple wants?', a: 'Yes! You can create wants for different products. However, you can only have one active want per product at a time.' },
+      { q: 'How does the Jeffy Wish List work?', a: 'Add a wish for any product and share your link. The more people back it, the stronger the demand signal — popular wishes get sourced and added to the catalogue. And every month we draw one wish to grant free and film the story.' },
+      { q: 'How do I get something free?', a: 'Each month Jeffy holds a free draw among eligible wishes — one winner gets their wish granted free. Backing a wish does not guarantee a free product; it helps prove demand so we source it. See the draw rules at /wish-list-rules.' },
+      { q: 'What do the backers/supporters do?', a: 'When friends back your wish, they show real demand. Enough demand and Jeffy sources the product for everyone to buy — and your wish stays in the running for the monthly free draw.' },
+      { q: 'Can I add multiple wishes?', a: 'Yes! Add wishes for different products. You can have one active wish per product at a time.' },
     ],
   },
   {

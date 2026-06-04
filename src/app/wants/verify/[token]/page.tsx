@@ -97,7 +97,7 @@ export default function VerifyTokenPage() {
             {result.alreadyVerified 
               ? 'You have already verified your interest in this product.'
               : isThresholdReached
-                ? 'This product hit 10 verifications! Jeffy is now sourcing it.'
+                ? 'Enough people want this — Jeffy is now sourcing it for the catalogue!'
                 : `Thanks for verifying! ${result.remaining} more ${result.remaining === 1 ? 'person' : 'people'} needed.`
             }
           </p>
@@ -125,7 +125,7 @@ export default function VerifyTokenPage() {
             <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-4 mb-6">
               <Gift className="h-6 w-6 text-purple-600 mx-auto mb-2" />
               <p className="text-purple-800 text-sm">
-                The person who requested this product will receive it <strong>FREE!</strong>
+                Enough demand — Jeffy will <strong>source this</strong> for the catalogue. One wish is granted free every month.
               </p>
             </div>
           )}

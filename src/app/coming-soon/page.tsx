@@ -45,11 +45,11 @@ export default function ComingSoonPage() {
                   <Package className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-3">
-                  Create a Want
+                  Make a Wish
                 </h3>
                 <p className="text-slate-400 mb-6">
-                  Request any product. Get 10 people to back you. 
-                  We source it. You get it <span className="font-bold text-amber-400">free</span>.
+                  Add any product to the Wish List. Backers prove demand, we source it —
+                  and one wish is granted <span className="font-bold text-amber-400">free</span> every month.
                 </p>
                 <div className="flex items-center justify-center gap-2 text-amber-400 font-semibold group-hover:gap-3 transition-all">
                   Request a Product <ArrowRight className="h-5 w-5" />

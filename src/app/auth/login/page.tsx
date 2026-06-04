@@ -133,7 +133,7 @@ export default function LoginPage() {
           {/* Link to wants login */}
           <div className="mt-4 pt-4 border-t text-center">
             <p className="text-gray-500 text-sm">
-              Created a Want?{' '}
+              Added a Wish?{' '}
               <Link href="/login" className="text-orange-600 hover:text-orange-700 font-medium">
                 Login to track it
               </Link>

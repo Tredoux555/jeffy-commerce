@@ -84,8 +84,8 @@ export default async function Image() {
               }}
             >
               <div style={{ fontSize: 32, marginBottom: 12 }}>📦</div>
-              <div style={{ color: 'white', fontWeight: 'bold', fontSize: 22 }}>Create a Want</div>
-              <div style={{ color: '#fbbf24', fontSize: 16, marginTop: 4 }}>Get it FREE</div>
+              <div style={{ color: 'white', fontWeight: 'bold', fontSize: 22 }}>Make a Wish</div>
+              <div style={{ color: '#fbbf24', fontSize: 16, marginTop: 4 }}>One granted free monthly</div>
             </div>
             <div
               style={{

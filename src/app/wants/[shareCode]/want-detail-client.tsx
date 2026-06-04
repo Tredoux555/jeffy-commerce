@@ -65,33 +65,33 @@ export function WantDetailClient({ want }: { want: Want }) {
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         <div className="space-y-4 text-sm">
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</div>
-            <p className="text-gray-300">Your friend wants a product and needs 10 people to agree.</p>
+            <p className="text-gray-300">Your friend added a wish to the Jeffy Wish List and is gathering support.</p>
           </div>
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</div>
-            <p className="text-gray-300">When you tap <span className="text-blue-400 font-semibold">Agree</span>, you help them get closer to their goal.</p>
+            <p className="text-gray-300">When you tap <span className="text-blue-400 font-semibold">Back it</span>, you help prove there&apos;s real demand.</p>
           </div>
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</div>
-            <p className="text-gray-300">Once 10 people agree, Jeffy sources the product and your friend gets it <span className="text-green-400 font-semibold">FREE!</span></p>
+            <p className="text-gray-300">Popular wishes get sourced and added to Jeffy — and each month one wish is <span className="text-green-400 font-semibold">granted free</span>.</p>
           </div>
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</div>
-            <p className="text-gray-300">Then YOU can create your own want and get 10 friends to help YOU get free stuff!</p>
+            <p className="text-gray-300">Then add your own wish — rally support, and you&apos;re in the monthly draw too.</p>
           </div>
         </div>
 
         <div className="mt-6 p-3 bg-[#ff6b35]/20 rounded-lg border border-[#ff6b35]/30">
           <p className="text-[#ff6b35] text-sm font-medium text-center">
-            It's a loop of friends helping friends! 🔄
+            It&apos;s a loop of friends helping friends! 🔄
           </p>
         </div>
 
-        <button 
+        <button
           onClick={() => setShowHelp(false)}
           className="w-full mt-4 bg-[#ff6b35] text-white py-3 rounded-xl font-bold"
         >
@@ -106,10 +106,10 @@ export function WantDetailClient({ want }: { want: Want }) {
     return (
       <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6">
         {showHelp && <HelpModal />}
-        
+
         <div className="max-w-sm w-full text-center">
           {/* Help Icon */}
-          <button 
+          <button
             onClick={() => setShowHelp(true)}
             className="absolute top-4 right-4 text-gray-400 hover:text-white flex items-center gap-1 text-sm"
           >
@@ -125,28 +125,28 @@ export function WantDetailClient({ want }: { want: Want }) {
           )}
 
           {/* Title */}
-          <p className="text-gray-400 mb-1">{creatorName} wants:</p>
+          <p className="text-gray-400 mb-1">{creatorName} wishes for:</p>
           <h1 className="text-xl font-bold mb-8">{want.title}</h1>
 
-          {/* AGREE BUTTON - Blue */}
+          {/* BACK IT BUTTON - Blue */}
           <button
             onClick={handleAgreeClick}
             className="w-full bg-[#3b82f6] text-white py-4 rounded-xl font-bold text-xl hover:bg-blue-600 transition"
           >
-            Agree
+            Back it
           </button>
-          <p className="text-gray-500 text-sm mt-2 mb-10">(I think I also need one)</p>
+          <p className="text-gray-500 text-sm mt-2 mb-10">(I&apos;d want one too)</p>
 
-          {/* CREATE MY OWN WANT - Orange Box */}
-          <Link href="/wants/create" className="block">
+          {/* ADD MY OWN WISH - Orange Box */}
+          <Link href="/wants" className="block">
             <div className="w-full bg-[#ff6b35] text-black py-4 rounded-xl font-bold text-lg hover:bg-orange-500 transition">
-              Create my own Want
+              Add my own Wish
             </div>
           </Link>
-          <p className="text-[#ff6b35] font-semibold mt-2">and get it free</p>
+          <p className="text-[#ff6b35] font-semibold mt-2">and enter the monthly draw</p>
 
           {/* Small help link at bottom */}
-          <button 
+          <button
             onClick={() => setShowHelp(true)}
             className="text-gray-500 text-xs mt-8 underline"
           >
@@ -186,7 +186,7 @@ export function WantDetailClient({ want }: { want: Want }) {
               disabled={loading}
               className="w-full bg-[#3b82f6] text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50"
             >
-              {loading ? 'Confirming...' : 'Get your friend their free want'}
+              {loading ? 'Confirming...' : `Back ${creatorName}'s wish`}
             </button>
           </form>
 
@@ -207,15 +207,15 @@ export function WantDetailClient({ want }: { want: Want }) {
         </div>
 
         <h1 className="text-xl font-bold mb-2">Done!</h1>
-        <p className="text-gray-400 mb-10">You're helping {creatorName} get their product free!</p>
+        <p className="text-gray-400 mb-10">You&apos;ve backed {creatorName}&apos;s wish — thanks for helping prove the demand!</p>
 
-        {/* GET YOUR FREE WANT */}
-        <Link href="/wants/create" className="block">
+        {/* ADD YOUR OWN WISH */}
+        <Link href="/wants" className="block">
           <div className="w-full bg-[#ff6b35] text-black py-4 rounded-xl font-bold text-lg hover:bg-orange-500 transition">
-            Get your free want
+            Add your own Wish
           </div>
         </Link>
-        <p className="text-gray-500 text-sm mt-3">Create your own & get 10 friends to agree</p>
+        <p className="text-gray-500 text-sm mt-3">Add yours, rally support, and enter the monthly draw</p>
       </div>
     </div>
   );

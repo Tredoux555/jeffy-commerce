@@ -106,7 +106,7 @@ export default function WantVerificationPage() {
     const product = want?.product_name || 'something';
     
     // Clean, personal message - no marketing
-    return `${firstName} wants a ${product} - help them get it free?\n\n${shareUrl}`;
+    return `${firstName} added a ${product} to their Jeffy Wish List - back it?\n\n${shareUrl}`;
   };
 
   const shareViaWhatsApp = () => {
@@ -161,10 +161,10 @@ export default function WantVerificationPage() {
           {isComplete ? (
             <>
               <h1 className="text-xl font-bold text-gray-900 mb-3">
-                {firstName} got it free!
+                {firstName}&apos;s wish is fully backed!
               </h1>
               <p className="text-gray-600">
-                Thanks to you and 9 others, {firstName} is getting a free {productName}.
+                Thanks to you and 9 others, there&apos;s strong demand for {productName} — Jeffy will source it, and it&apos;s in the running for the monthly free draw.
               </p>
             </>
           ) : alreadyHelped && !verified ? (
@@ -173,7 +173,7 @@ export default function WantVerificationPage() {
                 You already helped {firstName}
               </h1>
               <p className="text-gray-600">
-                They're {stepsRemaining} {stepsRemaining === 1 ? 'step' : 'steps'} away from getting a free {productName}.
+                They&apos;re {stepsRemaining} {stepsRemaining === 1 ? 'backer' : 'backers'} away from proving demand for {productName}.
               </p>
             </>
           ) : (
@@ -182,7 +182,7 @@ export default function WantVerificationPage() {
                 You verified this for {firstName}
               </h1>
               <p className="text-gray-600">
-                They're {stepsRemaining === 1 ? 'one step' : `${stepsRemaining} steps`} closer to getting a free {productName}.
+                They&apos;re {stepsRemaining === 1 ? 'one backer' : `${stepsRemaining} backers`} closer to proving demand for {productName}.
               </p>
             </>
           )}
@@ -237,7 +237,7 @@ export default function WantVerificationPage() {
           
           <div className="p-6">
             {/* Personal ask */}
-            <p className="text-gray-500 mb-1">{firstName} wants:</p>
+            <p className="text-gray-500 mb-1">{firstName} wishes for:</p>
             <h1 className="text-2xl font-bold text-gray-900 mb-4">{want.product_name}</h1>
             
             {want.description && (
@@ -273,7 +273,7 @@ export default function WantVerificationPage() {
             ) : (
               <>
                 <Sparkles className="h-6 w-6" />
-                <span className="text-xl font-medium">Help {firstName} get it free</span>
+                <span className="text-xl font-medium">Back {firstName}&apos;s wish</span>
               </>
             )}
           </div>

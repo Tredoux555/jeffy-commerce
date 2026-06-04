@@ -83,8 +83,8 @@ export default function MyWantsPage() {
   return (
     <div className="min-h-screen bg-[#0f172a] text-white py-12">
       <div className="max-w-2xl mx-auto px-4">
-        <h1 className="text-4xl font-bold text-[#ff6b35] mb-2">My Wants</h1>
-        <p className="text-gray-400 mb-8">Track the progress of your wants</p>
+        <h1 className="text-4xl font-bold text-[#ff6b35] mb-2">My Wishes</h1>
+        <p className="text-gray-400 mb-8">Track the progress of your wishes</p>
 
         {/* Search Form */}
         <form onSubmit={handleSearch} className="mb-8">
@@ -182,13 +182,13 @@ export default function MyWantsPage() {
               </div>
             ) : (
               <div className="text-center py-12 bg-white/5 rounded-xl border border-gray-600">
-                <p className="text-gray-400 mb-4">No wants found for this phone number</p>
-                <Link 
-                  href="/wants/create"
+                <p className="text-gray-400 mb-4">No wishes found for this phone number</p>
+                <Link
+                  href="/wants"
                   className="inline-flex items-center gap-2 bg-[#ff6b35] text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition"
                 >
                   <Plus className="h-5 w-5" />
-                  Create Your First Want
+                  Make Your First Wish
                 </Link>
               </div>
             )}
@@ -199,15 +199,15 @@ export default function MyWantsPage() {
         {!searched && !loading && (
           <div className="text-center py-12 bg-white/5 rounded-xl border border-gray-600">
             <Users className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <p className="text-gray-400 mb-2">Enter your phone number to see your wants</p>
-            <p className="text-gray-500 text-sm">Use the same number you used when creating wants</p>
+            <p className="text-gray-400 mb-2">Enter your phone number to see your wishes</p>
+            <p className="text-gray-500 text-sm">Use the same number you used when adding wishes</p>
           </div>
         )}
 
-        {/* Create New Want Link */}
+        {/* Add New Wish Link */}
         <div className="mt-8 text-center">
-          <Link href="/wants/create" className="text-[#ff6b35] hover:underline font-medium">
-            + Create a new want
+          <Link href="/wants" className="text-[#ff6b35] hover:underline font-medium">
+            + Add a new wish
           </Link>
         </div>
       </div>

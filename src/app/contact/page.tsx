@@ -184,8 +184,8 @@ export default function ContactPage() {
                         <option value="product">Product Question</option>
                         <option value="delivery">Delivery Issue</option>
                         <option value="returns">Returns & Refunds</option>
-                        <option value="wants">Jeffy Wants Program</option>
-                        <option value="partner">Zone Partner Inquiry</option>
+                        <option value="wants">Jeffy Wish List</option>
+                        <option value="partner">Reseller Inquiry</option>
                         <option value="other">Other</option>
                       </select>
                     </div>

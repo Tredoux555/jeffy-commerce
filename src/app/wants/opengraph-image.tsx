@@ -37,7 +37,7 @@ export default async function Image() {
               marginBottom: 20,
             }}
           >
-            JEFFY WANTS
+            JEFFY WISH LIST
           </div>
           <div
             style={{
@@ -48,7 +48,7 @@ export default async function Image() {
               maxWidth: 900,
             }}
           >
-            Request Any Product
+            Wish For Any Product
           </div>
           <div
             style={{
@@ -58,7 +58,7 @@ export default async function Image() {
               fontWeight: 'bold',
             }}
           >
-            10 votes = We source it
+            Popular wishes get sourced
           </div>
           <div
             style={{
@@ -67,7 +67,7 @@ export default async function Image() {
               marginBottom: 40,
             }}
           >
-            First requester gets it FREE! 🎁
+            One wish granted free, every month! 🎁
           </div>
         </div>
       </div>

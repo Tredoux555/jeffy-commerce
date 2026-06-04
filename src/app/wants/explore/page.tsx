@@ -165,12 +165,12 @@ export default function ExploreWantsPage() {
               className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-black font-medium rounded-xl hover:bg-orange-400 transition text-sm"
             >
               <Sparkles className="h-4 w-4" />
-              Create Want
+              Make a Wish
             </Link>
           </div>
-          
-          <h1 className="text-2xl font-black mb-2">Explore Wants</h1>
-          <p className="text-slate-400 text-sm mb-4">Vote on products you'd love to see. Help shape what Jeffy sources next!</p>
+
+          <h1 className="text-2xl font-black mb-2">Explore Wishes</h1>
+          <p className="text-slate-400 text-sm mb-4">Back the products you&apos;d love to see. Help shape what Jeffy sources next!</p>
           
           {/* Search */}
           <div className="relative mb-4">
@@ -226,14 +226,14 @@ export default function ExploreWantsPage() {
             <Package className="h-16 w-16 text-slate-700 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">No wants found</h2>
             <p className="text-slate-400 mb-6">
-              {search ? `No products matching "${search}"` : 'Be the first to request something!'}
+              {search ? `No products matching "${search}"` : 'Be the first to wish for something!'}
             </p>
             <Link
               href="/wants"
               className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 text-black font-bold rounded-full hover:bg-orange-400 transition"
             >
               <Sparkles className="h-5 w-5" />
-              Create Your Want
+              Make Your Wish
             </Link>
           </div>
         ) : (
@@ -301,7 +301,7 @@ export default function ExploreWantsPage() {
                           <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
                             <span className="flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {verifiedCount}/10 verifications
+                              {verifiedCount}/10 backers
                             </span>
                           </div>
                           <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">

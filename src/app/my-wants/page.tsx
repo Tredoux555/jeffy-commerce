@@ -121,8 +121,8 @@ export default function MyWantsPage() {
     const link = getShareLink();
     const remaining = Math.max(0, 10 - (want?.verified_count || 0));
     const message = want?.verified_count === 0
-      ? `🛍️ I found "${want?.product_name}" and if 10 people want it too, I get it FREE!\n\nWould you actually buy this? Takes 2 seconds to verify:\n${link}`
-      : `🔥 I'm ${remaining} away from getting "${want?.product_name}" FREE!\n\nCan you help? Just verify you'd want this too:\n${link}`;
+      ? `🛍️ I added "${want?.product_name}" to my Jeffy Wish List! Back it so Jeffy sources it — and one wish is granted free every month.\n\nWould you buy this too? Takes 2 seconds:\n${link}`
+      : `🔥 "${want?.product_name}" needs just ${remaining} more backers on my Jeffy Wish List!\n\nCan you back it? Takes 2 seconds:\n${link}`;
     
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
@@ -161,15 +161,15 @@ export default function MyWantsPage() {
           <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mb-6">
             <Gift className="h-10 w-10 text-orange-500" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-3">No Want Yet</h1>
+          <h1 className="text-2xl font-bold text-white mb-3">No Wishes Yet</h1>
           <p className="text-slate-400 mb-8 max-w-xs">
-            Tell us what product you want. Get 10 friends to verify, and it's yours FREE.
+            Add the product you wish for. Backers prove demand so Jeffy sources it — and one wish is granted free every month.
           </p>
           <Link
             href="/wants"
             className="bg-orange-500 text-black font-bold px-8 py-4 rounded-full text-lg flex items-center gap-2"
           >
-            Create Your Want <ChevronRight className="h-5 w-5" />
+            Make a Wish <ChevronRight className="h-5 w-5" />
           </Link>
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function MyWantsPage() {
               Track Your Progress
             </h2>
             <p className="text-slate-400 text-center text-sm mb-6">
-              Add Jeffy to your home screen to check verifications anytime
+              Add Jeffy to your home screen to check your wishes anytime
             </p>
             
             {/* Steps */}
@@ -323,11 +323,11 @@ export default function MyWantsPage() {
 
           {/* Stakes Line - Loss Framed */}
           <p className={`text-center font-semibold ${isComplete ? 'text-green-400' : 'text-white'}`}>
-            {isComplete 
-              ? "🎉 You did it! We're sourcing your product!"
+            {isComplete
+              ? "🎉 Enough demand! We're sourcing it — and you're in the monthly free draw!"
               : remaining === 1
-                ? "Just 1 more and it's yours FREE!"
-                : `${remaining} more and it's yours FREE`
+                ? "Just 1 more backer to prove demand!"
+                : `${remaining} more backers to prove demand`
             }
           </p>
         </div>

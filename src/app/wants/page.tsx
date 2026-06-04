@@ -423,7 +423,7 @@ export default function WantsPage() {
                 Bonus for early believers
               </div>
               
-              <h3 className="text-2xl font-black mb-4">Want more than a free product?</h3>
+              <h3 className="text-2xl font-black mb-4">Want more than a wish?</h3>
               
               <p className="text-slate-300 mb-2">
                 <span className="text-white font-bold">Become a Reseller.</span> Secure your territory. Build something real.
@@ -660,7 +660,7 @@ export default function WantsPage() {
                     className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">We&apos;ll notify you when it&apos;s sourced + you get it FREE!</p>
+                  <p className="text-xs text-gray-500 mt-1">We&apos;ll notify you when it&apos;s sourced — and if your wish wins the monthly draw.</p>
                 </div>
 
                 {submitMessage?.type === 'error' && (
@@ -680,7 +680,7 @@ export default function WantsPage() {
                   ) : (
                     <>
                       <Plus className="h-5 w-5" />
-                      Create Want
+                      Make My Wish
                     </>
                   )}
                 </button>

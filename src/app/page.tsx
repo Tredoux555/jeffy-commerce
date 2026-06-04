@@ -172,10 +172,10 @@ export default async function HomePage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { num: '1', text: 'Tell us what you want' },
-                { num: '2', text: 'Get 10 people to agree' },
-                { num: '3', text: 'We add it to Jeffy' },
-                { num: '4', text: 'You get yours FREE' },
+                { num: '1', text: 'Add your wish' },
+                { num: '2', text: 'Rally backers' },
+                { num: '3', text: 'We source it for Jeffy' },
+                { num: '4', text: 'One wish granted free monthly' },
               ].map((step, i) => (
                 <div key={i} className="text-center">
                   <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-white">
@@ -190,9 +190,9 @@ export default async function HomePage() {
               <p className="text-lg text-gray-300 mb-6">
                 You're not just a customer. <span className="text-orange-400">You're building the catalogue with us.</span>
               </p>
-              <Link href="/wants/create">
+              <Link href="/wants">
                 <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
-                  Create Your First Want
+                  Make Your First Wish
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>

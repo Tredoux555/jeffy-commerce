@@ -18,17 +18,17 @@ export async function generateMetadata({ params }: WantPageProps): Promise<Metad
     .single();
 
   if (!want) {
-    return { title: 'Want Not Found' };
+    return { title: 'Wish Not Found' };
   }
 
   const creatorName = want.creator_name || 'Someone';
 
   return {
-    title: `Help ${creatorName} get "${want.title}" FREE!`,
-    description: `${creatorName} wants this FREE on Jeffy! Agree to help them get it, then create your own want!`,
+    title: `Back ${creatorName}'s wish: "${want.title}"`,
+    description: `${creatorName} added this to the Jeffy Wish List. Back it to help prove demand — popular wishes get sourced, and one is granted free every month.`,
     openGraph: {
-      title: `Help ${creatorName} get this FREE! 🎁`,
-      description: `Agree to help, then get YOUR free stuff too!`,
+      title: `Back ${creatorName}'s Jeffy wish 🎁`,
+      description: `Tap to back it, then add your own wish and enter the monthly draw.`,
     },
   };
 }
