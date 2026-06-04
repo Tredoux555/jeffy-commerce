@@ -279,7 +279,7 @@ export default function WantsPage() {
 
   const shareViaWhatsApp = (want: Want) => {
     const link = getShareLink(want);
-    const message = `🛒 I want "${want.product_name}" on Jeffy! If 10 people verify, they'll source it and I get mine FREE! Would you buy this too? ${link}`;
+    const message = `🛒 I added "${want.product_name}" to the Jeffy Wish List! Tap to back it — popular wishes get sourced, and Jeffy grants one free every month. Would you buy this too? ${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -325,16 +325,16 @@ export default function WantsPage() {
             className="inline-flex items-center gap-3 bg-gradient-to-r from-orange-500 to-amber-500 text-black font-bold text-xl px-10 py-5 rounded-full hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105 mb-8"
           >
             <Plus className="h-6 w-6" />
-            Create Your Want
+            Make Your Wish
           </button>
 
           {/* The reward */}
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl p-8 border border-green-500/30 max-w-xl mx-auto">
-            <p className="text-slate-400 text-lg mb-2">For your help?</p>
+            <p className="text-slate-400 text-lg mb-2">Every month?</p>
             <p className="text-3xl font-black text-white">
-              Your product. <span className="text-green-400">100% free.</span>
+              One wish, <span className="text-green-400">granted free.</span>
             </p>
-            <p className="text-lg text-slate-400 mt-2">Gratis. No strings attached.</p>
+            <p className="text-lg text-slate-400 mt-2">We grant a wish each month and film the story. Add yours to enter.</p>
           </div>
         </div>
       </section>
@@ -353,7 +353,7 @@ export default function WantsPage() {
             <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
               <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">1</div>
               <div>
-                <h3 className="font-bold mb-1">Request any product you want</h3>
+                <h3 className="font-bold mb-1">Add the product you wish for</h3>
                 <p className="text-slate-400 text-sm">Something you saw on TikTok. Something a friend has. Anything.</p>
               </div>
             </div>
@@ -387,8 +387,8 @@ export default function WantsPage() {
                 <Gift className="h-5 w-5 text-black" />
               </div>
               <div>
-                <h3 className="font-bold mb-1 text-green-400">You get your product free. It gets added to the catalogue.</h3>
-                <p className="text-slate-300 text-sm">You proved there&apos;s a market. You earned it.</p>
+                <h3 className="font-bold mb-1 text-green-400">Popular wishes get sourced — and one is granted free each month.</h3>
+                <p className="text-slate-300 text-sm">Your supporters prove the demand, so we add it to the catalogue. Every month we draw one wish to grant free and film. <Link href="/wish-list-rules" className="underline hover:text-white">See the draw rules</Link>.</p>
               </div>
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function WantsPage() {
             <Users className="h-8 w-8 text-blue-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold mb-3">And your friends?</h3>
             <p className="text-slate-300">
-              They can <span className="text-white font-semibold">preorder at a discount</span> — or create their own Want and get theirs free.
+              They can <span className="text-white font-semibold">preorder at a discount</span> — or add their own wish to the list.
             </p>
             <p className="text-lg text-white font-semibold mt-4">
               The loop continues. The catalogue grows. Prices drop.
@@ -449,7 +449,7 @@ export default function WantsPage() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white text-gray-900 rounded-2xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Create Your Want</h2>
+              <h2 className="text-xl font-bold">Make Your Wish</h2>
               <button onClick={resetForm} className="p-2 hover:bg-gray-100 rounded-lg">
                 <X className="h-5 w-5" />
               </button>
@@ -460,7 +460,7 @@ export default function WantsPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Want Created! 🎉</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Wish Added! 🎉</h3>
                 <p className="text-gray-500 mb-4">Check your email to set up your account and track verifications.</p>
                 
                 {/* Share Link */}

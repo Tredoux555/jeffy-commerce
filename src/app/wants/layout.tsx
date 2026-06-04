@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Create a Want | Jeffy',
-  description: 'Request any product. Get 10 people to agree. If we source it, you get it FREE.',
+  title: 'Wish List | Jeffy',
+  description: 'Add the products you wish for. Popular wishes get sourced — and Jeffy grants one wish free every month.',
   openGraph: {
-    title: 'Create a Want on Jeffy',
-    description: 'Request any product. Get 10 votes. Get it FREE!',
+    title: 'The Jeffy Wish List',
+    description: 'Add your wish. Popular wishes get sourced, and one is granted free every month.',
     url: 'https://jeffy.co.za/wants',
     siteName: 'Jeffy',
     locale: 'en_ZA',
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Create a Want on Jeffy',
-    description: 'Request any product. Get 10 votes. Get it FREE!',
+    title: 'The Jeffy Wish List',
+    description: 'Add your wish. Popular wishes get sourced, and one is granted free every month.',
   },
 };
 
