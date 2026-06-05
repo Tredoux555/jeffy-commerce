@@ -158,60 +158,35 @@ export default function WantVerificationPage() {
           </div>
           
           {/* Core message - personal, not salesy */}
-          {isComplete ? (
+          {alreadyHelped && !verified ? (
             <>
               <h1 className="text-xl font-bold text-gray-900 mb-3">
-                {firstName}&apos;s wish is fully backed!
+                You&apos;re already in the draw
               </h1>
               <p className="text-gray-600">
-                Thanks to you and 9 others, there&apos;s strong demand for {productName} — Jeffy will source it, and it&apos;s in the running for the monthly free draw.
-              </p>
-            </>
-          ) : alreadyHelped && !verified ? (
-            <>
-              <h1 className="text-xl font-bold text-gray-900 mb-3">
-                You already helped {firstName}
-              </h1>
-              <p className="text-gray-600">
-                They&apos;re {stepsRemaining} {stepsRemaining === 1 ? 'backer' : 'backers'} away from proving demand for {productName}.
+                You&apos;re entered in this week&apos;s draw for {productName}. Winners are drawn at random every week and get their wish free.
               </p>
             </>
           ) : (
             <>
               <h1 className="text-xl font-bold text-gray-900 mb-3">
-                You verified this for {firstName}
+                You&apos;re in! 🎉
               </h1>
               <p className="text-gray-600">
-                They&apos;re {stepsRemaining === 1 ? 'one backer' : `${stepsRemaining} backers`} closer to proving demand for {productName}.
+                You&apos;re entered in this week&apos;s draw for {productName}. Every week Jeffy draws winners at random and grants their wish free — no purchase, no catch.
               </p>
             </>
           )}
-          
-          {/* Simple progress indicator */}
-          <div className="mt-6 mb-8">
-            <div className="flex justify-center gap-1">
-              {[...Array(10)].map((_, i) => (
-                <div 
-                  key={i}
-                  className={`w-3 h-3 rounded-full ${
-                    i < count ? 'bg-green-500' : 'bg-gray-200'
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="text-sm text-gray-400 mt-2">{count} of 10</p>
-          </div>
 
-          {/* WhatsApp share - the only action */}
-          {!isComplete && (
-            <button
-              onClick={shareViaWhatsApp}
-              className="w-full py-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl flex items-center justify-center gap-3 transition-all"
-            >
-              <MessageCircle className="h-5 w-5" />
-              Help spread the word
-            </button>
-          )}
+          {/* Make your own wish */}
+          <div className="mt-8">
+            <Link href="/wants" className="block">
+              <div className="w-full py-4 bg-[#ff6b35] hover:bg-orange-500 text-black font-bold rounded-xl transition-all">
+                Make your own Wish
+              </div>
+            </Link>
+            <p className="text-sm text-gray-400 mt-3">Each wish you add is another entry in the weekly draw</p>
+          </div>
         </div>
       </div>
     );
@@ -244,28 +219,19 @@ export default function WantVerificationPage() {
               <p className="text-gray-500 text-sm mb-4">{want.description}</p>
             )}
 
-            {/* Progress dots */}
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {[...Array(10)].map((_, i) => (
-                  <div 
-                    key={i}
-                    className={`w-2.5 h-2.5 rounded-full ${
-                      i < want.verified_count ? 'bg-green-500' : 'bg-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-gray-400">{want.verified_count}/10</span>
-            </div>
+            {/* Draw status */}
+            <p className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
+              <Gift className="h-4 w-4" />
+              In this week&apos;s draw
+            </p>
           </div>
         </div>
 
-        {/* THE BUTTON - Simple, personal */}
+        {/* THE BUTTON - I want this too */}
         <button
           onClick={handleHelp}
           disabled={verifying}
-          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl p-6 transition-all hover:scale-[1.01] disabled:opacity-70"
+          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-2xl p-6 transition-all hover:scale-[1.01] disabled:opacity-70"
         >
           <div className="flex items-center justify-center gap-3">
             {verifying ? (
@@ -273,7 +239,7 @@ export default function WantVerificationPage() {
             ) : (
               <>
                 <Sparkles className="h-6 w-6" />
-                <span className="text-xl font-medium">Back {firstName}&apos;s wish</span>
+                <span className="text-xl font-medium">I want this too</span>
               </>
             )}
           </div>
@@ -281,7 +247,7 @@ export default function WantVerificationPage() {
 
         {/* Subtle explanation */}
         <p className="text-center text-gray-500 text-sm mt-4">
-          {remaining} more {remaining === 1 ? 'person' : 'people'} needed
+          Adds you to this week&apos;s draw for it — no purchase, no catch
         </p>
       </main>
     </div>

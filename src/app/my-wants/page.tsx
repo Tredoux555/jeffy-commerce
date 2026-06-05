@@ -120,22 +120,14 @@ export default function MyWantsPage() {
   const shareWhatsApp = () => {
     const link = getShareLink();
     const remaining = Math.max(0, 10 - (want?.verified_count || 0));
-    const message = want?.verified_count === 0
-      ? `🛍️ I added "${want?.product_name}" to my Jeffy Wish List! Back it so Jeffy sources it — and one wish is granted free every month.\n\nWould you buy this too? Takes 2 seconds:\n${link}`
-      : `🔥 "${want?.product_name}" needs just ${remaining} more backers on my Jeffy Wish List!\n\nCan you back it? Takes 2 seconds:\n${link}`;
+    const message = `🛍️ I added "${want?.product_name}" to my Jeffy Wish List! No purchase, no catch — every week Jeffy draws winners at random and grants their wish free. Make a wish too:\n${link}`;
     
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
-  // Dynamic motivation based on progress
+  // Draw-oriented status
   const getMotivation = (count: number) => {
-    if (count === 0) return { emoji: '🚀', text: "Let's get this!" };
-    if (count <= 2) return { emoji: '💪', text: "You're on your way!" };
-    if (count <= 4) return { emoji: '🔥', text: "Building momentum!" };
-    if (count <= 6) return { emoji: '⚡', text: "Halfway there!" };
-    if (count <= 8) return { emoji: '🎯', text: "So close now!" };
-    if (count === 9) return { emoji: '😱', text: "Just ONE more!" };
-    return { emoji: '🎉', text: "You did it!" };
+    return { emoji: '🍀', text: "You're in this week's draw!" };
   };
 
   if (loading) {
@@ -163,7 +155,7 @@ export default function MyWantsPage() {
           </div>
           <h1 className="text-2xl font-bold text-white mb-3">No Wishes Yet</h1>
           <p className="text-slate-400 mb-8 max-w-xs">
-            Add the product you wish for. Backers prove demand so Jeffy sources it — and one wish is granted free every month.
+            Tell us what you want — no purchase, no catch. Every week Jeffy draws winners at random and grants their wish free.
           </p>
           <Link
             href="/wants"
@@ -294,41 +286,14 @@ export default function MyWantsPage() {
           {want.product_name}
         </h1>
 
-        {/* Progress Section */}
-        <div className="bg-slate-800/50 rounded-3xl p-6 mb-6">
-          {/* The Number - Big and Bold */}
-          <div className="text-center mb-4">
-            <div className="flex items-baseline justify-center gap-1">
-              <span className={`text-7xl font-black ${isComplete ? 'text-green-400' : 'text-orange-500'}`}>
-                {verified}
-              </span>
-              <span className="text-3xl font-bold text-slate-500">/10</span>
-            </div>
-            <p className="text-slate-400 text-sm mt-1">friends verified</p>
+        {/* Draw Status Section */}
+        <div className="bg-slate-800/50 rounded-3xl p-6 mb-6 text-center">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Gift className="h-8 w-8 text-green-400" />
           </div>
-
-          {/* Progress Bar - Discrete Steps */}
-          <div className="flex gap-1.5 mb-4">
-            {[...Array(10)].map((_, i) => (
-              <div
-                key={i}
-                className={`h-2 flex-1 rounded-full transition-all duration-500 ${
-                  i < verified 
-                    ? isComplete ? 'bg-green-500' : 'bg-orange-500' 
-                    : 'bg-slate-700'
-                }`}
-              />
-            ))}
-          </div>
-
-          {/* Stakes Line - Loss Framed */}
-          <p className={`text-center font-semibold ${isComplete ? 'text-green-400' : 'text-white'}`}>
-            {isComplete
-              ? "🎉 Enough demand! We're sourcing it — and you're in the monthly free draw!"
-              : remaining === 1
-                ? "Just 1 more backer to prove demand!"
-                : `${remaining} more backers to prove demand`
-            }
+          <p className="text-green-400 font-bold text-lg mb-1">You&apos;re in this week&apos;s draw</p>
+          <p className="text-slate-400 text-sm">
+            Every week Jeffy draws winners at random and grants their wish free. No purchase, no catch — nothing to share.
           </p>
         </div>
 
@@ -336,54 +301,25 @@ export default function MyWantsPage() {
         <div className="flex-1" />
 
         {/* Action Buttons - Thumb Zone */}
-        {!isComplete ? (
-          <div className="space-y-3">
-            {/* Primary CTA - WhatsApp */}
-            <button
-              onClick={shareWhatsApp}
-              className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-5 px-6 rounded-2xl text-lg flex items-center justify-center gap-3 shadow-lg shadow-green-500/20 active:scale-[0.98] transition-transform"
-            >
-              <MessageCircle className="h-6 w-6 fill-current" />
-              Share on WhatsApp
-            </button>
-
-            {/* Secondary - Copy Link */}
-            <button
-              onClick={copyLink}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-4 px-6 rounded-2xl flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-5 w-5 text-green-400" />
-                  <span className="text-green-400">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-5 w-5" />
-                  Copy Link
-                </>
-              )}
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Completed State */}
+        <div className="space-y-3">
+          {/* If a winner, show the heads-up */}
+          {isComplete && (
             <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-5 text-center">
               <p className="text-green-400 font-medium">
-                We'll email you at <span className="font-bold">{user?.email}</span> when your product is ready!
+                🏆 You won! We&apos;ll email you at <span className="font-bold">{user?.email}</span> with the details.
               </p>
             </div>
-            
-            {/* Share the win */}
-            <button
-              onClick={shareWhatsApp}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-4 px-6 rounded-2xl flex items-center justify-center gap-2"
-            >
-              <Share2 className="h-5 w-5" />
-              Share Your Win
-            </button>
-          </div>
-        )}
+          )}
+
+          {/* Primary CTA - Make another wish */}
+          <Link href="/wants" className="block">
+            <div className="w-full bg-orange-500 hover:bg-orange-600 text-black font-bold py-5 px-6 rounded-2xl text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform">
+              <Gift className="h-6 w-6" />
+              Make another Wish
+            </div>
+          </Link>
+          <p className="text-center text-slate-500 text-sm">Each wish you add is another entry in the weekly draw</p>
+        </div>
       </main>
     </div>
   );

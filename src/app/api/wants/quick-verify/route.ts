@@ -112,9 +112,7 @@ export async function POST(request: NextRequest) {
       verified_count: newCount,
       remaining: Math.max(0, 10 - newCount),
       thresholdReached,
-      message: thresholdReached 
-        ? '🎉 Goal reached! This product is being sourced!' 
-        : `Thanks! ${10 - newCount} more people needed.`
+      message: "You're in this week's draw! Winners are drawn at random every week and get their wish free."
     });
 
   } catch (error) {

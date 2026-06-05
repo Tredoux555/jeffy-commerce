@@ -273,23 +273,18 @@ export async function POST(request: NextRequest) {
 
       <div style="background: rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid rgba(34, 197, 94, 0.3);">
         <p style="color: #4ade80; font-size: 16px; font-weight: 600; margin: 0; text-align: center;">
-          🎁 Rally backers — popular wishes get sourced, and one wish is granted free every month!
+          🎁 You're in this week's draw! Every week we draw winners at random and grant their wish free.
         </p>
       </div>
 
       <p style="color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
-        Share your link with friends and family. The more people back it, the stronger the demand — and your wish stays in the running for the monthly free draw!
+        No purchase, no catch — nothing to share. If your wish is drawn, we'll call you, source it, and deliver it free — and celebrate you on the radio, in the paper, and across social media.
       </p>
-
-      <div style="background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 24px; word-break: break-all;">
-        <p style="color: #64748b; font-size: 12px; margin: 0 0 4px 0;">Your share link:</p>
-        <a href="${shareUrl}" style="color: #f97316; font-size: 14px; text-decoration: none;">${shareUrl}</a>
-      </div>
 
       <div style="border-top: 1px solid #334155; padding-top: 24px; margin-top: 24px;">
         ${needsVerification ? `
         <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
-          Set up your account to track your backers:
+          Set up your account to keep track of your wishes:
         </p>
         <div style="text-align: center;">
           <a href="${verifyUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">
@@ -298,7 +293,7 @@ export async function POST(request: NextRequest) {
         </div>
         ` : `
         <p style="color: #94a3b8; font-size: 14px; text-align: center; margin: 0 0 16px 0;">
-          Track your backers in your dashboard:
+          See all your wishes in your dashboard:
         </p>
         <div style="text-align: center;">
           <a href="${dashboardUrl}" style="display: inline-block; background: linear-gradient(135deg, #f97316 0%, #f59e0b 100%); color: #000000; font-size: 16px; font-weight: 700; text-decoration: none; padding: 14px 32px; border-radius: 50px;">

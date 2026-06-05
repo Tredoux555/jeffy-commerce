@@ -114,9 +114,7 @@ async function verifyByToken(token: string) {
 
   return NextResponse.json({
     success: true,
-    message: remaining > 0 
-      ? `Verified! ${remaining} more people needed.`
-      : '🎉 Threshold reached! This product is being sourced!',
+    message: "You're in this week's draw! Winners are drawn at random every week and get their wish free.",
     verified_count: verifiedCount,
     remaining,
     product_name: updatedWant?.product_name,
@@ -211,9 +209,7 @@ async function verifyByOTP(wantId: string, phone: string, otp: string) {
 
   return NextResponse.json({
     success: true,
-    message: remaining > 0 
-      ? `Verified! ${remaining} more people needed.`
-      : '🎉 Threshold reached! This product is being sourced!',
+    message: "You're in this week's draw! Winners are drawn at random every week and get their wish free.",
     verified_count: verifiedCount,
     remaining,
     product_name: updatedWant?.product_name,

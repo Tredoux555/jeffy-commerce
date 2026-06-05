@@ -159,13 +159,9 @@ export async function sendVerificationConfirmation(data: {
                 You verified interest in <strong>"${productName}"</strong>
               </p>
               
-              <div style="background-color: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                <p style="margin: 0 0 5px; color: #6b7280; font-size: 14px;">Progress</p>
-                <p style="margin: 0; color: #111827; font-size: 28px; font-weight: 700;">${verifiedCount}/10</p>
-                ${remaining > 0 
-                  ? `<p style="margin: 10px 0 0; color: #f97316; font-size: 14px;">${remaining} more people needed!</p>`
-                  : `<p style="margin: 10px 0 0; color: #10b981; font-size: 14px; font-weight: 600;">🎉 Threshold reached! Being sourced now!</p>`
-                }
+              <div style="background-color: #ecfdf5; border-radius: 8px; padding: 20px; margin: 20px 0; border: 1px solid #a7f3d0;">
+                <p style="margin: 0; color: #065f46; font-size: 16px; font-weight: 600;">🎁 You're in this week's draw!</p>
+                <p style="margin: 10px 0 0; color: #047857; font-size: 14px;">Every week Jeffy draws winners at random and grants their wish free — no purchase, no catch.</p>
               </div>
               
               <p style="margin: 0; color: #6b7280; font-size: 14px;">
