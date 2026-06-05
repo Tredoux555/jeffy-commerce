@@ -4,20 +4,30 @@ import { createClient } from '@/lib/supabase/server';
 export default async function CategoriesPage() {
   const supabase = await createClient();
 
-  const { data: categories } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('is_active', true)
-    .is('parent_id', null)
-    .order('sort_order', { ascending: true });
+  const [{ data: categories }, { data: prodCats }] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('*')
+      .eq('is_active', true)
+      .is('parent_id', null)
+      .order('sort_order', { ascending: true }),
+    supabase
+      .from('products')
+      .select('category_id')
+      .eq('status', 'active'),
+  ]);
+
+  // Only surface categories that actually contain at least one live product
+  const nonEmpty = new Set((prodCats || []).map((p: any) => p.category_id).filter(Boolean));
+  const visibleCategories = (categories || []).filter((c: any) => nonEmpty.has(c.id));
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-8">Shop by Category</h1>
 
-      {categories && categories.length > 0 ? (
+      {visibleCategories.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {categories.map((category) => (
+          {visibleCategories.map((category) => (
             <Link
               key={category.id}
               href={`/products?category=${category.slug}`}

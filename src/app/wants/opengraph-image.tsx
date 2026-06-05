@@ -67,7 +67,7 @@ export default async function Image() {
               marginBottom: 40,
             }}
           >
-            Winners drawn free, every week! 🎁
+            Winners drawn free, every month! 🎁
           </div>
         </div>
       </div>

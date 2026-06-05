@@ -237,7 +237,7 @@ export default function WantsPage() {
       if (data.success) {
         setSubmitMessage({
           type: 'success',
-          text: "You're in this week's draw!",
+          text: "You're in this month's draw!",
           want: data.want
         });
         setNewWant({ product_name: '', description: '', email: newWant.email });
@@ -304,11 +304,11 @@ export default function WantsPage() {
 
           {/* The reward */}
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl p-8 border border-green-500/30 max-w-xl mx-auto">
-            <p className="text-slate-400 text-lg mb-2">Every week.</p>
+            <p className="text-slate-400 text-lg mb-2">Every month.</p>
             <p className="text-3xl font-black text-white">
               We draw winners at random and <span className="text-green-400">grant their wish free.</span>
             </p>
-            <p className="text-lg text-slate-400 mt-2">No purchase. No catch. Just add your wish — every wish is one entry into the weekly draw.</p>
+            <p className="text-lg text-slate-400 mt-2">No purchase. No catch. Just add your wish — every wish is one entry into the monthly draw.</p>
           </div>
         </div>
       </section>
@@ -335,7 +335,7 @@ export default function WantsPage() {
             <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
               <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">2</div>
               <div>
-                <h3 className="font-bold mb-1">We draw winners every week</h3>
+                <h3 className="font-bold mb-1">We draw winners every month</h3>
                 <p className="text-slate-400 text-sm">Completely at random. Every wish you add is one entry — nothing to share, no one to convince.</p>
               </div>
             </div>
@@ -365,7 +365,7 @@ export default function WantsPage() {
             <Users className="h-8 w-8 text-blue-400 mx-auto mb-4" />
             <h3 className="text-xl font-bold mb-3">Add as many as you like</h3>
             <p className="text-slate-300">
-              Wish for up to <span className="text-white font-semibold">ten things</span> at a time. Every one is another entry in the weekly draw.
+              Wish for up to <span className="text-white font-semibold">ten things</span> at a time. Every one is another entry in the monthly draw.
             </p>
             <p className="text-lg text-white font-semibold mt-4">
               The more we hear, the better the shop gets.
@@ -424,7 +424,7 @@ export default function WantsPage() {
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">You&apos;re in the draw! 🎉</h3>
-                <p className="text-gray-500 mb-4">Your wish is one entry into this week&apos;s draw. We pick winners at random every week — nothing to share, no one to convince.</p>
+                <p className="text-gray-500 mb-4">Your wish is one entry into this month&apos;s draw. We pick winners at random every month — nothing to share, no one to convince.</p>
 
                 <div className="bg-green-50 rounded-xl p-4 border border-green-200 mb-4">
                   <p className="text-sm text-green-800">
@@ -459,7 +459,7 @@ export default function WantsPage() {
                   <Package className="h-8 w-8 text-amber-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Great minds think alike! 🧠</h3>
-                <p className="text-gray-500 mb-4">Others have wished for this too — which tells us there&apos;s real demand. Your wish still counts as its own entry in this week&apos;s draw.</p>
+                <p className="text-gray-500 mb-4">Others have wished for this too — which tells us there&apos;s real demand. Your wish still counts as its own entry in this month&apos;s draw.</p>
 
                 <div className="space-y-2 mb-6">
                   {submitMessage.similar?.slice(0, 2).map((s) => (
@@ -559,7 +559,7 @@ export default function WantsPage() {
                     className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">We&apos;ll email you if your wish wins the weekly draw.</p>
+                  <p className="text-xs text-gray-500 mt-1">We&apos;ll email you if your wish wins the monthly draw.</p>
                 </div>
 
                 {submitMessage?.type === 'error' && (

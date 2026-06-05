@@ -19,7 +19,7 @@ export default async function HomePage() {
     .from('wants')
     .select('*', { count: 'exact', head: true });
 
-  // Wishes granted free via the weekly draw
+  // Wishes granted free via the monthly draw
   const { count: successfulWants } = await supabase
     .from('wishlist_grants')
     .select('*', { count: 'exact', head: true });
@@ -167,13 +167,13 @@ export default async function HomePage() {
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
                 How the <span className="text-orange-500">Wish List</span> Works
               </h2>
-              <p className="text-gray-400">Tell us what you want. We draw winners every week.</p>
+              <p className="text-gray-400">Tell us what you want. We draw winners every month.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 { num: '1', text: 'Make your wish — no purchase, no catch' },
-                { num: '2', text: 'We draw winners at random every week' },
+                { num: '2', text: 'We draw winners at random every month' },
                 { num: '3', text: 'We grant it free and celebrate you' },
               ].map((step, i) => (
                 <div key={i} className="text-center">

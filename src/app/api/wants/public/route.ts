@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
     const clientIp = (fwd.split(',')[0] || request.headers.get('x-real-ip') || '').trim();
 
     // No limits: a person can make as many wishes as they want — every wish is
-    // good demand data and one more entry into the weekly draw. (Duplicates and
+    // good demand data and one more entry into the monthly draw. (Duplicates and
     // similar wishes are intentionally allowed; the AI insights layer dedupes/clusters.)
 
     // Check if user exists and is verified
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
 
       <div style="background: rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px; border: 1px solid rgba(34, 197, 94, 0.3);">
         <p style="color: #4ade80; font-size: 16px; font-weight: 600; margin: 0; text-align: center;">
-          🎁 You're in this week's draw! Every week we draw winners at random and grant their wish free.
+          🎁 You're in this month's draw! Every month we draw winners at random and grant their wish free.
         </p>
       </div>
 
@@ -321,8 +321,8 @@ export async function POST(request: NextRequest) {
       success: true,
       want,
       message: needsVerification
-        ? "You're in this week's draw! Check your email to set up your account."
-        : "You're in this week's draw! Check your email for confirmation.",
+        ? "You're in this month's draw! Check your email to set up your account."
+        : "You're in this month's draw! Check your email for confirmation.",
       emailSent: true
     });
 

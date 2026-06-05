@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     default: "Jeffy Commerce - Eish, These Prices!",
     template: "%s | Jeffy Commerce",
   },
-  description: "Jeffy — South Africa's import-and-supply store. Shop great prices, or make a wish: no purchase, no catch — every week we draw winners at random and grant their wish free.",
+  description: "Jeffy — South Africa's import-and-supply store. Shop great prices, or make a wish: no purchase, no catch — every month we draw winners at random and grant their wish free.",
   keywords: ["online shopping", "South Africa", "wish list", "affordable", "deals", "Jeffy"],
   authors: [{ name: "Jeffy Commerce" }],
   creator: "Jeffy Commerce (Pty) Ltd",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     url: "https://jeffy.co.za",
     siteName: "Jeffy Commerce",
     title: "Jeffy Commerce - Eish, These Prices!",
-    description: "Shop great prices, or make a wish — every week Jeffy draws winners at random and grants their wish free.",
+    description: "Shop great prices, or make a wish — every month Jeffy draws winners at random and grants their wish free.",
     images: [
       {
         url: "/og-image.png",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Jeffy Commerce - Eish, These Prices!",
-    description: "Shop great prices, or make a wish — winners drawn free, every week.",
+    description: "Shop great prices, or make a wish — winners drawn free, every month.",
     images: ["/og-image.png"],
   },
   robots: {

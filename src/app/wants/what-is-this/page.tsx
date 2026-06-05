@@ -63,12 +63,12 @@ export default function WhatIsWantsPage() {
             
             {/* The reward */}
             <div className="mt-10 pt-10 border-t border-slate-700">
-              <p className="text-slate-400 text-lg mb-3">Every week.</p>
+              <p className="text-slate-400 text-lg mb-3">Every month.</p>
               <p className="text-3xl md:text-4xl font-black text-white">
                 We draw winners at random and <span className="text-green-400">grant their wish free.</span>
               </p>
               <p className="text-xl text-slate-400 mt-2">
-                No purchase. No catch. Every wish you add is one entry into the weekly draw.
+                No purchase. No catch. Every wish you add is one entry into the monthly draw.
               </p>
             </div>
           </div>
@@ -105,7 +105,7 @@ export default function WhatIsWantsPage() {
                 2
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1">We draw winners every week</h3>
+                <h3 className="text-xl font-bold mb-1">We draw winners every month</h3>
                 <p className="text-slate-400">Completely at random. Every wish you add is one entry — nothing to share, no one to convince.</p>
               </div>
             </div>
@@ -144,7 +144,7 @@ export default function WhatIsWantsPage() {
           <div className="bg-slate-800/50 rounded-3xl p-8 md:p-10 border border-slate-700">
             <div className="space-y-6 text-lg text-slate-300">
               <p>
-                They can make their <span className="text-white font-semibold">own wishes</span> too — up to ten each, every one another entry in the weekly draw.
+                They can make their <span className="text-white font-semibold">own wishes</span> too — up to ten each, every one another entry in the monthly draw.
               </p>
               <p>
                 The more people tell us what they want, the better the shop gets — and the more wishes we grant free.

@@ -92,14 +92,22 @@ function ProductsContent() {
 
   const fetchCategories = async () => {
     const supabase = createClient();
-    const { data } = await supabase
-      .from('categories')
-      .select('*')
-      .eq('is_active', true)
-      .order('sort_order', { ascending: true });
+    const [{ data }, { data: prodCats }] = await Promise.all([
+      supabase
+        .from('categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true }),
+      supabase
+        .from('products')
+        .select('category_id')
+        .eq('status', 'active'),
+    ]);
 
+    // Only show categories that actually contain at least one live product
+    const nonEmpty = new Set((prodCats || []).map((p: any) => p.category_id).filter(Boolean));
     if (data) {
-      setCategories(data);
+      setCategories(data.filter((c: any) => nonEmpty.has(c.id)));
     }
   };
 

@@ -34,17 +34,17 @@ export default async function AdminWantsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Incoming Wishes</h1>
-          <p className="text-gray-600">{allWishes.length} total — every wish is one entry in the weekly draw</p>
+          <p className="text-gray-600">{allWishes.length} total — every wish is one entry in the monthly draw</p>
         </div>
         <Link href="/admin/campaign">
           <Button className="bg-orange-500 hover:bg-orange-600 text-white" size="sm">
-            <Gift className="h-4 w-4 mr-1" /> Run the weekly draw
+            <Gift className="h-4 w-4 mr-1" /> Run the monthly draw
           </Button>
         </Link>
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-sm text-blue-800">
-        This is the live demand list. Pick any wish to source it for the catalogue. Winners are drawn at random each week from the
+        This is the live demand list. Pick any wish to source it for the catalogue. Winners are drawn at random each month from the
         {' '}<Link href="/admin/campaign" className="underline font-medium">Wishlist Campaign</Link> page.
       </div>
 

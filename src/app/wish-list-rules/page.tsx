@@ -1,9 +1,9 @@
 export const metadata = {
   title: 'Jeffy Wish List — Competition Rules',
-  description: 'Official rules for the Jeffy Wish List weekly random draw (Consumer Protection Act, s.36).',
+  description: 'Official rules for the Jeffy Wish List monthly random draw (Consumer Protection Act, s.36).',
 };
 
-// Public, CPA s36-compliant rules for the weekly Wish List draw.
+// Public, CPA s36-compliant rules for the monthly Wish List draw.
 // Required so the promotional competition is lawful: no purchase necessary,
 // published rules, defined draw, and record-keeping.
 export default function WishListRulesPage() {
@@ -28,7 +28,7 @@ export default function WishListRulesPage() {
           Jeffy Wish List on jeffy.co.za. Each validly submitted wish is one entry into the draw.
         </li>
         <li>
-          <strong>4. The draw.</strong> Each week Jeffy draws a winner at <strong>random</strong> from the
+          <strong>4. The draw.</strong> Each month Jeffy draws a winner at <strong>random</strong> from the
           eligible wishes. The number of people who support (&ldquo;agree&rdquo; with) a wish helps Jeffy
           decide what to stock but does <em>not</em> change the odds of winning — every eligible wish has an
           equal chance.

@@ -11,10 +11,10 @@ const faqCategories = [
     color: 'text-orange-500',
     bgColor: 'bg-orange-50',
     questions: [
-      { q: 'How does the Jeffy Wish List work?', a: 'Add a wish for any product you want — no purchase, no catch, ten seconds. Every week Jeffy draws winners completely at random and grants their wish free. Every wish you add is one entry into the draw.' },
-      { q: 'How do I get something free?', a: 'Each week Jeffy draws winners at random from all eligible wishes — every winner gets their wish sourced and delivered free, and is celebrated on the radio, in the paper, and across social media. See the draw rules at /wish-list-rules.' },
-      { q: 'Do I need to share my wish or get other people to sign up?', a: 'No. There is nothing to share and no one to convince. Just add your wish — each one is its own entry in the weekly random draw. Your wishes also tell us what to stock, so the shop fills with what people actually want.' },
-      { q: 'Can I add multiple wishes?', a: 'Yes! Wish for up to ten things at a time — each is another entry in the weekly draw. You can have one active wish per product at a time.' },
+      { q: 'How does the Jeffy Wish List work?', a: 'Add a wish for any product you want — no purchase, no catch, ten seconds. Every month Jeffy draws winners completely at random and grants their wish free. Every wish you add is one entry into the draw.' },
+      { q: 'How do I get something free?', a: 'Each month Jeffy draws winners at random from all eligible wishes — every winner gets their wish sourced and delivered free, and is celebrated on the radio, in the paper, and across social media. See the draw rules at /wish-list-rules.' },
+      { q: 'Do I need to share my wish or get other people to sign up?', a: 'No. There is nothing to share and no one to convince. Just add your wish — each one is its own entry in the monthly random draw. Your wishes also tell us what to stock, so the shop fills with what people actually want.' },
+      { q: 'Can I add multiple wishes?', a: 'Yes! Wish for up to ten things at a time — each is another entry in the monthly draw. You can have one active wish per product at a time.' },
     ],
   },
   {

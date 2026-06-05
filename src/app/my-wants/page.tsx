@@ -111,7 +111,7 @@ export default function MyWantsPage() {
           </div>
           <h1 className="text-2xl font-bold text-white mb-3">No Wishes Yet</h1>
           <p className="text-slate-400 mb-8 max-w-xs">
-            Tell us what you want — no purchase, no catch. Every week Jeffy draws winners at random and grants their wish free.
+            Tell us what you want — no purchase, no catch. Every month Jeffy draws winners at random and grants their wish free.
           </p>
           <Link
             href="/wants"
@@ -196,7 +196,7 @@ export default function MyWantsPage() {
 
         <div className="text-center mb-6">
           <span className="text-3xl mb-1 block">🍀</span>
-          <p className="text-white font-semibold text-lg">You&apos;re in this week&apos;s draw!</p>
+          <p className="text-white font-semibold text-lg">You&apos;re in this month&apos;s draw!</p>
         </div>
 
         {/* Draw Status */}
@@ -206,7 +206,7 @@ export default function MyWantsPage() {
           </div>
           <p className="text-green-400 font-bold text-lg mb-1">Every wish is an entry</p>
           <p className="text-slate-400 text-sm">
-            Every week Jeffy draws winners at random and grants their wish free. No purchase, no catch — nothing to share. If you win, we&apos;ll email you at <span className="text-slate-300">{user?.email}</span>.
+            Every month Jeffy draws winners at random and grants their wish free. No purchase, no catch — nothing to share. If you win, we&apos;ll email you at <span className="text-slate-300">{user?.email}</span>.
           </p>
         </div>
 
@@ -224,7 +224,7 @@ export default function MyWantsPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-white font-medium truncate">{w.product_name}</p>
-                <p className="text-green-400 text-xs">In this week&apos;s draw</p>
+                <p className="text-green-400 text-xs">In this month&apos;s draw</p>
               </div>
             </div>
           ))}
@@ -240,7 +240,7 @@ export default function MyWantsPage() {
             Make another Wish
           </div>
         </Link>
-        <p className="text-center text-slate-500 text-sm mt-3">Each wish you add is another entry in the weekly draw</p>
+        <p className="text-center text-slate-500 text-sm mt-3">Each wish you add is another entry in the monthly draw</p>
       </main>
     </div>
   );

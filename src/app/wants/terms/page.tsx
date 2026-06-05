@@ -15,7 +15,7 @@ export default function WantsTermsPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Terms and Conditions</h1>
         <p className="text-gray-500 mb-2">Jeffy Wish List - Last updated: January 2026</p>
         <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm mb-8">
-          These terms reflect the current Wish List model: submit a wish (no purchase, no catch), and every week Jeffy draws winners at random and grants their wish free. For the full draw rules, see <a href="/wish-list-rules" className="underline font-medium">the Wish List draw rules</a>. Participation is discretionary, promotional, and non-binding as stated below.
+          These terms reflect the current Wish List model: submit a wish (no purchase, no catch), and every month Jeffy draws winners at random and grants their wish free. For the full draw rules, see <a href="/wish-list-rules" className="underline font-medium">the Wish List draw rules</a>. Participation is discretionary, promotional, and non-binding as stated below.
         </p>
 
         <div className="bg-white rounded-xl border p-8 prose prose-gray max-w-none text-sm leading-relaxed">
@@ -34,7 +34,7 @@ export default function WantsTermsPage() {
             1.1.3. "Entry" means each validly submitted Want Request, which constitutes one (1) entry into the Draw. No purchase or payment of any kind is required to submit a Want Request or to enter the Draw;
           </p>
           <p>
-            1.1.4. "Draw" means the random selection, conducted by Jeffy on a weekly basis, of one or more winning Want Requests from all eligible Entries, the winner(s) of which shall have their wish sourced and delivered at no cost. The conduct, timing, and rules of the Draw are published at /wish-list-rules and may be amended at Jeffy's sole discretion;
+            1.1.4. "Draw" means the random selection, conducted by Jeffy on a monthly basis, of one or more winning Want Requests from all eligible Entries, the winner(s) of which shall have their wish sourced and delivered at no cost. The conduct, timing, and rules of the Draw are published at /wish-list-rules and may be amended at Jeffy's sole discretion;
           </p>
           <p>
             1.1.5. "Eligible Product" means a product with an estimated retail value not exceeding One Thousand South African Rand (R1,000.00) as determined by Jeffy in its sole and absolute discretion;

@@ -209,7 +209,7 @@ export function welcomeEmail(data: { name: string; email: string }): string {
       <tr>
         <td style="padding:10px 0;">
           <p style="margin:0;color:#1f2937;"><strong>🎁 Make a Wish</strong></p>
-          <p style="margin:5px 0 0;color:#6b7280;font-size:14px;">Tell us what you want — no purchase, no catch. Every week we draw winners at random and grant their wish free!</p>
+          <p style="margin:5px 0 0;color:#6b7280;font-size:14px;">Tell us what you want — no purchase, no catch. Every month we draw winners at random and grant their wish free!</p>
         </td>
       </tr>
       <tr>

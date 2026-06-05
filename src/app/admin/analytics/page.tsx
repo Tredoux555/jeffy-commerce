@@ -19,7 +19,7 @@ export default async function AnalyticsPage() {
 
   // Calculate stats
   const totalWants = wants.length;
-  const activeWants = totalWants; // every submitted wish is a live entry in the weekly draw
+  const activeWants = totalWants; // every submitted wish is a live entry in the monthly draw
   const successfulWants = grants.length; // wishes granted free via the draw
   const expiredWants = 0;
 
@@ -40,10 +40,10 @@ export default async function AnalyticsPage() {
     .slice(0, 5);
 
   // Recent activity (last 7 days)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  const recentWants = wants.filter(w => new Date(w.created_at) > sevenDaysAgo).length;
-  const recentAgrees = grants.filter(a => new Date(a.created_at) > sevenDaysAgo).length;
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentWants = wants.filter(w => new Date(w.created_at) > thirtyDaysAgo).length;
+  const recentAgrees = grants.filter(a => new Date(a.created_at) > thirtyDaysAgo).length;
 
   return (
     <div>
@@ -62,7 +62,7 @@ export default async function AnalyticsPage() {
             <span className="text-gray-500 text-sm">Total Wishes</span>
           </div>
           <p className="text-3xl font-bold text-gray-900">{totalWants}</p>
-          <p className="text-xs text-gray-500 mt-1">+{recentWants} this week</p>
+          <p className="text-xs text-gray-500 mt-1">+{recentWants} this month</p>
         </div>
 
         <div className="bg-white rounded-xl p-5 border shadow-sm">
@@ -84,7 +84,7 @@ export default async function AnalyticsPage() {
             <span className="text-gray-500 text-sm">Live Entries</span>
           </div>
           <p className="text-3xl font-bold text-blue-600">{activeWants}</p>
-          <p className="text-xs text-gray-500 mt-1">in the weekly draw</p>
+          <p className="text-xs text-gray-500 mt-1">in the monthly draw</p>
         </div>
 
         <div className="bg-white rounded-xl p-5 border shadow-sm">
@@ -92,10 +92,10 @@ export default async function AnalyticsPage() {
             <div className="p-2 bg-purple-100 rounded-lg">
               <Target className="h-5 w-5 text-purple-600" />
             </div>
-            <span className="text-gray-500 text-sm">Granted This Week</span>
+            <span className="text-gray-500 text-sm">Granted This Month</span>
           </div>
           <p className="text-3xl font-bold text-purple-600">{recentAgrees}</p>
-          <p className="text-xs text-gray-500 mt-1">via the weekly draw</p>
+          <p className="text-xs text-gray-500 mt-1">via the monthly draw</p>
         </div>
       </div>
 
