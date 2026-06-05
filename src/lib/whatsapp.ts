@@ -34,22 +34,20 @@ Leave us a review: https://jeffy.co.za/review/${orderNumber}`,
   wantApproved: (wantTitle: string, creatorName: string, productUrl: string) =>
     `🎁 Amazing news ${creatorName}!
 
-Your want "${wantTitle}" reached 10 agrees!
+Your wish "${wantTitle}" hit its goal!
 
-We're sourcing your product now. You'll receive:
-• 1 FREE for you
-• 10 to sell and keep the profit
+Your backers proved the demand, so we're sourcing it and adding it to the catalogue. Your wish is also entered into this month's free draw — one wish is granted free every month.
 
-View your product: ${productUrl}
+View it here: ${productUrl}
 
-Thanks for being part of Jeffy Wants! 🚀`,
+Thanks for being part of the Jeffy Wish List! 🚀`,
 
   wantProgress: (wantTitle: string, currentAgrees: number, creatorName: string, shareUrl: string) =>
-    `📊 Update on your want, ${creatorName}!
+    `📊 Update on your wish, ${creatorName}!
 
-"${wantTitle}" now has *${currentAgrees}/10* agrees!
+"${wantTitle}" now has *${currentAgrees}* backers!
 
-${10 - currentAgrees} more to go! Share again to speed it up:
+Keep sharing to prove the demand and move it up the list:
 ${shareUrl}`,
 };
 
@@ -111,7 +109,7 @@ export function getDeliveredMessage(orderNumber: string, customerName: string): 
 }
 
 /**
- * Get message for want approved (reached 10 agrees)
+ * Get message for wish approved (hit its backer goal — sourced + entered into monthly free draw)
  */
 export function getWantApprovedMessage(
   wantTitle: string, 

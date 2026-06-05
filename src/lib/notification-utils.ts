@@ -52,54 +52,52 @@ export function getMilestoneMessage(
     case 1:
       return `🎉 Hey ${creatorName}!
 
-Your first friend just agreed to help you get "${productTitle}" FREE on Jeffy!
+Your first backer just got behind your wish "${productTitle}" on Jeffy!
 
-9 more to go - keep sharing! 💪
+Keep sharing to prove the demand. 💪
 
 Share link: jeffy.co.za/wants`;
 
     case 3:
       return `🔥 ${creatorName}, you're on fire!
 
-3 friends have agreed to help you get "${productTitle}" FREE!
+3 backers are behind your wish "${productTitle}"!
 
-Only 7 more needed. You've got this! 🚀`;
+Keep it going — the more backers, the sooner we source it. 🚀`;
 
     case 5:
-      return `⚡ HALFWAY THERE ${creatorName}!
+      return `⚡ Momentum building, ${creatorName}!
 
-5 friends have agreed! "${productTitle}" is getting closer to being FREE!
+5 backers are behind "${productTitle}"! Demand is adding up fast.
 
-Just 5 more people needed. Share with more friends! 📲`;
+Share with more friends to push it up the list. 📲`;
 
     case 7:
-      return `🚀 Almost there ${creatorName}!
+      return `🚀 Going strong ${creatorName}!
 
-7 friends have agreed! "${productTitle}" is SO close to being FREE!
+7 backers are behind "${productTitle}"!
 
-Only 3 more people needed! Final push! 💥`;
+Keep sharing — popular wishes get sourced first. 💥`;
 
     case 9:
-      return `😱 ONE MORE ${creatorName}!!!
+      return `😱 Almost a crowd ${creatorName}!
 
-9 friends have agreed to "${productTitle}"!
+9 backers are behind "${productTitle}"!
 
-Just ONE more person and you get it FREE! 🎁
-
-Share now - you're about to win!`;
+One more push — share now to keep the momentum going! 🎁`;
 
     case 10:
-      return `🎊🎉 CONGRATULATIONS ${creatorName}! 🎉🎊
+      return `🎊🎉 NICE ONE ${creatorName}! 🎉🎊
 
-You did it! 10 friends agreed!
+Your wish "${productTitle}" hit its goal with 10 backers!
 
-"${productTitle}" is now being sourced and will be shipped to you FREE!
+You proved the demand — we're sourcing it and adding it to the catalogue. Your wish is also entered into this month's free draw, where one wish is granted free every month.
 
-Thank you for using Jeffy Wants! We'll WhatsApp you with shipping updates soon.
+We'll WhatsApp you with updates soon.
 
 🛒 Jeffy Commerce`;
 
     default:
-      return `Update: ${currentAgrees} people have agreed to "${productTitle}"!`;
+      return `Update: ${currentAgrees} backers are behind "${productTitle}"!`;
   }
 }

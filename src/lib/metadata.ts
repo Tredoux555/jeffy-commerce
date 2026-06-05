@@ -58,7 +58,7 @@ export function generateMetadata({
 export const pageMetadata = {
   home: generateMetadata({
     title: 'Jeffy Commerce - Eish, These Prices!',
-    description: 'Get products FREE with Jeffy Wants! Create a want, share with 10 friends, and get your product completely FREE. South Africa\'s most exciting shopping experience.',
+    description: 'Make a wish on Jeffy! Tell us what you want, rally your backers, and popular wishes get sourced — with one granted free every month. South Africa\'s most exciting shopping experience.',
     path: '/',
   }),
 
@@ -69,8 +69,8 @@ export const pageMetadata = {
   }),
 
   wants: generateMetadata({
-    title: 'Jeffy Wants - Get Products FREE',
-    description: 'Create a want, share with 10 friends, and get your product completely FREE! The most exciting way to shop in South Africa.',
+    title: 'Jeffy Wish List - Make a Wish, Win it Free',
+    description: 'Make a wish, rally your backers, and popular wishes get sourced — with one wish granted free every month. The most exciting way to shop in South Africa.',
     path: '/wants',
   }),
 

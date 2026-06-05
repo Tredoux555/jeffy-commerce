@@ -67,9 +67,9 @@ export default async function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link href="/wants/create">
+              <Link href="/wants">
                 <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg h-14 px-8 w-full sm:w-auto">
-                  🎁 Get Something FREE
+                  🎁 Make a Wish
                 </Button>
               </Link>
               <Link href="/products">

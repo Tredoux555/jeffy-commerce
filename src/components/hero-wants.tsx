@@ -62,8 +62,8 @@ export default function HeroWants() {
 
             <p className="text-white text-sm">
               Not what you want?{' '}
-              <Link href="/wants/create" className="underline font-bold hover:text-gray-100">
-                Create a Want
+              <Link href="/wants" className="underline font-bold hover:text-gray-100">
+                Make a Wish
               </Link>
             </p>
           </div>

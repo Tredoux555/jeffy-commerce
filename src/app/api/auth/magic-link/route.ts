@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (!wants || wants.length === 0) {
       return NextResponse.json({ 
         success: false, 
-        error: 'No wants found for this email. Create a want first!' 
+        error: 'No wishes found for this email. Make a wish first!'
       }, { status: 404 });
     }
 

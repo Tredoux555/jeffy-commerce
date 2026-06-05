@@ -208,8 +208,8 @@ export function welcomeEmail(data: { name: string; email: string }): string {
       </tr>
       <tr>
         <td style="padding:10px 0;">
-          <p style="margin:0;color:#1f2937;"><strong>🎁 Get FREE Products</strong></p>
-          <p style="margin:5px 0 0;color:#6b7280;font-size:14px;">Create a "Want" and get it FREE when 10 friends agree!</p>
+          <p style="margin:0;color:#1f2937;"><strong>🎁 Make a Wish</strong></p>
+          <p style="margin:5px 0 0;color:#6b7280;font-size:14px;">Add what you want and rally your backers. Popular wishes get sourced — and one is granted free every month!</p>
         </td>
       </tr>
       <tr>

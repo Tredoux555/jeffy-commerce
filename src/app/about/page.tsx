@@ -84,9 +84,9 @@ export default function AboutPage() {
                 Shop Now
               </button>
             </Link>
-            <Link href="/wants/create">
+            <Link href="/wants">
               <button className="bg-white/10 text-white px-8 py-3 rounded-lg font-bold hover:bg-white/20 transition border border-white/20">
-                Get Something FREE
+                Make a Wish
               </button>
             </Link>
           </div>

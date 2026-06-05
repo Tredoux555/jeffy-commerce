@@ -70,7 +70,7 @@ export async function sendVerificationEmail(data: VerificationEmailData) {
               <!-- Value Prop -->
               <div style="background-color: #fef3c7; border-radius: 8px; padding: 15px; margin-bottom: 25px;">
                 <p style="margin: 0; color: #92400e; font-size: 14px; text-align: center;">
-                  🎁 If <strong>10 people</strong> verify they want this, Jeffy will source it — and ${firstName} gets theirs <strong>FREE!</strong>
+                  🎁 The more people back this wish, the sooner Jeffy sources it — and every month one wish is granted <strong>FREE!</strong>
                 </p>
               </div>
               
