@@ -28,7 +28,8 @@ import {
   Truck,
   AlertTriangle,
   Megaphone,
-  Sparkles
+  Sparkles,
+  FlaskConical
 } from 'lucide-react';
 
 // Badge component for counts
@@ -252,6 +253,10 @@ export default function AdminLayout({
 
             {/* ==================== GROWTH ==================== */}
             <NavSection title="Growth" />
+
+            <NavLink href="/admin/experiment" icon={FlaskConical} isActive={isActive('/admin/experiment')}>
+              The Experiment
+            </NavLink>
 
             <NavLink href="/admin/campaign" icon={Megaphone} isActive={isActive('/admin/campaign')}>
               Wishlist Campaign
