@@ -165,17 +165,16 @@ export default async function HomePage() {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                How <span className="text-orange-500">"Wants"</span> Work
+                How the <span className="text-orange-500">Wish List</span> Works
               </h2>
-              <p className="text-gray-400">Get what you want for FREE. Seriously.</p>
+              <p className="text-gray-400">Tell us what you want. We draw winners every week.</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { num: '1', text: 'Add your wish' },
-                { num: '2', text: 'Rally backers' },
-                { num: '3', text: 'We source it for Jeffy' },
-                { num: '4', text: 'One wish granted free monthly' },
+                { num: '1', text: 'Make your wish — no purchase, no catch' },
+                { num: '2', text: 'We draw winners at random every week' },
+                { num: '3', text: 'We grant it free and celebrate you' },
               ].map((step, i) => (
                 <div key={i} className="text-center">
                   <div className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold text-white">

@@ -58,7 +58,7 @@ export default async function Image() {
               fontWeight: 'bold',
             }}
           >
-            Popular wishes get sourced
+            Make a wish — no catch
           </div>
           <div
             style={{
@@ -67,7 +67,7 @@ export default async function Image() {
               marginBottom: 40,
             }}
           >
-            One wish granted free, every month! 🎁
+            Winners drawn free, every week! 🎁
           </div>
         </div>
       </div>

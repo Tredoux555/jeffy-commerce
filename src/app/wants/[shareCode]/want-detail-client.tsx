@@ -69,25 +69,25 @@ export function WantDetailClient({ want }: { want: Want }) {
         <div className="space-y-4 text-sm">
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">1</div>
-            <p className="text-gray-300">Your friend added a wish to the Jeffy Wish List and is gathering support.</p>
+            <p className="text-gray-300">Your friend added a wish to the Jeffy Wish List.</p>
           </div>
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">2</div>
-            <p className="text-gray-300">When you tap <span className="text-blue-400 font-semibold">Back it</span>, you help prove there&apos;s real demand.</p>
+            <p className="text-gray-300">If you tap <span className="text-blue-400 font-semibold">I want this too</span>, you&apos;re added to this week&apos;s draw for it as well.</p>
           </div>
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">3</div>
-            <p className="text-gray-300">Popular wishes get sourced and added to Jeffy — and each month one wish is <span className="text-green-400 font-semibold">granted free</span>.</p>
+            <p className="text-gray-300">Every week Jeffy draws winners at random and <span className="text-green-400 font-semibold">grants their wish free</span> — no purchase, no catch.</p>
           </div>
           <div className="flex gap-3">
             <div className="w-6 h-6 bg-[#ff6b35] rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold">4</div>
-            <p className="text-gray-300">Then add your own wish — rally support, and you&apos;re in the monthly draw too.</p>
+            <p className="text-gray-300">Add your own wishes too — up to ten, each one another entry in the weekly draw.</p>
           </div>
         </div>
 
         <div className="mt-6 p-3 bg-[#ff6b35]/20 rounded-lg border border-[#ff6b35]/30">
           <p className="text-[#ff6b35] text-sm font-medium text-center">
-            It&apos;s a loop of friends helping friends! 🔄
+            No purchase, no catch — just tell us what you want. 🎁
           </p>
         </div>
 
@@ -128,14 +128,14 @@ export function WantDetailClient({ want }: { want: Want }) {
           <p className="text-gray-400 mb-1">{creatorName} wishes for:</p>
           <h1 className="text-xl font-bold mb-8">{want.title}</h1>
 
-          {/* BACK IT BUTTON - Blue */}
+          {/* I WANT THIS TOO BUTTON - Blue */}
           <button
             onClick={handleAgreeClick}
             className="w-full bg-[#3b82f6] text-white py-4 rounded-xl font-bold text-xl hover:bg-blue-600 transition"
           >
-            Back it
+            I want this too
           </button>
-          <p className="text-gray-500 text-sm mt-2 mb-10">(I&apos;d want one too)</p>
+          <p className="text-gray-500 text-sm mt-2 mb-10">(adds you to this week&apos;s draw for it)</p>
 
           {/* ADD MY OWN WISH - Orange Box */}
           <Link href="/wants" className="block">
@@ -143,7 +143,7 @@ export function WantDetailClient({ want }: { want: Want }) {
               Add my own Wish
             </div>
           </Link>
-          <p className="text-[#ff6b35] font-semibold mt-2">and enter the monthly draw</p>
+          <p className="text-[#ff6b35] font-semibold mt-2">and enter this week&apos;s draw</p>
 
           {/* Small help link at bottom */}
           <button
@@ -163,7 +163,7 @@ export function WantDetailClient({ want }: { want: Want }) {
       <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center p-6">
         <div className="max-w-sm w-full text-center">
           <h1 className="text-xl font-bold mb-2">Enter your number</h1>
-          <p className="text-gray-400 text-sm mb-6">To confirm your support for {creatorName}</p>
+          <p className="text-gray-400 text-sm mb-6">So we can enter you in this week&apos;s draw for it</p>
 
           <form onSubmit={handlePhoneSubmit} className="space-y-4">
             {error && (
@@ -186,7 +186,7 @@ export function WantDetailClient({ want }: { want: Want }) {
               disabled={loading}
               className="w-full bg-[#3b82f6] text-white py-4 rounded-xl font-bold text-lg disabled:opacity-50"
             >
-              {loading ? 'Confirming...' : `Back ${creatorName}'s wish`}
+              {loading ? 'Confirming...' : `I want this too`}
             </button>
           </form>
 
@@ -206,8 +206,8 @@ export function WantDetailClient({ want }: { want: Want }) {
           <Check className="h-8 w-8 text-white" />
         </div>
 
-        <h1 className="text-xl font-bold mb-2">Done!</h1>
-        <p className="text-gray-400 mb-10">You&apos;ve backed {creatorName}&apos;s wish — thanks for helping prove the demand!</p>
+        <h1 className="text-xl font-bold mb-2">You&apos;re in! 🎉</h1>
+        <p className="text-gray-400 mb-10">You&apos;re entered in this week&apos;s draw for {want.title}. Winners are drawn at random every week and get their wish free.</p>
 
         {/* ADD YOUR OWN WISH */}
         <Link href="/wants" className="block">
@@ -215,7 +215,7 @@ export function WantDetailClient({ want }: { want: Want }) {
             Add your own Wish
           </div>
         </Link>
-        <p className="text-gray-500 text-sm mt-3">Add yours, rally support, and enter the monthly draw</p>
+        <p className="text-gray-500 text-sm mt-3">Each wish you add is another entry in the weekly draw</p>
       </div>
     </div>
   );

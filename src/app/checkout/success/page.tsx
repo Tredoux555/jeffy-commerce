@@ -61,19 +61,19 @@ export default async function CheckoutSuccessPage({ searchParams }: SuccessPageP
               <div className="space-y-3 text-sm bg-white rounded-xl p-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Bank</span>
-                  <span className="font-medium">FNB</span>
+                  <span className="font-medium">Nedbank</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Account Name</span>
-                  <span className="font-medium">Jeffy Commerce</span>
+                  <span className="font-medium">Jeffy Commerce (Pty) Ltd</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Account Number</span>
-                  <span className="font-mono font-medium">62123456789</span>
+                  <span className="font-mono font-medium">1307614477</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Branch Code</span>
-                  <span className="font-mono font-medium">250655</span>
+                  <span className="font-mono font-medium">198765</span>
                 </div>
                 <div className="flex justify-between border-t pt-3">
                   <span className="text-gray-600">Reference</span>

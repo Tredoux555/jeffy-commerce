@@ -120,16 +120,16 @@ export function generateOrganizationSchema(): string {
     ],
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: '+27-10-123-4567',
+      telephone: '+27-76-506-4386',
       contactType: 'customer service',
       availableLanguage: ['English', 'Afrikaans']
     },
     address: {
       '@type': 'PostalAddress',
-      streetAddress: '123 Main Street',
-      addressLocality: 'Johannesburg',
-      addressRegion: 'Gauteng',
-      postalCode: '2000',
+      streetAddress: '39 Panorama Drive, The Links',
+      addressLocality: 'Somerset West',
+      addressRegion: 'Western Cape',
+      postalCode: '7130',
       addressCountry: 'ZA'
     }
   };

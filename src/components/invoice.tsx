@@ -85,11 +85,11 @@ export function generateInvoiceHTML(data: InvoiceData): string {
       <div class="address-grid">
         <div class="address-box">
           <h4>From</h4>
-          <p><strong>Jeffy Commerce</strong></p>
-          <p>123 Main Street</p>
-          <p>Johannesburg, Gauteng 2000</p>
+          <p><strong>Jeffy Commerce (Pty) Ltd</strong></p>
+          <p>Reg: 2025/950712/07</p>
+          <p>39 Panorama Drive, The Links</p>
+          <p>Somerset West, 7130</p>
           <p>South Africa</p>
-          <p>VAT: 4000123456</p>
         </div>
         <div class="address-box">
           <h4>Bill To</h4>

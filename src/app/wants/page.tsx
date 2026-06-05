@@ -208,23 +208,20 @@ export default function WantsPage() {
   const handleSubmitWant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newWant.product_name || !newWant.email) return;
-    
-    // Require image
-    if (!imageFile) {
-      setSubmitMessage({ type: 'error', text: 'Please upload a photo of the product you want' });
-      return;
-    }
 
     setSubmitting(true);
     setSubmitMessage(null);
 
     try {
-      // Upload image first
-      const imageUrl = await uploadImage();
-      if (!imageUrl) {
-        setSubmitMessage({ type: 'error', text: 'Failed to upload image. Please try again.' });
-        setSubmitting(false);
-        return;
+      // Photo is optional — upload it only if one was added
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        imageUrl = await uploadImage();
+        if (!imageUrl) {
+          setSubmitMessage({ type: 'error', text: 'Failed to upload image. Please try again, or submit without a photo.' });
+          setSubmitting(false);
+          return;
+        }
       }
 
       const res = await fetch('/api/wants/public', {
@@ -244,9 +241,9 @@ export default function WantsPage() {
       const data = await res.json();
 
       if (data.success) {
-        setSubmitMessage({ 
-          type: 'success', 
-          text: 'Product requested! Share your link to get verifications.',
+        setSubmitMessage({
+          type: 'success',
+          text: "You're in this week's draw!",
           want: data.want
         });
         setNewWant({ product_name: '', description: '', category: 'General', email: newWant.email, price_willing: '', buy_frequency: '', suburb: '' });
@@ -279,7 +276,7 @@ export default function WantsPage() {
 
   const shareViaWhatsApp = (want: Want) => {
     const link = getShareLink(want);
-    const message = `🛒 I added "${want.product_name}" to the Jeffy Wish List! Tap to back it — popular wishes get sourced, and Jeffy grants one free every month. Would you buy this too? ${link}`;
+    const message = `🛒 I added "${want.product_name}" to the Jeffy Wish List! No purchase, no catch — every week Jeffy draws winners at random and grants their wish free. Make a wish too: ${link}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -330,11 +327,11 @@ export default function WantsPage() {
 
           {/* The reward */}
           <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-3xl p-8 border border-green-500/30 max-w-xl mx-auto">
-            <p className="text-slate-400 text-lg mb-2">Every month?</p>
+            <p className="text-slate-400 text-lg mb-2">Every week.</p>
             <p className="text-3xl font-black text-white">
-              One wish, <span className="text-green-400">granted free.</span>
+              We draw winners at random and <span className="text-green-400">grant their wish free.</span>
             </p>
-            <p className="text-lg text-slate-400 mt-2">We grant a wish each month and film the story. Add yours to enter.</p>
+            <p className="text-lg text-slate-400 mt-2">No purchase. No catch. Just add your wish — every wish is one entry into the weekly draw.</p>
           </div>
         </div>
       </section>
@@ -344,7 +341,7 @@ export default function WantsPage() {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">All you need to do</p>
-            <h2 className="text-3xl md:text-4xl font-black">Prove there&apos;s demand.</h2>
+            <h2 className="text-3xl md:text-4xl font-black">Tell us what you want.</h2>
             <p className="text-xl text-slate-400 mt-2">We do the rest.</p>
           </div>
 
@@ -353,32 +350,16 @@ export default function WantsPage() {
             <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
               <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">1</div>
               <div>
-                <h3 className="font-bold mb-1">Add the product you wish for</h3>
-                <p className="text-slate-400 text-sm">Something you saw on TikTok. Something a friend has. Anything.</p>
+                <h3 className="font-bold mb-1">Make your wish</h3>
+                <p className="text-slate-400 text-sm">Write down what you&apos;ve always wanted — a gadget, an appliance, a gift for the family. No purchase, no catch, ten seconds.</p>
               </div>
             </div>
 
             <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
               <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">2</div>
               <div>
-                <h3 className="font-bold mb-1">Get your unique link</h3>
-                <p className="text-slate-400 text-sm">Every verification through it counts toward your goal.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
-              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">3</div>
-              <div>
-                <h3 className="font-bold mb-1">Share it with 10 people</h3>
-                <p className="text-slate-400 text-sm">Friends. Family. Your WhatsApp group.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-4 bg-slate-800/50 rounded-2xl p-5 border border-slate-700">
-              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0 text-sm">4</div>
-              <div>
-                <h3 className="font-bold mb-1">They verify they&apos;re real</h3>
-                <p className="text-slate-400 text-sm">Email or phone. Proving they&apos;re actual people with real interest.</p>
+                <h3 className="font-bold mb-1">We draw winners every week</h3>
+                <p className="text-slate-400 text-sm">Completely at random. Every wish you add is one entry — nothing to share, no one to convince.</p>
               </div>
             </div>
 
@@ -387,11 +368,16 @@ export default function WantsPage() {
                 <Gift className="h-5 w-5 text-black" />
               </div>
               <div>
-                <h3 className="font-bold mb-1 text-green-400">Popular wishes get sourced — and one is granted free each month.</h3>
-                <p className="text-slate-300 text-sm">Your supporters prove the demand, so we add it to the catalogue. Every month we draw one wish to grant free and film. <Link href="/wish-list-rules" className="underline hover:text-white">See the draw rules</Link>.</p>
+                <h3 className="font-bold mb-1 text-green-400">We grant it free — and celebrate you.</h3>
+                <p className="text-slate-300 text-sm">We source your wish and deliver it to your door, free. Every winner is announced on the radio, in the paper, and across social media. <Link href="/wish-list-rules" className="underline hover:text-white">See the draw rules</Link>.</p>
               </div>
             </div>
           </div>
+
+          {/* Why we ask */}
+          <p className="text-center text-slate-500 text-sm mt-8 max-w-xl mx-auto">
+            Every wish also tells us what South Africans actually want — so we stock the real thing in the shop, not what some buyer guessed.
+          </p>
         </div>
       </section>
 
@@ -400,12 +386,12 @@ export default function WantsPage() {
         <div className="max-w-3xl mx-auto">
           <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700 text-center">
             <Users className="h-8 w-8 text-blue-400 mx-auto mb-4" />
-            <h3 className="text-xl font-bold mb-3">And your friends?</h3>
+            <h3 className="text-xl font-bold mb-3">Add as many as you like</h3>
             <p className="text-slate-300">
-              They can <span className="text-white font-semibold">preorder at a discount</span> — or add their own wish to the list.
+              Wish for up to <span className="text-white font-semibold">ten things</span> at a time. Every one is another entry in the weekly draw.
             </p>
             <p className="text-lg text-white font-semibold mt-4">
-              The loop continues. The catalogue grows. Prices drop.
+              The more we hear, the better the shop gets.
             </p>
           </div>
         </div>
@@ -460,36 +446,35 @@ export default function WantsPage() {
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Wish Added! 🎉</h3>
-                <p className="text-gray-500 mb-4">Check your email to set up your account and track verifications.</p>
-                
-                {/* Share Link */}
-                <div className="bg-gray-50 rounded-xl p-4 mb-4">
-                  <p className="text-xs text-gray-500 mb-2">Your verification link:</p>
-                  <div className="flex items-center gap-2">
-                    <input type="text" readOnly value={getShareLink(submitMessage.want)} className="flex-1 px-3 py-2 bg-white border rounded-lg text-sm" />
-                    <button onClick={() => copyShareLink(submitMessage.want!)} className="px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
-                      <Copy className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">You&apos;re in the draw! 🎉</h3>
+                <p className="text-gray-500 mb-4">Your wish is one entry into this week&apos;s draw. We pick winners at random every week — nothing to share, no one to convince.</p>
 
-                <button onClick={() => shareViaWhatsApp(submitMessage.want!)} className="w-full py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 flex items-center justify-center gap-2 mb-4">
-                  <MessageCircle className="h-5 w-5" /> Share on WhatsApp
-                </button>
-
-                <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-                  <p className="text-sm text-orange-800">
-                    📧 <strong>Check your email!</strong> We sent you a link to set up your password and track your verifications.
+                <div className="bg-green-50 rounded-xl p-4 border border-green-200 mb-4">
+                  <p className="text-sm text-green-800">
+                    🏆 <strong>If you win, we&apos;ll call you</strong> — source your wish, deliver it free, and celebrate you on the radio, in the paper, and across social.
                   </p>
                 </div>
 
-                <button 
-                  onClick={resetForm} 
-                  className="w-full py-3 mt-4 border border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50"
-                >
-                  Done
-                </button>
+                <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
+                  <p className="text-sm text-orange-800">
+                    📧 <strong>Check your email</strong> to set up your account and keep track of your wishes.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={() => { setSubmitMessage(null); }}
+                    className="flex-1 py-3 bg-orange-500 text-white font-bold rounded-xl hover:bg-orange-600"
+                  >
+                    Add another wish
+                  </button>
+                  <button
+                    onClick={resetForm}
+                    className="flex-1 py-3 border border-gray-300 text-gray-600 font-medium rounded-xl hover:bg-gray-50"
+                  >
+                    Done
+                  </button>
+                </div>
               </div>
             ) : submitMessage?.type === 'similar' ? (
               <div className="text-center">
@@ -497,31 +482,26 @@ export default function WantsPage() {
                   <Package className="h-8 w-8 text-amber-600" />
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2">Great minds think alike! 🧠</h3>
-                <p className="text-gray-500 mb-4">Someone already requested something similar. Help them hit 10!</p>
-                
+                <p className="text-gray-500 mb-4">Others have wished for this too — which tells us there&apos;s real demand. Your wish still counts as its own entry in this week&apos;s draw.</p>
+
                 <div className="space-y-2 mb-6">
                   {submitMessage.similar?.slice(0, 2).map((s) => (
-                    <div key={s.id} className="p-3 bg-gray-50 rounded-xl flex items-center justify-between">
-                      <div className="text-left">
-                        <span className="font-medium block">{s.product_name}</span>
-                        <span className="text-xs text-gray-400">{s.verified_count || 0}/10 verifications</span>
-                      </div>
-                      <button onClick={() => { shareViaWhatsApp(s); }} className="px-3 py-1.5 bg-green-500 text-white text-sm font-medium rounded-lg hover:bg-green-600">
-                        Share
-                      </button>
+                    <div key={s.id} className="p-3 bg-gray-50 rounded-xl text-left">
+                      <span className="font-medium block">{s.product_name}</span>
+                      <span className="text-xs text-gray-400">Already on the Wish List</span>
                     </div>
                   ))}
                 </div>
 
                 <button onClick={() => setSubmitMessage(null)} className="w-full py-2 text-gray-500 hover:bg-gray-100 rounded-lg text-sm">
-                  ← Request something different
+                  ← Wish for something different
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmitWant} className="space-y-4">
                 {/* Image Upload - Required */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Photo *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Product Photo <span className="text-gray-400 font-normal">(optional)</span></label>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -660,7 +640,7 @@ export default function WantsPage() {
                     className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
-                  <p className="text-xs text-gray-500 mt-1">We&apos;ll notify you when it&apos;s sourced — and if your wish wins the monthly draw.</p>
+                  <p className="text-xs text-gray-500 mt-1">We&apos;ll email you if your wish wins the weekly draw.</p>
                 </div>
 
                 {submitMessage?.type === 'error' && (

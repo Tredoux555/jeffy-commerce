@@ -74,7 +74,7 @@ export function generateInvoiceHTML(data: InvoiceData): string {
             <p style="color: #6b7280; margin: 4px 0;">Commerce</p>
           </div>
           <div style="text-align: right;">
-            <div class="invoice-title">TAX INVOICE</div>
+            <div class="invoice-title">INVOICE</div>
             <div class="invoice-number">${data.orderNumber}</div>
             <div class="invoice-number">${data.orderDate}</div>
           </div>
@@ -91,9 +91,9 @@ export function generateInvoiceHTML(data: InvoiceData): string {
           <div class="detail-box">
             <h3>From</h3>
             <p><strong>Jeffy Commerce (Pty) Ltd</strong></p>
-            <p>123 Main Street</p>
-            <p>Johannesburg, 2000</p>
-            <p>VAT: 4000000000</p>
+            <p>Reg: 2025/950712/07</p>
+            <p>39 Panorama Drive, The Links</p>
+            <p>Somerset West, 7130</p>
           </div>
         </div>
 
@@ -126,10 +126,12 @@ export function generateInvoiceHTML(data: InvoiceData): string {
             <span>Shipping</span>
             <span>${data.shipping === 0 ? 'FREE' : formatCurrency(data.shipping)}</span>
           </div>
+          ${data.tax && data.tax > 0 ? `
           <div class="totals-row">
             <span>VAT (15%)</span>
             <span>${formatCurrency(data.tax)}</span>
           </div>
+          ` : ''}
           <div class="totals-row total">
             <span>Total</span>
             <span>${formatCurrency(data.total)}</span>

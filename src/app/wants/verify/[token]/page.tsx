@@ -94,41 +94,18 @@ export default function VerifyTokenPage() {
 
           {/* Message */}
           <p className="text-gray-500 mb-6">
-            {result.alreadyVerified 
-              ? 'You have already verified your interest in this product.'
-              : isThresholdReached
-                ? 'Enough people want this — Jeffy is now sourcing it for the catalogue!'
-                : `Thanks for verifying! ${result.remaining} more ${result.remaining === 1 ? 'person' : 'people'} needed.`
-            }
+            {result.alreadyVerified
+              ? "You're already entered in this week's draw for this product."
+              : "You're in! You're entered in this week's draw for this product."}
           </p>
 
-          {/* Progress */}
-          <div className="bg-gray-50 rounded-xl p-4 mb-6">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-gray-600">Progress</span>
-              <span className="font-bold text-gray-900">{result.verified_count}/10</span>
-            </div>
-            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className={`h-full transition-all rounded-full ${
-                  isThresholdReached 
-                    ? 'bg-gradient-to-r from-purple-500 to-indigo-600' 
-                    : 'bg-gradient-to-r from-orange-400 to-orange-500'
-                }`}
-                style={{ width: `${Math.min((result.verified_count || 0) / 10 * 100, 100)}%` }}
-              />
-            </div>
+          {/* Draw note */}
+          <div className="bg-green-50 rounded-xl p-4 mb-6 border border-green-200">
+            <Gift className="h-6 w-6 text-green-600 mx-auto mb-2" />
+            <p className="text-green-800 text-sm">
+              Every week Jeffy draws winners at <strong>random</strong> and grants their wish <strong>free</strong> — no purchase, no catch.
+            </p>
           </div>
-
-          {/* Threshold reached celebration */}
-          {isThresholdReached && !result.alreadyVerified && (
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-4 mb-6">
-              <Gift className="h-6 w-6 text-purple-600 mx-auto mb-2" />
-              <p className="text-purple-800 text-sm">
-                Enough demand — Jeffy will <strong>source this</strong> for the catalogue. One wish is granted free every month.
-              </p>
-            </div>
-          )}
 
           {/* CTA */}
           <Link 

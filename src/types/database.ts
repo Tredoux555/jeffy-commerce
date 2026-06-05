@@ -59,6 +59,17 @@ export interface Database {
           category_id: string | null;
           tags: string[] | null;
           cost_price_cents: number;
+          // Landed-cost decomposition (migration 001 — nullable until backfilled)
+          hs_code?: string | null;
+          cny_unit_cost?: number | null;
+          fx_rate?: number | null;
+          freight_cents?: number | null;
+          insurance_cents?: number | null;
+          duty_cents?: number | null;
+          import_vat_cents?: number | null;
+          clearing_cents?: number | null;
+          landed_cost_cents?: number | null;
+          landed_cost_updated_at?: string | null;
           selling_price_cents: number;
           compare_at_price_cents: number | null;
           quantity: number;

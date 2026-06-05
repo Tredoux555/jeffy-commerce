@@ -39,7 +39,7 @@ export const smsTemplates = {
     `Jeffy: Order #${orderNumber} delivered! Enjoy your purchase. Leave a review: jeffy.co.za/review`,
   
   wantSuccess: (productName: string) =>
-    `Jeffy: 🎉 Your wish "${productName}" hit its goal! We're sourcing it now, and it's entered into this month's free draw.`,
+    `Jeffy: 🏆 You won this week's draw! Your wish "${productName}" is being sourced and delivered to you free. We'll be in touch!`,
   
   otp: (code: string) => 
     `Your Jeffy verification code is: ${code}. Valid for 5 minutes.`,

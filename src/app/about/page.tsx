@@ -40,7 +40,7 @@ export default function AboutPage() {
             </div>
             <h3 className="text-xl font-bold mb-2">The Wish List</h3>
             <p className="text-gray-400 text-sm">
-              Add a wish, rally backers so we source it — and one wish is granted free every month.
+              Tell us what you want — no purchase, no catch. Every week we draw winners at random and grant their wish free.
             </p>
           </div>
 

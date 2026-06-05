@@ -70,6 +70,6 @@ export const SMSTemplates = {
   outForDelivery: (orderNumber: string) => `Jeffy: Order #${orderNumber} out for delivery today!`,
   welcomeBonus: (code: string) => `Welcome to Jeffy! 🎉 Use ${code} for 10% off. jeffy.co.za`,
   abandonedCart: (code: string) => `Jeffy: Complete your order with ${code} for 10% off! jeffy.co.za/cart`,
-  wantSuccess: (product: string) => `Jeffy: 🎉 Your wish "${product}" hit its goal! Sourcing now — and it's in this month's free draw.`,
+  wantSuccess: (product: string) => `Jeffy: 🏆 You won this week's draw! Your wish "${product}" is being sourced and delivered free. We'll be in touch!`,
   otpCode: (code: string) => `Your Jeffy code: ${code}. Valid 10 min.`,
 };

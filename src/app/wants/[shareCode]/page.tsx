@@ -24,11 +24,11 @@ export async function generateMetadata({ params }: WantPageProps): Promise<Metad
   const creatorName = want.creator_name || 'Someone';
 
   return {
-    title: `Back ${creatorName}'s wish: "${want.title}"`,
-    description: `${creatorName} added this to the Jeffy Wish List. Back it to help prove demand — popular wishes get sourced, and one is granted free every month.`,
+    title: `${creatorName} wishes for: "${want.title}"`,
+    description: `${creatorName} added this to the Jeffy Wish List. Want it too? Add it to your wishes — every week Jeffy draws winners at random and grants their wish free.`,
     openGraph: {
-      title: `Back ${creatorName}'s Jeffy wish 🎁`,
-      description: `Tap to back it, then add your own wish and enter the monthly draw.`,
+      title: `${creatorName}'s Jeffy wish 🎁`,
+      description: `Want this too? Add your own wish and enter this week's draw — winners get their wish free.`,
     },
   };
 }

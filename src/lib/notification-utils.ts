@@ -52,52 +52,24 @@ export function getMilestoneMessage(
     case 1:
       return `🎉 Hey ${creatorName}!
 
-Your first backer just got behind your wish "${productTitle}" on Jeffy!
+Your wish "${productTitle}" is in this week's Jeffy draw.
 
-Keep sharing to prove the demand. 💪
+Every week we draw winners at random and grant their wish free. Good luck! 🍀
 
-Share link: jeffy.co.za/wants`;
-
-    case 3:
-      return `🔥 ${creatorName}, you're on fire!
-
-3 backers are behind your wish "${productTitle}"!
-
-Keep it going — the more backers, the sooner we source it. 🚀`;
-
-    case 5:
-      return `⚡ Momentum building, ${creatorName}!
-
-5 backers are behind "${productTitle}"! Demand is adding up fast.
-
-Share with more friends to push it up the list. 📲`;
-
-    case 7:
-      return `🚀 Going strong ${creatorName}!
-
-7 backers are behind "${productTitle}"!
-
-Keep sharing — popular wishes get sourced first. 💥`;
-
-    case 9:
-      return `😱 Almost a crowd ${creatorName}!
-
-9 backers are behind "${productTitle}"!
-
-One more push — share now to keep the momentum going! 🎁`;
+jeffy.co.za/wants`;
 
     case 10:
-      return `🎊🎉 NICE ONE ${creatorName}! 🎉🎊
+      return `🏆 NICE ONE ${creatorName}!
 
-Your wish "${productTitle}" hit its goal with 10 backers!
+Your wish "${productTitle}" was drawn — you won!
 
-You proved the demand — we're sourcing it and adding it to the catalogue. Your wish is also entered into this month's free draw, where one wish is granted free every month.
+We're sourcing it and delivering it to your door, free — and we'll celebrate you on the radio, in the paper, and across social media.
 
-We'll WhatsApp you with updates soon.
+We'll WhatsApp you with the details soon.
 
 🛒 Jeffy Commerce`;
 
     default:
-      return `Update: ${currentAgrees} backers are behind "${productTitle}"!`;
+      return `Update on your Jeffy wish "${productTitle}" — you're in this week's draw. 🍀`;
   }
 }

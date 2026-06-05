@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Loader2, Package, Users, Link2, Copy, Check, MessageCircle, ThumbsUp, ThumbsDown, ArrowLeft, Search, Flame, TrendingUp, Clock, Sparkles } from 'lucide-react';
+import { Loader2, Package, Users, Link2, Copy, Check, MessageCircle, ThumbsUp, ThumbsDown, ArrowLeft, Search, Flame, TrendingUp, Clock, Sparkles, Gift } from 'lucide-react';
 import Link from 'next/link';
 
 interface Want {
@@ -295,21 +295,13 @@ export default function ExploreWantsPage() {
                         )}
                       </div>
 
-                      {/* Verification Progress */}
+                      {/* Draw status */}
                       {want.status === 'voting' && (
                         <div className="mb-3">
-                          <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
-                            <span className="flex items-center gap-1">
-                              <Users className="h-3 w-3" />
-                              {verifiedCount}/10 backers
-                            </span>
-                          </div>
-                          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div 
-                              className={`h-full transition-all ${verifiedCount >= 10 ? 'bg-green-500' : 'bg-orange-500'}`}
-                              style={{ width: `${progress}%` }}
-                            />
-                          </div>
+                          <span className="inline-flex items-center gap-1 text-xs text-green-400">
+                            <Gift className="h-3 w-3" />
+                            In this week&apos;s draw
+                          </span>
                         </div>
                       )}
 

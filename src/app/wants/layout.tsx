@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Wish List | Jeffy',
-  description: 'Add the products you wish for. Popular wishes get sourced — and Jeffy grants one wish free every month.',
+  description: 'Tell us what you want — no purchase, no catch. Every week Jeffy draws winners at random and grants their wish free.',
   openGraph: {
     title: 'The Jeffy Wish List',
-    description: 'Add your wish. Popular wishes get sourced, and one is granted free every month.',
+    description: 'Make a wish. Every week we draw winners at random and grant their wish free.',
     url: 'https://jeffy.co.za/wants',
     siteName: 'Jeffy',
     locale: 'en_ZA',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'The Jeffy Wish List',
-    description: 'Add your wish. Popular wishes get sourced, and one is granted free every month.',
+    description: 'Make a wish. Every week we draw winners at random and grant their wish free.',
   },
 };
 

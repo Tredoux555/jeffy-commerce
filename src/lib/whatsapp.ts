@@ -32,22 +32,20 @@ Thank you for shopping with Jeffy!
 Leave us a review: https://jeffy.co.za/review/${orderNumber}`,
 
   wantApproved: (wantTitle: string, creatorName: string, productUrl: string) =>
-    `🎁 Amazing news ${creatorName}!
+    `🎉 Amazing news ${creatorName}!
 
-Your wish "${wantTitle}" hit its goal!
+Your wish "${wantTitle}" was drawn — you won! 🏆
 
-Your backers proved the demand, so we're sourcing it and adding it to the catalogue. Your wish is also entered into this month's free draw — one wish is granted free every month.
+We're sourcing it now and delivering it to your door, free. We'll also celebrate you on the radio, in the paper, and across social media.
 
 View it here: ${productUrl}
 
 Thanks for being part of the Jeffy Wish List! 🚀`,
 
   wantProgress: (wantTitle: string, currentAgrees: number, creatorName: string, shareUrl: string) =>
-    `📊 Update on your wish, ${creatorName}!
+    `📊 Hi ${creatorName}! Your wish "${wantTitle}" is in this week's draw.
 
-"${wantTitle}" now has *${currentAgrees}* backers!
-
-Keep sharing to prove the demand and move it up the list:
+Every week we draw winners at random and grant their wish free. Add more wishes any time — each one is another entry:
 ${shareUrl}`,
 };
 
@@ -109,7 +107,7 @@ export function getDeliveredMessage(orderNumber: string, customerName: string): 
 }
 
 /**
- * Get message for wish approved (hit its backer goal — sourced + entered into monthly free draw)
+ * Get message for wish drawn as a winner (sourced + delivered free)
  */
 export function getWantApprovedMessage(
   wantTitle: string, 

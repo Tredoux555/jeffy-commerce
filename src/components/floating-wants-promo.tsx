@@ -82,9 +82,9 @@ export default function FloatingWantsPromo() {
 
               {/* Subheadline */}
               <p className="text-gray-300 mb-6 text-lg">
-                Tell us what you want and rally your backers.
+                Tell us what you want — no purchase, no catch.
                 <br />
-                <span className="text-[#f7931e] font-semibold">Popular wishes get sourced — and one is granted free every month!</span>
+                <span className="text-[#f7931e] font-semibold">Every week we draw winners at random and grant their wish free!</span>
               </p>
 
               {/* How it works mini */}
@@ -100,7 +100,7 @@ export default function FloatingWantsPromo() {
                   <div className="w-10 h-10 bg-[#f7931e]/20 rounded-full flex items-center justify-center mx-auto mb-1">
                     <span className="text-[#f7931e] font-bold">2</span>
                   </div>
-                  <span className="text-gray-400">Rally Backers</span>
+                  <span className="text-gray-400">We Draw Weekly</span>
                 </div>
                 <div className="text-gray-500 self-center">→</div>
                 <div className="text-center">

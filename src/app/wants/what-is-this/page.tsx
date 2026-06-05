@@ -63,12 +63,12 @@ export default function WhatIsWantsPage() {
             
             {/* The reward */}
             <div className="mt-10 pt-10 border-t border-slate-700">
-              <p className="text-slate-400 text-lg mb-3">Every month?</p>
+              <p className="text-slate-400 text-lg mb-3">Every week.</p>
               <p className="text-3xl md:text-4xl font-black text-white">
-                One wish, <span className="text-green-400">granted free.</span>
+                We draw winners at random and <span className="text-green-400">grant their wish free.</span>
               </p>
               <p className="text-xl text-slate-400 mt-2">
-                We grant a wish each month and film the story. Add yours to enter.
+                No purchase. No catch. Every wish you add is one entry into the weekly draw.
               </p>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function WhatIsWantsPage() {
           <div className="text-center mb-16">
             <p className="text-orange-400 font-semibold uppercase tracking-wider mb-4">All you need to do</p>
             <h2 className="text-3xl md:text-4xl font-black">
-              Prove there&apos;s demand.
+              Tell us what you want.
             </h2>
             <p className="text-xl text-slate-400 mt-4">We do the rest.</p>
           </div>
@@ -94,8 +94,8 @@ export default function WhatIsWantsPage() {
                 1
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1">Request any product you want</h3>
-                <p className="text-slate-400">Something you saw on TikTok. Something a friend has. Anything.</p>
+                <h3 className="text-xl font-bold mb-1">Make your wish</h3>
+                <p className="text-slate-400">Write down what you&apos;ve always wanted — up to ten things at a time. No purchase, no catch, ten seconds.</p>
               </div>
             </div>
 
@@ -105,49 +105,27 @@ export default function WhatIsWantsPage() {
                 2
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1">Get your unique link</h3>
-                <p className="text-slate-400">It&apos;s yours. Every verification through it counts toward your goal.</p>
+                <h3 className="text-xl font-bold mb-1">We draw winners every week</h3>
+                <p className="text-slate-400">Completely at random. Every wish you add is one entry — nothing to share, no one to convince.</p>
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="flex items-start gap-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
-              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
-                3
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">Share it with 10 people</h3>
-                <p className="text-slate-400">Friends. Family. Your WhatsApp group. Anyone who&apos;d want this product too.</p>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="flex items-start gap-6 bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
-              <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
-                4
-              </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">They verify they&apos;re real</h3>
-                <p className="text-slate-400">Email or phone number. Proving they&apos;re actual people. Proving the demand is real.</p>
-              </div>
-            </div>
-
-            {/* Step 5 - The Payoff */}
+            {/* Step 3 - The Payoff */}
             <div className="flex items-start gap-6 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl p-6 border border-green-500/30">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center font-black text-black shrink-0">
                 <Gift className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1 text-green-400">You get your product free. It gets added to the catalogue.</h3>
-                <p className="text-slate-300">You proved there&apos;s a market. You earned it. That&apos;s it.</p>
+                <h3 className="text-xl font-bold mb-1 text-green-400">We grant it free — and celebrate you.</h3>
+                <p className="text-slate-300">We source your wish and deliver it to your door, free. Every winner is announced on the radio, in the paper, and across social media.</p>
               </div>
             </div>
           </div>
 
-          {/* Track progress note */}
+          {/* Why we ask */}
           <div className="mt-8 text-center">
             <p className="text-slate-500">
-              Keep track of your progress on your profile →
+              Every wish also tells us what to stock — so the shop fills up with what people actually want.
             </p>
           </div>
         </div>
@@ -166,14 +144,14 @@ export default function WhatIsWantsPage() {
           <div className="bg-slate-800/50 rounded-3xl p-8 md:p-10 border border-slate-700">
             <div className="space-y-6 text-lg text-slate-300">
               <p>
-                Everyone who verifies can <span className="text-white font-semibold">preorder at a substantial discount</span> — first in line when it arrives.
+                They can make their <span className="text-white font-semibold">own wishes</span> too — up to ten each, every one another entry in the weekly draw.
               </p>
               <p>
-                Or they can create their own Want and get <span className="text-white font-semibold">theirs</span> free.
+                The more people tell us what they want, the better the shop gets — and the more wishes we grant free.
               </p>
               <div className="pt-6 border-t border-slate-700">
                 <p className="text-xl text-white font-semibold">
-                  The loop continues. The catalogue grows. Prices drop.
+                  Everyone can play. The catalogue grows. Prices drop.
                 </p>
               </div>
             </div>
