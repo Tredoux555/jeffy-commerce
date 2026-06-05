@@ -27,7 +27,8 @@ import {
   ShoppingBag,
   Truck,
   AlertTriangle,
-  Megaphone
+  Megaphone,
+  Sparkles
 } from 'lucide-react';
 
 // Badge component for counts
@@ -254,6 +255,10 @@ export default function AdminLayout({
 
             <NavLink href="/admin/campaign" icon={Megaphone} isActive={isActive('/admin/campaign')}>
               Wishlist Campaign
+            </NavLink>
+
+            <NavLink href="/admin/wish-insights" icon={Sparkles} isActive={isActive('/admin/wish-insights')}>
+              AI Wish Insights
             </NavLink>
 
             <NavLink href="/admin/followers" icon={Users} isActive={isActive('/admin/followers')}>

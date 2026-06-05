@@ -33,7 +33,7 @@ export default function WantsPage() {
   const [sortBy, setSortBy] = useState<'votes' | 'newest'>('votes');
   // New want form
   const [showForm, setShowForm] = useState(false);
-  const [newWant, setNewWant] = useState({ product_name: '', description: '', category: 'General', email: '', price_willing: '', buy_frequency: '', suburb: '' });
+  const [newWant, setNewWant] = useState({ product_name: '', description: '', email: '' });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -228,12 +228,8 @@ export default function WantsPage() {
         body: JSON.stringify({
           product_name: newWant.product_name,
           description: newWant.description,
-          category: newWant.category,
           user_email: newWant.email,
           image_url: imageUrl,
-          price_willing_cents: newWant.price_willing ? Math.round(parseFloat(newWant.price_willing) * 100) : null,
-          buy_frequency: newWant.buy_frequency || null,
-          suburb: newWant.suburb || null
         })
       });
       const data = await res.json();
@@ -244,7 +240,7 @@ export default function WantsPage() {
           text: "You're in this week's draw!",
           want: data.want
         });
-        setNewWant({ product_name: '', description: '', category: 'General', email: newWant.email, price_willing: '', buy_frequency: '', suburb: '' });
+        setNewWant({ product_name: '', description: '', email: newWant.email });
         setImageFile(null);
         setImagePreview(null);
         localStorage.setItem('jeffy_voter_email', newWant.email);
@@ -531,84 +527,26 @@ export default function WantsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">What do you want? *</label>
                   <input
                     type="text"
                     value={newWant.product_name}
                     onChange={(e) => setNewWant(prev => ({ ...prev, product_name: e.target.value }))}
-                    placeholder="e.g., Stanley 40oz Tumbler Dupe"
+                    placeholder="e.g. wireless earbuds with great bass"
                     className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Any details? (optional)</label>
                   <textarea
                     value={newWant.description}
                     onChange={(e) => setNewWant(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Any specific features or details..."
+                    placeholder="Colour, brand, features... anything that helps us get it right."
                     rows={2}
                     className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                  <select
-                    value={newWant.category}
-                    onChange={(e) => setNewWant(prev => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  >
-                    <option>General</option>
-                    <option>Drinkware</option>
-                    <option>Electronics</option>
-                    <option>Beauty</option>
-                    <option>Home</option>
-                    <option>Fashion</option>
-                    <option>Fitness</option>
-                    <option>Kitchen</option>
-                    <option>Other</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">What would you pay? (R)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={newWant.price_willing}
-                      onChange={(e) => setNewWant(prev => ({ ...prev, price_willing: e.target.value }))}
-                      placeholder="e.g. 150"
-                      className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">How often?</label>
-                    <select
-                      value={newWant.buy_frequency}
-                      onChange={(e) => setNewWant(prev => ({ ...prev, buy_frequency: e.target.value }))}
-                      className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                    >
-                      <option value="">—</option>
-                      <option value="once">Once-off</option>
-                      <option value="monthly">Monthly</option>
-                      <option value="weekly">Weekly</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Your area / suburb</label>
-                  <input
-                    type="text"
-                    value={newWant.suburb}
-                    onChange={(e) => setNewWant(prev => ({ ...prev, suburb: e.target.value }))}
-                    placeholder="e.g. Soweto, Sandton, Khayelitsha"
-                    className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Helps us send stock to a distributor near you.</p>
                 </div>
 
                 <div>

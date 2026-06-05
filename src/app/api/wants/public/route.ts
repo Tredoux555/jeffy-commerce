@@ -22,6 +22,24 @@ function generateToken(): string {
   return randomBytes(32).toString('hex');
 }
 
+// Approximate location from the request IP — privacy-light (city/region/country only,
+// never the raw IP). Best-effort, short timeout; returns null on any failure.
+async function lookupGeo(ip: string): Promise<{ country?: string; region?: string; city?: string } | null> {
+  if (!ip || ip.startsWith('127.') || ip.startsWith('10.') || ip.startsWith('192.168.') || ip === '::1') return null;
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 1500);
+    const res = await fetch(`https://ipapi.co/${encodeURIComponent(ip)}/json/`, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!res.ok) return null;
+    const d: any = await res.json();
+    if (d?.error) return null;
+    return { country: d.country_name || d.country, region: d.region, city: d.city };
+  } catch {
+    return null;
+  }
+}
+
 // GET - List public wants with vote counts
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -87,8 +105,7 @@ export async function GET(request: NextRequest) {
 // POST - Submit a new want
 export async function POST(request: NextRequest) {
   try {
-    const { product_name, description, category, user_email, user_name, image_url,
-            price_willing_cents, buy_frequency, suburb, latitude, longitude } = await request.json();
+    const { product_name, description, category, user_email, user_name, image_url } = await request.json();
 
     console.log('Creating want:', { product_name, user_email, image_url: !!image_url });
 
@@ -98,37 +115,13 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = user_email.toLowerCase().trim();
 
-    // Check if user already has a want (one per person, ever)
-    const { data: existingWant } = await supabase
-      .from('wants')
-      .select('id, product_name')
-      .eq('creator_email', normalizedEmail)
-      .limit(1)
-      .single();
+    // Client IP (for approximate area — no field is asked of the user)
+    const fwd = request.headers.get('x-forwarded-for') || '';
+    const clientIp = (fwd.split(',')[0] || request.headers.get('x-real-ip') || '').trim();
 
-    if (existingWant) {
-      return NextResponse.json({
-        success: false,
-        error: `You've already created a want: "${existingWant.product_name}". One free product per person!`,
-        existingWant
-      }, { status: 400 });
-    }
-
-    // Check for duplicates
-    const { data: existing } = await supabase
-      .from('wants')
-      .select('id, product_name, vote_count, verified_count, creator_referral_code')
-      .ilike('product_name', `%${product_name}%`)
-      .eq('is_public', true)
-      .limit(5);
-
-    if (existing && existing.length > 0) {
-      return NextResponse.json({
-        success: false,
-        similar: existing,
-        message: 'Similar products already requested. Vote for them instead!'
-      });
-    }
+    // No limits: a person can make as many wishes as they want — every wish is
+    // good demand data and one more entry into the weekly draw. (Duplicates and
+    // similar wishes are intentionally allowed; the AI insights layer dedupes/clusters.)
 
     // Check if user exists and is verified
     const { data: existingUser } = await supabase
@@ -213,23 +206,25 @@ export async function POST(request: NextRequest) {
       // Ignore
     }
 
-    // Structured Wish List capture (price/frequency/location).
-    // Defensive: runs only if migration 003 columns exist; never breaks want creation.
-    if (price_willing_cents != null || buy_frequency || suburb || latitude != null) {
-      try {
+    // Approximate area from IP — no field is asked of the user (privacy-light).
+    // Best-effort: never blocks or breaks want creation. Persists only once the
+    // ip_* columns exist (see supabase/migrations/013_wish_location.sql).
+    try {
+      const geo = clientIp ? await lookupGeo(clientIp) : null;
+      if (geo && (geo.country || geo.region || geo.city)) {
+        const area = [geo.city, geo.region].filter(Boolean).join(', ') || null;
         await supabase
           .from('wants')
           .update({
-            price_willing_cents: price_willing_cents ?? null,
-            buy_frequency: buy_frequency ?? null,
-            suburb: suburb ?? null,
-            latitude: latitude ?? null,
-            longitude: longitude ?? null,
+            ip_country: geo.country ?? null,
+            ip_region: geo.region ?? null,
+            ip_city: geo.city ?? null,
+            ip_area: area,
           })
           .eq('id', want.id);
-      } catch (e) {
-        // Columns not migrated yet — ignore, core want still created.
       }
+    } catch (e) {
+      // Geo lookup failed or columns not migrated yet — ignore; the wish is saved.
     }
 
     // ALWAYS send email - different content based on user status
