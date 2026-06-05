@@ -77,14 +77,14 @@ export default function FloatingWantsPromo() {
 
               {/* Headline */}
               <h2 className="text-3xl font-bold text-white mb-2">
-                Get Products <span className="text-[#ff6b35]">FREE!</span>
+                Make a Wish. <span className="text-[#ff6b35]">Win it FREE!</span>
               </h2>
-              
+
               {/* Subheadline */}
               <p className="text-gray-300 mb-6 text-lg">
-                Tell us what you want. Get 10 friends to agree. 
+                Tell us what you want and rally your backers.
                 <br />
-                <span className="text-[#f7931e] font-semibold">We ship it to you FREE!</span>
+                <span className="text-[#f7931e] font-semibold">Popular wishes get sourced — and one is granted free every month!</span>
               </p>
 
               {/* How it works mini */}
@@ -93,30 +93,30 @@ export default function FloatingWantsPromo() {
                   <div className="w-10 h-10 bg-[#ff6b35]/20 rounded-full flex items-center justify-center mx-auto mb-1">
                     <span className="text-[#ff6b35] font-bold">1</span>
                   </div>
-                  <span className="text-gray-400">Create Want</span>
+                  <span className="text-gray-400">Make a Wish</span>
                 </div>
                 <div className="text-gray-500 self-center">→</div>
                 <div className="text-center">
                   <div className="w-10 h-10 bg-[#f7931e]/20 rounded-full flex items-center justify-center mx-auto mb-1">
                     <span className="text-[#f7931e] font-bold">2</span>
                   </div>
-                  <span className="text-gray-400">Share Link</span>
+                  <span className="text-gray-400">Rally Backers</span>
                 </div>
                 <div className="text-gray-500 self-center">→</div>
                 <div className="text-center">
                   <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-1">
                     <span className="text-green-400 font-bold">3</span>
                   </div>
-                  <span className="text-gray-400">Get FREE!</span>
+                  <span className="text-gray-400">Win it Free!</span>
                 </div>
               </div>
 
               {/* CTAs */}
               <div className="space-y-3">
-                <Link href="/wants/create" className="block">
+                <Link href="/wants" className="block">
                   <button className="w-full bg-gradient-to-r from-[#ff6b35] to-[#f7931e] text-white py-4 rounded-xl font-bold text-lg hover:opacity-90 transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25">
                     <Gift className="h-5 w-5" />
-                    Create My Want Now
+                    Make My Wish Now
                     <ArrowRight className="h-5 w-5" />
                   </button>
                 </Link>
