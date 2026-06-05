@@ -1,12 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import { TrendingUp, Tag, MapPin, DollarSign, Trophy } from 'lucide-react';
 
-// Demand score: a verified "yes I'd buy" is a much stronger signal than a click/vote.
+// Demand score: how many people have wished for / shown interest in this product.
 function demandScore(w: any): number {
   const votes = w.vote_count ?? 0;
-  const verified = w.verified_count ?? 0;
   const clicks = w.popularity_clicks ?? 0;
-  return verified * 5 + votes * 1 + Math.min(clicks, 50) * 0.1;
+  return votes * 1 + Math.min(clicks, 50) * 0.1;
 }
 
 function rand(cents: number | null | undefined): string {
@@ -107,8 +106,7 @@ export default async function AdminWishlistPage() {
                 <th className="text-left px-4 py-2 w-12">#</th>
                 <th className="text-left px-4 py-2">Product</th>
                 <th className="text-left px-4 py-2">Category</th>
-                <th className="text-right px-4 py-2">Verified</th>
-                <th className="text-right px-4 py-2">Votes</th>
+                <th className="text-right px-4 py-2">Interest</th>
                 <th className="text-right px-4 py-2">Would pay</th>
                 <th className="text-right px-4 py-2">Demand</th>
               </tr>
@@ -126,8 +124,7 @@ export default async function AdminWishlistPage() {
                     )}
                   </td>
                   <td className="px-4 py-2 text-gray-600">{w.category || 'General'}</td>
-                  <td className="px-4 py-2 text-right font-semibold text-green-600">{w.verified_count ?? 0}</td>
-                  <td className="px-4 py-2 text-right text-gray-600">{w.vote_count ?? 0}</td>
+                  <td className="px-4 py-2 text-right font-semibold text-green-600">{w.vote_count ?? 0}</td>
                   <td className="px-4 py-2 text-right text-gray-600">{rand(w.price_willing_cents)}</td>
                   <td className="px-4 py-2 text-right font-bold">{Math.round(w._score)}</td>
                 </tr>

@@ -19,10 +19,10 @@ export default async function HomePage() {
     .from('wants')
     .select('*', { count: 'exact', head: true });
 
+  // Wishes granted free via the weekly draw
   const { count: successfulWants } = await supabase
-    .from('wants')
-    .select('*', { count: 'exact', head: true })
-    .gte('verified_count', 10);
+    .from('wishlist_grants')
+    .select('*', { count: 'exact', head: true });
 
   return (
     <div className="bg-gray-950">
@@ -83,11 +83,11 @@ export default async function HomePage() {
             <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto">
               <div className="text-center">
                 <p className="text-3xl font-bold text-orange-500">{totalWants || 0}+</p>
-                <p className="text-sm text-gray-400">Wants Created</p>
+                <p className="text-sm text-gray-400">Wishes Made</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-green-500">{successfulWants || 0}</p>
-                <p className="text-sm text-gray-400">Products Added</p>
+                <p className="text-sm text-gray-400">Wishes Granted Free</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl font-bold text-blue-500">50%</p>

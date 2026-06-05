@@ -5,30 +5,26 @@ export default async function AnalyticsPage() {
   const supabase = await createClient();
 
   // Fetch all data
-  const [wantsRes, agreesRes, ordersRes, productsRes] = await Promise.all([
+  const [wantsRes, grantsRes, ordersRes, productsRes] = await Promise.all([
     supabase.from('wants').select('*'),
-    supabase.from('want_agrees').select('*'),
+    supabase.from('wishlist_grants').select('*'),
     supabase.from('orders').select('*'),
     supabase.from('products').select('*'),
   ]);
 
   const wants = wantsRes.data || [];
-  const agrees = agreesRes.data || [];
+  const grants = grantsRes.data || [];
   const orders = ordersRes.data || [];
   const products = productsRes.data || [];
 
   // Calculate stats
   const totalWants = wants.length;
-  const activeWants = wants.filter(w => w.status === 'active').length;
-  const successfulWants = wants.filter(w => w.current_agrees >= w.threshold).length;
-  const expiredWants = wants.filter(w => {
-    const created = new Date(w.created_at);
-    const expiry = new Date(created.getTime() + 7 * 24 * 60 * 60 * 1000);
-    return new Date() > expiry && w.current_agrees < w.threshold;
-  }).length;
+  const activeWants = totalWants; // every submitted wish is a live entry in the weekly draw
+  const successfulWants = grants.length; // wishes granted free via the draw
+  const expiredWants = 0;
 
-  const totalAgrees = agrees.length;
-  const avgAgreesPerWant = totalWants > 0 ? (totalAgrees / totalWants).toFixed(1) : 0;
+  const totalAgrees = grants.length;
+  const avgAgreesPerWant = 0;
   const conversionRate = totalWants > 0 ? ((successfulWants / totalWants) * 100).toFixed(1) : 0;
 
   const totalOrders = orders.length;
@@ -47,7 +43,7 @@ export default async function AnalyticsPage() {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const recentWants = wants.filter(w => new Date(w.created_at) > sevenDaysAgo).length;
-  const recentAgrees = agrees.filter(a => new Date(a.created_at) > sevenDaysAgo).length;
+  const recentAgrees = grants.filter(a => new Date(a.created_at) > sevenDaysAgo).length;
 
   return (
     <div>
@@ -63,7 +59,7 @@ export default async function AnalyticsPage() {
             <div className="p-2 bg-orange-100 rounded-lg">
               <Gift className="h-5 w-5 text-[#ff6b35]" />
             </div>
-            <span className="text-gray-500 text-sm">Total Wants</span>
+            <span className="text-gray-500 text-sm">Total Wishes</span>
           </div>
           <p className="text-3xl font-bold text-gray-900">{totalWants}</p>
           <p className="text-xs text-gray-500 mt-1">+{recentWants} this week</p>
@@ -74,10 +70,10 @@ export default async function AnalyticsPage() {
             <div className="p-2 bg-green-100 rounded-lg">
               <CheckCircle className="h-5 w-5 text-green-600" />
             </div>
-            <span className="text-gray-500 text-sm">Successful</span>
+            <span className="text-gray-500 text-sm">Granted Free</span>
           </div>
           <p className="text-3xl font-bold text-green-600">{successfulWants}</p>
-          <p className="text-xs text-gray-500 mt-1">{conversionRate}% conversion</p>
+          <p className="text-xs text-gray-500 mt-1">{conversionRate}% of wishes</p>
         </div>
 
         <div className="bg-white rounded-xl p-5 border shadow-sm">
@@ -85,10 +81,10 @@ export default async function AnalyticsPage() {
             <div className="p-2 bg-blue-100 rounded-lg">
               <Users className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="text-gray-500 text-sm">Total Agrees</span>
+            <span className="text-gray-500 text-sm">Live Entries</span>
           </div>
-          <p className="text-3xl font-bold text-blue-600">{totalAgrees}</p>
-          <p className="text-xs text-gray-500 mt-1">+{recentAgrees} this week</p>
+          <p className="text-3xl font-bold text-blue-600">{activeWants}</p>
+          <p className="text-xs text-gray-500 mt-1">in the weekly draw</p>
         </div>
 
         <div className="bg-white rounded-xl p-5 border shadow-sm">
@@ -96,10 +92,10 @@ export default async function AnalyticsPage() {
             <div className="p-2 bg-purple-100 rounded-lg">
               <Target className="h-5 w-5 text-purple-600" />
             </div>
-            <span className="text-gray-500 text-sm">Avg Agrees/Want</span>
+            <span className="text-gray-500 text-sm">Granted This Week</span>
           </div>
-          <p className="text-3xl font-bold text-purple-600">{avgAgreesPerWant}</p>
-          <p className="text-xs text-gray-500 mt-1">out of 10 needed</p>
+          <p className="text-3xl font-bold text-purple-600">{recentAgrees}</p>
+          <p className="text-xs text-gray-500 mt-1">via the weekly draw</p>
         </div>
       </div>
 

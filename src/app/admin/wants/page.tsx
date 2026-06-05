@@ -131,7 +131,7 @@ function WishCard({ want }: { want: any }) {
             </a>
           )}
 
-          <Link href={`/admin/procurement/smart-finder?want_id=${want.id}&want_title=${encodeURIComponent(title)}`}>
+          <Link href={`/admin/procurement?want_id=${want.id}&want_title=${encodeURIComponent(title)}`}>
             <Button className="bg-green-600 hover:bg-green-700" size="sm">
               <Package className="h-4 w-4 mr-1" /> Source
             </Button>

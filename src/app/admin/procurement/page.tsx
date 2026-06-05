@@ -33,7 +33,7 @@ export default async function ProcurementPage() {
 
       {/* Quick Actions */}
       <div className="grid md:grid-cols-4 gap-4">
-        <Link href="/admin/procurement/smart-finder">
+        <Link href="/admin/procurement/research">
           <div className="bg-white rounded-xl border p-6 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-gradient-to-r from-jeffy-orange to-jeffy-yellow rounded-lg">

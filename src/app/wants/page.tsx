@@ -31,8 +31,6 @@ export default function WantsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'voting' | 'sourcing' | 'available'>('voting');
   const [sortBy, setSortBy] = useState<'votes' | 'newest'>('votes');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  
   // New want form
   const [showForm, setShowForm] = useState(false);
   const [newWant, setNewWant] = useState({ product_name: '', description: '', category: 'General', email: '', price_willing: '', buy_frequency: '', suburb: '' });
@@ -261,23 +259,6 @@ export default function WantsPage() {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const getShareLink = (want: Want) => {
-    return `https://jeffy.co.za/want/${want.id}?ref=${want.creator_referral_code}`;
-  };
-
-  const copyShareLink = async (want: Want) => {
-    const link = getShareLink(want);
-    await navigator.clipboard.writeText(link);
-    setCopiedId(want.id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const shareViaWhatsApp = (want: Want) => {
-    const link = getShareLink(want);
-    const message = `🛒 I added "${want.product_name}" to the Jeffy Wish List! No purchase, no catch — every week Jeffy draws winners at random and grants their wish free. Make a wish too: ${link}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const resetForm = () => {

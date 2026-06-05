@@ -7,7 +7,7 @@ export default function WantsTermsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 py-12">
-        <Link href="/wants/create" className="inline-flex items-center text-gray-500 hover:text-gray-700 mb-8">
+        <Link href="/wants" className="inline-flex items-center text-gray-500 hover:text-gray-700 mb-8">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Link>
@@ -15,7 +15,7 @@ export default function WantsTermsPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Terms and Conditions</h1>
         <p className="text-gray-500 mb-2">Jeffy Wish List - Last updated: January 2026</p>
         <p className="text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm mb-8">
-          Note: these terms are being updated to the current Wish List model (demand signal + monthly free draw). For the draw rules, see <a href="/wish-list-rules" className="underline font-medium">the Wish List draw rules</a>. The clauses below ("Want Request", verification threshold) reflect an earlier version and remain discretionary and non-binding as stated.
+          These terms reflect the current Wish List model: submit a wish (no purchase, no catch), and every week Jeffy draws winners at random and grants their wish free. For the full draw rules, see <a href="/wish-list-rules" className="underline font-medium">the Wish List draw rules</a>. Participation is discretionary, promotional, and non-binding as stated below.
         </p>
 
         <div className="bg-white rounded-xl border p-8 prose prose-gray max-w-none text-sm leading-relaxed">
@@ -31,10 +31,10 @@ export default function WantsTermsPage() {
             1.1.2. "Want" or "Want Request" means a product request submitted by a User through the Platform's Wants Program functionality, which may or may not result in the procurement and/or fulfilment of such requested product at the sole and absolute discretion of Jeffy;
           </p>
           <p>
-            1.1.3. "Verification" or "Verification Action" means the act of a third-party User indicating interest in a Want Request through the Platform's verification mechanism, which shall not constitute a binding agreement, contract, or obligation of any kind;
+            1.1.3. "Entry" means each validly submitted Want Request, which constitutes one (1) entry into the Draw. No purchase or payment of any kind is required to submit a Want Request or to enter the Draw;
           </p>
           <p>
-            1.1.4. "Threshold" means the number of Verifications required before a Want Request may be considered for potential fulfilment, currently set at ten (10) Verifications, subject to change at Jeffy's sole discretion without prior notice;
+            1.1.4. "Draw" means the random selection, conducted by Jeffy on a weekly basis, of one or more winning Want Requests from all eligible Entries, the winner(s) of which shall have their wish sourced and delivered at no cost. The conduct, timing, and rules of the Draw are published at /wish-list-rules and may be amended at Jeffy's sole discretion;
           </p>
           <p>
             1.1.5. "Eligible Product" means a product with an estimated retail value not exceeding One Thousand South African Rand (R1,000.00) as determined by Jeffy in its sole and absolute discretion;
@@ -45,10 +45,10 @@ export default function WantsTermsPage() {
 
           <h2 className="text-lg font-bold">2. ACCEPTANCE OF TERMS</h2>
           <p>
-            2.1. By submitting a Want Request, completing a Verification Action, or otherwise participating in the Wants Program, you acknowledge that you have read, understood, and agree to be bound by these Terms in their entirety.
+            2.1. By submitting a Want Request or otherwise participating in the Wants Program, you acknowledge that you have read, understood, and agree to be bound by these Terms in their entirety.
           </p>
           <p>
-            2.2. If you do not agree with any provision of these Terms, you must immediately cease all use of the Wants Program and refrain from submitting Want Requests or completing Verification Actions.
+            2.2. If you do not agree with any provision of these Terms, you must immediately cease all use of the Wants Program and refrain from submitting Want Requests.
           </p>
           <p>
             2.3. Jeffy reserves the right to modify, amend, supplement, or replace these Terms at any time without prior notice. Your continued use of the Wants Program following any such modifications shall constitute your acceptance of the modified Terms.
@@ -75,7 +75,7 @@ export default function WantsTermsPage() {
 
           <h2 className="text-lg font-bold">4. NO GUARANTEE OF FULFILMENT</h2>
           <p>
-            4.1. <strong>IMPORTANT NOTICE:</strong> THE SUBMISSION OF A WANT REQUEST AND THE ACHIEVEMENT OF THE VERIFICATION THRESHOLD DOES NOT CONSTITUTE A BINDING AGREEMENT, CONTRACT, OR OBLIGATION ON THE PART OF JEFFY TO PROCURE, SOURCE, PROVIDE, DELIVER, OR OTHERWISE FULFIL THE REQUESTED PRODUCT.
+            4.1. <strong>IMPORTANT NOTICE:</strong> THE SUBMISSION OF A WANT REQUEST, ENTRY INTO THE DRAW, OR EVEN SELECTION IN THE DRAW DOES NOT CONSTITUTE A BINDING AGREEMENT, CONTRACT, OR OBLIGATION ON THE PART OF JEFFY TO PROCURE, SOURCE, PROVIDE, DELIVER, OR OTHERWISE FULFIL THE REQUESTED PRODUCT, SAVE AS REQUIRED BY APPLICABLE LAW.
           </p>
           <p>
             4.2. Users expressly acknowledge and agree that:
@@ -84,7 +84,7 @@ export default function WantsTermsPage() {
             4.2.1. The Wants Program operates on a discretionary, promotional basis and does not create any legally enforceable rights or entitlements;
           </p>
           <p>
-            4.2.2. Reaching the Verification Threshold indicates potential interest only and does not guarantee product availability, sourcing feasibility, or fulfilment;
+            4.2.2. Submitting a Want Request or being entered into the Draw indicates potential interest only and does not guarantee product availability, sourcing feasibility, or fulfilment;
           </p>
           <p>
             4.2.3. Jeffy may, at any time and for any reason, discontinue, suspend, modify, or terminate the Wants Program or any individual Want Request without liability;
@@ -123,23 +123,23 @@ export default function WantsTermsPage() {
             6.1.1. You are at least eighteen (18) years of age or have obtained parental or guardian consent;<br/>
             6.1.2. All information provided in connection with Want Requests is accurate, complete, and not misleading;<br/>
             6.1.3. You will not submit Want Requests for products exceeding the R1,000.00 value threshold;<br/>
-            6.1.4. You will not attempt to manipulate, game, or abuse the Verification system;<br/>
+            6.1.4. You will not attempt to manipulate, game, or abuse the Draw;<br/>
             6.1.5. You understand and accept that Want Request fulfilment is not guaranteed;<br/>
             6.1.6. You will not hold Jeffy liable for non-fulfilment of Want Requests.
           </p>
 
-          <h2 className="text-lg font-bold">7. VERIFICATION INTEGRITY</h2>
+          <h2 className="text-lg font-bold">7. DRAW INTEGRITY</h2>
           <p>
-            7.1. Users shall not engage in any conduct intended to artificially inflate Verification counts, including but not limited to:
+            7.1. Users shall not engage in any conduct intended to gain an unfair advantage in the Draw or to artificially inflate the number of Entries, including but not limited to:
           </p>
           <p>
-            7.1.1. Creating multiple accounts for the purpose of self-verification;<br/>
-            7.1.2. Using automated systems, bots, or scripts to generate Verifications;<br/>
-            7.1.3. Incentivizing, paying, or otherwise inducing false Verifications;<br/>
-            7.1.4. Coordinating fraudulent Verification schemes.
+            7.1.1. Creating multiple accounts in order to submit duplicate Entries;<br/>
+            7.1.2. Using automated systems, bots, or scripts to generate Entries;<br/>
+            7.1.3. Submitting Entries on behalf of other persons without their consent; <br/>
+            7.1.4. Coordinating any fraudulent scheme to manipulate the Draw.
           </p>
           <p>
-            7.2. Jeffy reserves the right to invalidate Verifications, reject Want Requests, and suspend or terminate User access in cases of suspected manipulation or abuse.
+            7.2. Jeffy reserves the right to invalidate Entries, reject Want Requests, and suspend or terminate User access in cases of suspected manipulation or abuse.
           </p>
 
           <h2 className="text-lg font-bold">8. INTELLECTUAL PROPERTY</h2>

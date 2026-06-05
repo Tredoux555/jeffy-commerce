@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       ` : ''}
 
       <p style="color: #94a3b8; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0; text-align: center;">
-        Click below to verify your email and set up your password. Then you can track your verifications and get your free product!
+        Click below to verify your email and set up your password. Then you can track your wishes — every wish is an entry into the weekly free draw!
       </p>
 
       <div style="text-align: center; margin: 32px 0;">

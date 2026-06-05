@@ -42,10 +42,6 @@ const translations: Translations = {
   'checkout.payment': { en: 'Payment', af: 'Betaling', zu: 'Ukukhokha' },
   'checkout.placeOrder': { en: 'Place Order', af: 'Plaas Bestelling', zu: 'Yenza Isicelo' },
   
-  // Jeffy Wants
-  'wants.getItFree': { en: 'Get it FREE', af: 'Kry dit GRATIS', zu: 'Ithola MAHHALA' },
-  'wants.agrees': { en: 'agrees', af: 'stem saam', zu: 'vuma' },
-  'wants.shareLink': { en: 'Share your link', af: 'Deel jou skakel', zu: 'Yabelana ngesixhumanisi sakho' },
 };
 
 interface I18nContextType {

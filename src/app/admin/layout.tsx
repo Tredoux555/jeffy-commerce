@@ -29,7 +29,6 @@ import {
   AlertTriangle,
   Megaphone
 } from 'lucide-react';
-import { AdminNotifications } from '@/components/admin-notifications';
 
 // Badge component for counts
 function CountBadge({ count, color = 'orange' }: { count: number; color?: 'orange' | 'green' | 'blue' }) {
@@ -170,7 +169,6 @@ export default function AdminLayout({
             Jeffy Admin
           </Link>
           <div className="flex items-center gap-4">
-            <AdminNotifications />
             <Link href="/" className="text-sm text-gray-600 hover:text-gray-900">
               ← Back to Store
             </Link>
@@ -260,10 +258,6 @@ export default function AdminLayout({
 
             <NavLink href="/admin/followers" icon={Users} isActive={isActive('/admin/followers')}>
               Followers
-            </NavLink>
-            
-            <NavLink href="/admin/launch" icon={Rocket} isActive={isActive('/admin/launch')}>
-              Launch Playbook
             </NavLink>
             
             <NavLink href="/admin/outreach" icon={Send} isActive={isActive('/admin/outreach')}>

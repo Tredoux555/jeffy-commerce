@@ -402,7 +402,7 @@ Send to [email/WhatsApp] by [date].`}</pre>
 2–15s · Their "why" in their own words (their voice, subtitled). Don't narrate over it — this is the heart.
 15–35s · The reveal / the moment we grant it. Hold on the real reaction. Silence is fine.
 35–55s · Let it breathe — a beat of genuine emotion. Their words, not ours.
-55–75s · Invitation: "Every month we grant one wish. Next month it could be you — or someone you love."
+55–75s · Invitation: "Every week we grant a wish. Next week it could be you — or someone you love."
 CTA card: "Tell us your wish. WhatsApp a voice note or message to [number]. It's free. No catch."
 
 Editor dignity notes: subtitle everything; never cut for poverty-shock; if the emotion isn't real, don't fake it; get the person's sign-off on the final cut where you can.`}</pre>
@@ -419,7 +419,7 @@ If they only say hi:
 "No rush 🙂 Whenever you're ready, tell us: if we could grant one wish to change your life, what would it be — and why? A voice note is perfect."
 
 Once they've sent their wish:
-"Got it — thank you for trusting us with that. 🙏 Every month we choose a wish to grant and film the story (only ever with your permission). It's completely free and there's nothing to buy. If yours is chosen, we'll message you here first. Either way, thank you. 💛"
+"Got it — thank you for trusting us with that. 🙏 Every week we choose a wish to grant and film the story (only ever with your permission). It's completely free and there's nothing to buy. If yours is chosen, we'll message you here first. Either way, thank you. 💛"
 
 (Real replies to heavy messages should be human, not canned — these just set expectations.)`}</pre>
             </div>

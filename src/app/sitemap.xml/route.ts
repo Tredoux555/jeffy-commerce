@@ -20,7 +20,7 @@ export async function GET() {
     { url: '/products', priority: '0.9', changefreq: 'daily' },
     { url: '/categories', priority: '0.8', changefreq: 'weekly' },
     { url: '/wants', priority: '0.9', changefreq: 'daily' },
-    { url: '/wants/create', priority: '0.8', changefreq: 'weekly' },
+    { url: '/wants/what-is-this', priority: '0.7', changefreq: 'weekly' },
     { url: '/about', priority: '0.5', changefreq: 'monthly' },
     { url: '/privacy', priority: '0.3', changefreq: 'monthly' },
   ];

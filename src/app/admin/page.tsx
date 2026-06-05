@@ -54,17 +54,6 @@ export default async function AdminDashboard() {
     .select('*', { count: 'exact', head: true })
     .eq('status', 'active');
 
-  const { count: readyWants } = await supabase
-    .from('wants')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'threshold_reached');
-
-  // Pending notifications
-  const { count: pendingNotifications } = await supabase
-    .from('want_notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'pending');
-
   // Recent orders
   const { data: recentOrders } = await supabase
     .from('orders')
@@ -93,34 +82,6 @@ export default async function AdminDashboard() {
       {/* Low Stock Alert */}
       <LowStockAlert products={lowStockProducts} />
 
-      {/* Action Required Banner */}
-      {(readyWants || 0) > 0 || (pendingNotifications || 0) > 0 ? (
-        <div className="mb-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Bell className="h-6 w-6 animate-pulse" />
-              <div>
-                <p className="font-bold">Action Required!</p>
-                <p className="text-sm text-white/90">
-                  {readyWants || 0} wants ready to source • {pendingNotifications || 0} WhatsApp to send
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              {(readyWants || 0) > 0 && (
-                <Link href="/admin/wants" className="bg-white text-green-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition">
-                  View Wants
-                </Link>
-              )}
-              {(pendingNotifications || 0) > 0 && (
-                <Link href="/admin/notifications" className="bg-white/20 text-white px-4 py-2 rounded-lg font-medium hover:bg-white/30 transition">
-                  Send Messages
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       {/* Quick Links */}
       <div className="mb-8 flex flex-wrap gap-3">
@@ -130,17 +91,11 @@ export default async function AdminDashboard() {
         <Link href="/admin/quick-import" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-700 transition font-medium text-sm">
           ⚡ Quick Import
         </Link>
-        <Link href="/admin/launch" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600 transition font-medium text-sm animate-pulse">
-          🔥 Guerrilla Launch
-        </Link>
         <Link href="/admin/campaign" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-500 text-white hover:from-purple-700 hover:to-pink-600 transition font-medium text-sm">
           📣 Wishlist Campaign
         </Link>
         <Link href="/admin/products/new" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition font-medium text-sm">
           + Add Product
-        </Link>
-        <Link href="/admin/notifications" className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#25D366] text-white hover:bg-green-600 transition font-medium text-sm">
-          💬 WhatsApp Queue
         </Link>
       </div>
 
