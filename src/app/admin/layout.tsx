@@ -99,7 +99,6 @@ export default function AdminLayout({
   const [counts, setCounts] = useState({
     wantsReady: 0,
     partnersPending: 0,
-    notificationsPending: 0,
     ordersNew: 0
   });
 
@@ -107,40 +106,27 @@ export default function AdminLayout({
   useEffect(() => {
     const fetchCounts = async () => {
       const supabase = createClient();
-      
-      // Wants ready to source (status = 'sourcing' OR verified_count >= 10)
-      const { data: wants } = await supabase
+
+      // Incoming wishes waiting to be reviewed / sourced
+      const { count: wantsReady } = await supabase
         .from('wants')
-        .select('id, verified_count, status')
-        .or('status.eq.sourcing,status.eq.voting,status.eq.active');
-      
-      const wantsReady = wants?.filter(w => {
-        const count = w.verified_count ?? 0;
-        return count >= 10;
-      }).length || 0;
-      
+        .select('*', { count: 'exact', head: true });
+
       // Pending reseller (distributor) applications
       const { count: partnersPending } = await supabase
         .from('distributors')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
-      
-      // Pending notifications
-      const { count: notificationsPending } = await supabase
-        .from('want_notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-      
+
       // New orders (pending status)
       const { count: ordersNew } = await supabase
         .from('orders')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
-      
+
       setCounts({
-        wantsReady,
+        wantsReady: wantsReady || 0,
         partnersPending: partnersPending || 0,
-        notificationsPending: notificationsPending || 0,
         ordersNew: ordersNew || 0
       });
     };
@@ -162,7 +148,6 @@ export default function AdminLayout({
     '/admin/inventory',
     '/admin/promotions',
     '/admin/analytics',
-    '/admin/survey',
     '/admin/zones'
   ].some(path => pathname.startsWith(path));
 
@@ -206,14 +191,14 @@ export default function AdminLayout({
             {/* ==================== SOURCING PIPELINE ==================== */}
             <NavSection title="Sourcing Pipeline" />
             
-            <NavLink 
-              href="/admin/wants" 
-              icon={Gift} 
+            <NavLink
+              href="/admin/wants"
+              icon={Gift}
               isActive={isActive('/admin/wants')}
               count={counts.wantsReady}
               countColor="green"
             >
-              Wants
+              Wishes
             </NavLink>
             
             <NavLink href="/admin/products" icon={Package} isActive={isActive('/admin/products')}>
@@ -256,24 +241,14 @@ export default function AdminLayout({
             {/* ==================== ORDERS ==================== */}
             <NavSection title="Orders" />
             
-            <NavLink 
-              href="/admin/orders" 
-              icon={ShoppingCart} 
+            <NavLink
+              href="/admin/orders"
+              icon={ShoppingCart}
               isActive={isActive('/admin/orders')}
               count={counts.ordersNew}
               countColor="blue"
             >
               All Orders
-            </NavLink>
-            
-            <NavLink 
-              href="/admin/notifications" 
-              icon={Bell} 
-              isActive={isActive('/admin/notifications')}
-              count={counts.notificationsPending}
-              countColor="green"
-            >
-              WhatsApp Queue
             </NavLink>
 
             {/* ==================== GROWTH ==================== */}

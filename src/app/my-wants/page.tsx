@@ -2,18 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Copy, Check, MessageCircle, Share2, Gift, Sparkles, ChevronRight, LogOut, X, Smartphone, Share, Plus } from 'lucide-react';
+import { Loader2, Gift, ChevronRight, LogOut, Smartphone, Share, Plus } from 'lucide-react';
 import Link from 'next/link';
-import confetti from 'canvas-confetti';
 
 interface Want {
   id: string;
   product_name: string;
   description: string | null;
   category: string;
-  verified_count: number;
-  status: string;
-  creator_referral_code: string;
   created_at: string;
   image_url: string | null;
 }
@@ -28,9 +24,7 @@ export default function MyWantsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  const [want, setWant] = useState<Want | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [celebrated, setCelebrated] = useState(false);
+  const [wants, setWants] = useState<Want[]>([]);
   const [showPWAModal, setShowPWAModal] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
@@ -40,27 +34,13 @@ export default function MyWantsPage() {
 
   // Show PWA modal after auth check completes
   useEffect(() => {
-    if (!loading && want) {
+    if (!loading && wants.length > 0) {
       const dismissed = localStorage.getItem('jeffy_pwa_dismissed');
       if (!dismissed) {
-        // Small delay so page settles first
         setTimeout(() => setShowPWAModal(true), 500);
       }
     }
-  }, [loading, want]);
-
-  // Trigger confetti when they hit 10
-  useEffect(() => {
-    if (want && want.verified_count >= 10 && !celebrated) {
-      setCelebrated(true);
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#f97316', '#22c55e', '#eab308', '#ffffff']
-      });
-    }
-  }, [want, celebrated]);
+  }, [loading, wants]);
 
   const dismissPWAModal = () => {
     setShowPWAModal(false);
@@ -71,7 +51,7 @@ export default function MyWantsPage() {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('jeffy_session');
-    
+
     if (!token) {
       router.push('/login');
       return;
@@ -82,13 +62,13 @@ export default function MyWantsPage() {
         headers: { Authorization: `Bearer ${token}` },
         cache: 'no-store',
       });
-      
+
       const data = await res.json();
 
       if (data.success) {
         setUser(data.user);
         if (data.wants && data.wants.length > 0) {
-          setWant(data.wants[0]);
+          setWants(data.wants);
         }
       } else {
         localStorage.removeItem('jeffy_session');
@@ -106,30 +86,6 @@ export default function MyWantsPage() {
     router.push('/');
   };
 
-  const getShareLink = () => {
-    if (!want) return '';
-    return `https://jeffy.co.za/want/${want.id}?ref=${want.creator_referral_code}`;
-  };
-
-  const copyLink = async () => {
-    await navigator.clipboard.writeText(getShareLink());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const shareWhatsApp = () => {
-    const link = getShareLink();
-    const remaining = Math.max(0, 10 - (want?.verified_count || 0));
-    const message = `🛍️ I added "${want?.product_name}" to my Jeffy Wish List! No purchase, no catch — every week Jeffy draws winners at random and grants their wish free. Make a wish too:\n${link}`;
-    
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  // Draw-oriented status
-  const getMotivation = (count: number) => {
-    return { emoji: '🍀', text: "You're in this week's draw!" };
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex items-center justify-center">
@@ -138,8 +94,8 @@ export default function MyWantsPage() {
     );
   }
 
-  // No want yet - prompt to create one
-  if (!want) {
+  // No wishes yet - prompt to create one
+  if (wants.length === 0) {
     return (
       <div className="min-h-screen bg-[#0a0f1a] flex flex-col">
         <header className="p-4 flex items-center justify-between">
@@ -148,7 +104,7 @@ export default function MyWantsPage() {
             <LogOut className="h-4 w-4" />
           </button>
         </header>
-        
+
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
           <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mb-6">
             <Gift className="h-10 w-10 text-orange-500" />
@@ -168,32 +124,24 @@ export default function MyWantsPage() {
     );
   }
 
-  const verified = want.verified_count || 0;
-  const remaining = Math.max(0, 10 - verified);
-  const isComplete = verified >= 10;
-  const motivation = getMotivation(verified);
-
   return (
     <div className="min-h-screen bg-[#0a0f1a] flex flex-col">
-      
+
       {/* PWA Modal */}
       {showPWAModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="bg-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-700">
-            {/* Icon */}
             <div className="w-16 h-16 bg-orange-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Smartphone className="h-8 w-8 text-orange-500" />
             </div>
-            
-            {/* Title */}
+
             <h2 className="text-xl font-bold text-white text-center mb-2">
-              Track Your Progress
+              Keep Jeffy Handy
             </h2>
             <p className="text-slate-400 text-center text-sm mb-6">
               Add Jeffy to your home screen to check your wishes anytime
             </p>
-            
-            {/* Steps */}
+
             <div className="bg-slate-900/50 rounded-2xl p-4 mb-6 space-y-3">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-slate-700 rounded-full flex items-center justify-center text-sm font-bold text-white">1</div>
@@ -214,19 +162,17 @@ export default function MyWantsPage() {
                 </div>
               </div>
             </div>
-            
-            {/* Don't show again checkbox */}
+
             <label className="flex items-center gap-3 mb-6 cursor-pointer">
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 checked={dontShowAgain}
                 onChange={(e) => setDontShowAgain(e.target.checked)}
                 className="w-5 h-5 rounded border-slate-600 bg-slate-700 text-orange-500 focus:ring-orange-500 focus:ring-offset-slate-800"
               />
-              <span className="text-slate-400 text-sm">Don't show this again</span>
+              <span className="text-slate-400 text-sm">Don&apos;t show this again</span>
             </label>
-            
-            {/* Close button */}
+
             <button
               onClick={dismissPWAModal}
               className="w-full bg-orange-500 hover:bg-orange-600 text-black font-bold py-4 rounded-2xl transition-colors"
@@ -246,80 +192,55 @@ export default function MyWantsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col px-4 pb-4">
-        
-        {/* Motivation Line */}
-        {!isComplete && (
-          <div className="text-center mb-4">
-            <span className="text-3xl mb-1 block">{motivation.emoji}</span>
-            <p className="text-white font-semibold text-lg">{motivation.text}</p>
-          </div>
-        )}
+      <main className="flex-1 flex flex-col px-4 pb-4 max-w-md w-full mx-auto">
 
-        {/* Product Image */}
-        <div className="relative mx-auto w-full max-w-sm aspect-square rounded-3xl overflow-hidden bg-slate-800/50 mb-6">
-          {want.image_url ? (
-            <img 
-              src={want.image_url} 
-              alt={want.product_name}
-              className="w-full h-full object-contain"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Gift className="h-24 w-24 text-slate-600" />
-            </div>
-          )}
-          
-          {/* Complete Badge Overlay */}
-          {isComplete && (
-            <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm flex items-center justify-center">
-              <div className="bg-green-500 text-black font-black text-xl px-6 py-3 rounded-full flex items-center gap-2 shadow-lg shadow-green-500/50">
-                <Sparkles className="h-6 w-6" />
-                IT'S YOURS!
-              </div>
-            </div>
-          )}
+        <div className="text-center mb-6">
+          <span className="text-3xl mb-1 block">🍀</span>
+          <p className="text-white font-semibold text-lg">You&apos;re in this week&apos;s draw!</p>
         </div>
 
-        {/* Product Name */}
-        <h1 className="text-2xl font-bold text-white text-center mb-6">
-          {want.product_name}
-        </h1>
-
-        {/* Draw Status Section */}
+        {/* Draw Status */}
         <div className="bg-slate-800/50 rounded-3xl p-6 mb-6 text-center">
           <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <Gift className="h-8 w-8 text-green-400" />
           </div>
-          <p className="text-green-400 font-bold text-lg mb-1">You&apos;re in this week&apos;s draw</p>
+          <p className="text-green-400 font-bold text-lg mb-1">Every wish is an entry</p>
           <p className="text-slate-400 text-sm">
-            Every week Jeffy draws winners at random and grants their wish free. No purchase, no catch — nothing to share.
+            Every week Jeffy draws winners at random and grants their wish free. No purchase, no catch — nothing to share. If you win, we&apos;ll email you at <span className="text-slate-300">{user?.email}</span>.
           </p>
+        </div>
+
+        {/* Your wishes */}
+        <h2 className="text-white font-bold mb-3">Your wishes ({wants.length})</h2>
+        <div className="space-y-3 mb-6">
+          {wants.map((w) => (
+            <div key={w.id} className="bg-slate-800/50 rounded-2xl p-3 flex items-center gap-3">
+              <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-700 flex items-center justify-center shrink-0">
+                {w.image_url ? (
+                  <img src={w.image_url} alt={w.product_name} className="w-full h-full object-cover" />
+                ) : (
+                  <Gift className="h-6 w-6 text-slate-500" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-white font-medium truncate">{w.product_name}</p>
+                <p className="text-green-400 text-xs">In this week&apos;s draw</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Action Buttons - Thumb Zone */}
-        <div className="space-y-3">
-          {/* If a winner, show the heads-up */}
-          {isComplete && (
-            <div className="bg-green-500/20 border border-green-500/30 rounded-2xl p-5 text-center">
-              <p className="text-green-400 font-medium">
-                🏆 You won! We&apos;ll email you at <span className="font-bold">{user?.email}</span> with the details.
-              </p>
-            </div>
-          )}
-
-          {/* Primary CTA - Make another wish */}
-          <Link href="/wants" className="block">
-            <div className="w-full bg-orange-500 hover:bg-orange-600 text-black font-bold py-5 px-6 rounded-2xl text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform">
-              <Gift className="h-6 w-6" />
-              Make another Wish
-            </div>
-          </Link>
-          <p className="text-center text-slate-500 text-sm">Each wish you add is another entry in the weekly draw</p>
-        </div>
+        {/* Make another wish */}
+        <Link href="/wants" className="block">
+          <div className="w-full bg-orange-500 hover:bg-orange-600 text-black font-bold py-5 px-6 rounded-2xl text-lg flex items-center justify-center gap-3 active:scale-[0.98] transition-transform">
+            <Gift className="h-6 w-6" />
+            Make another Wish
+          </div>
+        </Link>
+        <p className="text-center text-slate-500 text-sm mt-3">Each wish you add is another entry in the weekly draw</p>
       </main>
     </div>
   );

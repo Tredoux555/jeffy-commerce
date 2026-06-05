@@ -233,7 +233,6 @@ export async function POST(request: NextRequest) {
     }
 
     // ALWAYS send email - different content based on user status
-    const shareUrl = `${SITE_URL}/want/${want.id}?ref=${want.creator_referral_code}`;
     const verifyUrl = verificationToken ? `${SITE_URL}/auth/verify?token=${verificationToken}` : null;
     const dashboardUrl = `${SITE_URL}/my-wants`;
 
@@ -326,9 +325,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       want,
-      message: needsVerification 
-        ? 'Want created! Check your email to set up your account and track verifications.'
-        : 'Product requested! Check your email for your share link.',
+      message: needsVerification
+        ? "You're in this week's draw! Check your email to set up your account."
+        : "You're in this week's draw! Check your email for confirmation.",
       emailSent: true
     });
 

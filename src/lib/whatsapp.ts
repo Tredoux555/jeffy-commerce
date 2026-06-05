@@ -30,23 +30,6 @@ Hi ${customerName}, your order *${orderNumber}* has been delivered.
 Thank you for shopping with Jeffy! 
 
 Leave us a review: https://jeffy.co.za/review/${orderNumber}`,
-
-  wantApproved: (wantTitle: string, creatorName: string, productUrl: string) =>
-    `🎉 Amazing news ${creatorName}!
-
-Your wish "${wantTitle}" was drawn — you won! 🏆
-
-We're sourcing it now and delivering it to your door, free. We'll also celebrate you on the radio, in the paper, and across social media.
-
-View it here: ${productUrl}
-
-Thanks for being part of the Jeffy Wish List! 🚀`,
-
-  wantProgress: (wantTitle: string, currentAgrees: number, creatorName: string, shareUrl: string) =>
-    `📊 Hi ${creatorName}! Your wish "${wantTitle}" is in this week's draw.
-
-Every week we draw winners at random and grant their wish free. Add more wishes any time — each one is another entry:
-${shareUrl}`,
 };
 
 /**
@@ -104,29 +87,6 @@ export function getOutForDeliveryMessage(
  */
 export function getDeliveredMessage(orderNumber: string, customerName: string): string {
   return WHATSAPP_TEMPLATES.delivered(orderNumber, customerName);
-}
-
-/**
- * Get message for wish drawn as a winner (sourced + delivered free)
- */
-export function getWantApprovedMessage(
-  wantTitle: string, 
-  creatorName: string, 
-  productUrl: string
-): string {
-  return WHATSAPP_TEMPLATES.wantApproved(wantTitle, creatorName, productUrl);
-}
-
-/**
- * Get message for want progress update
- */
-export function getWantProgressMessage(
-  wantTitle: string,
-  currentAgrees: number,
-  creatorName: string,
-  shareUrl: string
-): string {
-  return WHATSAPP_TEMPLATES.wantProgress(wantTitle, currentAgrees, creatorName, shareUrl);
 }
 
 export { WHATSAPP_TEMPLATES };
