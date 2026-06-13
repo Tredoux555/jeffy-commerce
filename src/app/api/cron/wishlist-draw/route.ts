@@ -10,9 +10,16 @@ export const dynamic = 'force-dynamic';
 // a header: `Authorization: Bearer ${CRON_SECRET}`.
 export async function GET(request: NextRequest) {
   try {
+    // Fail CLOSED: this endpoint grants a free product to a winner, so it must never
+    // run unauthenticated. If CRON_SECRET is unset we REFUSE (previously it ran for
+    // anyone when the secret was absent). If it's set, the Bearer token must match.
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret) {
+      console.error('[CRON][SECURITY] CRON_SECRET is not set — refusing wishlist draw. Set CRON_SECRET in Railway to enable scheduled draws.');
+      return NextResponse.json({ error: 'Cron not configured' }, { status: 503 });
+    }
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

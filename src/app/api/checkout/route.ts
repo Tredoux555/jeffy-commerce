@@ -43,6 +43,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
     }
 
+    // Ozow is NOT integrated (no Ozow code exists anywhere). Reject it up-front,
+    // before any order is created or stock is decremented, so we never (a) fake a
+    // payment success nor (b) leak stock on an order that can't be paid. The
+    // checkout UI no longer offers Ozow; this is the defensive server-side guard.
+    if (paymentMethod === 'ozow') {
+      console.error('[CHECKOUT] Ozow selected but Ozow is not integrated — rejecting before order creation.');
+      return NextResponse.json(
+        { error: 'This payment method is currently unavailable. Please choose Card or EFT.' },
+        { status: 400 }
+      );
+    }
+
     let supabase;
     try {
       supabase = await createAdminClient();
@@ -333,12 +345,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (paymentMethod === 'ozow') {
-      return NextResponse.json({
-        orderNumber,
-        redirectUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout/success?order=${orderNumber}`,
-      });
-    }
+    // (Ozow is rejected up-front before order creation — see the guard at the top.)
 
     // EFT - no redirect
     return NextResponse.json({

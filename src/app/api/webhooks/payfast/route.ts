@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { maybeGraduate } from '@/lib/distributors/graduation';
 import { checkLowStock } from '@/lib/distributors/low-stock';
+import { restoreStockForOrder } from '@/lib/stock/restore';
 import crypto from 'crypto';
 
 // PayFast server IPs for validation
@@ -54,8 +55,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid source IP' }, { status: 403 });
     }
 
-    // Validate signature
+    // Validate signature.
+    //
+    // Fail-CLOSED on the passphrase: PayFast's signature is only meaningful when a
+    // passphrase (the shared secret) is mixed into the hash. Without it the hash is
+    // computed purely over attacker-known fields and is forgeable. So:
+    //   - If PAYFAST_PASSPHRASE is set  → enforce it (current behaviour, now explicit).
+    //   - If PAYFAST_PASSPHRASE is unset → keep accepting (so a misconfigured env
+    //     doesn't silently break live payments — Tredoux sets envs in Railway) but
+    //     log a LOUD warning so the gap is visible. Set the passphrase in Railway to
+    //     close this hole.
     const passphrase = process.env.PAYFAST_PASSPHRASE || '';
+    if (!passphrase) {
+      console.error(
+        '[PAYFAST][SECURITY] PAYFAST_PASSPHRASE is NOT set — the ITN signature is ' +
+          'FORGEABLE. Accepting this webhook anyway to avoid breaking live payments. ' +
+          'Set PAYFAST_PASSPHRASE in Railway to fail-closed.'
+      );
+    }
     if (!validateSignature(data, data.signature, passphrase)) {
       console.error('Invalid PayFast signature');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
@@ -88,6 +105,26 @@ export async function POST(request: NextRequest) {
 
     // Check payment status
     if (paymentStatus === 'COMPLETE') {
+      // Amount validation: the amount PayFast says was paid must match the order
+      // total we recorded. Without this, a forged/replayed "COMPLETE" (or a real
+      // payment for a tampered-down amount) would mark a full-price order as paid.
+      // `amount_gross` is in rands (e.g. "149.00"); order.total_cents is in cents.
+      const orderTotalCents = Number(order.total_cents);
+      const paidCents = Math.round(Number(amountGross) * 100);
+      if (!Number.isFinite(paidCents) || !Number.isFinite(orderTotalCents)) {
+        console.error(
+          `[PAYFAST][SECURITY] Non-numeric amount on order ${orderId} — gross=${amountGross}, total_cents=${order.total_cents}. Rejecting.`
+        );
+        return NextResponse.json({ error: 'Invalid amount' }, { status: 400 });
+      }
+      // Allow a 1-cent rounding tolerance only.
+      if (Math.abs(paidCents - orderTotalCents) > 1) {
+        console.error(
+          `[PAYFAST][SECURITY] Amount mismatch on order ${orderId}: paid ${paidCents}c but order total is ${orderTotalCents}c. Refusing to mark paid.`
+        );
+        return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 });
+      }
+
       // Update order to 'paid'
       const { error: updateError } = await supabase
         .from('orders')
@@ -198,13 +235,25 @@ export async function POST(request: NextRequest) {
 
       // (Old zone-partner auto-assignment removed — orders route via the distributor model only.)
 
-    } else if (paymentStatus === 'CANCELLED') {
+    } else if (paymentStatus === 'CANCELLED' || paymentStatus === 'FAILED') {
+      // Restore the stock that was decremented at order creation BEFORE flipping the
+      // status (restoreStockForOrder treats cancelled/refunded/payment_failed as
+      // already-restored, so it must run while the order is still in its pre-cancel
+      // state to actually put stock back — and is a no-op if called again).
+      try {
+        const r = await restoreStockForOrder(supabase, orderId);
+        console.log(`Stock restore for order ${orderId}:`, r);
+      } catch (e) {
+        console.error('Stock restore (non-fatal):', e instanceof Error ? e.message : String(e));
+      }
+
+      const newStatus = paymentStatus === 'FAILED' ? 'payment_failed' : 'cancelled';
       await supabase
         .from('orders')
-        .update({ status: 'cancelled' })
+        .update({ status: newStatus })
         .eq('id', orderId);
-      
-      console.log(`Order ${orderId} cancelled`);
+
+      console.log(`Order ${orderId} ${newStatus}`);
     }
 
     // PayFast expects 200 OK response

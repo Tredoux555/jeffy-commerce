@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { restoreStockForOrder } from '@/lib/stock/restore';
+
+// Statuses that mean the order is being cancelled/failed and the stock decremented
+// at order creation should be returned to inventory.
+const RESTORE_STOCK_STATUSES = new Set(['cancelled', 'refunded', 'payment_failed']);
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,6 +19,19 @@ export async function POST(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
+
+    // If this transition cancels/fails the order, restore stock BEFORE writing the
+    // new status. restoreStockForOrder is idempotent — it reads the order's current
+    // (pre-update) status as its guard and no-ops if the order is already in a
+    // restored state, so a double-click or repeat call won't double-restore.
+    if (status && RESTORE_STOCK_STATUSES.has(status)) {
+      try {
+        const r = await restoreStockForOrder(supabase, orderId);
+        console.log(`Stock restore for order ${orderId} (admin → ${status}):`, r);
+      } catch (e) {
+        console.error('Stock restore (non-fatal):', e instanceof Error ? e.message : String(e));
+      }
+    }
 
     const updateData: any = {};
     

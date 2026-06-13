@@ -375,14 +375,9 @@ export default function CheckoutPage() {
                     </div>
                   </label>
 
-                  <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'ozow' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
-                    <input type="radio" name="payment" checked={paymentMethod === 'ozow'} onChange={() => setPaymentMethod('ozow')} className="sr-only" />
-                    <Building2 className="h-6 w-6 text-gray-400" />
-                    <div>
-                      <p className="font-medium">Instant EFT</p>
-                      <p className="text-sm text-gray-500">Pay from your bank</p>
-                    </div>
-                  </label>
+                  {/* Ozow ("Instant EFT") removed — there is no Ozow integration, so
+                      it silently faked a successful payment. Offer only Card (PayFast)
+                      and Manual EFT until a real Ozow integration exists. */}
 
                   <label className={`flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-colors ${paymentMethod === 'eft' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 hover:border-gray-600'}`}>
                     <input type="radio" name="payment" checked={paymentMethod === 'eft'} onChange={() => setPaymentMethod('eft')} className="sr-only" />
