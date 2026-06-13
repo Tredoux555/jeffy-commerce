@@ -9,6 +9,13 @@ interface OrderCancellationProps {
   orderId: string;
   orderNumber: string;
   status: string;
+  /**
+   * Email used on the order — sent to /api/orders/cancel as the ownership proof.
+   * The server verifies it against the order before cancelling. If you render this
+   * component on a page where you already know the customer's email (e.g. an order
+   * confirmation/tracking page), pass it here.
+   */
+  email?: string;
   onCancel?: () => void;
 }
 
@@ -23,10 +30,11 @@ const cancellationReasons = [
   'Other'
 ];
 
-export function OrderCancellation({ orderId, orderNumber, status, onCancel }: OrderCancellationProps) {
+export function OrderCancellation({ orderId, orderNumber, status, email: emailProp, onCancel }: OrderCancellationProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [reason, setReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
+  const [email, setEmail] = useState(emailProp ?? '');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -38,28 +46,42 @@ export function OrderCancellation({ orderId, orderNumber, status, onCancel }: Or
       setError('Please select a reason');
       return;
     }
+    if (reason === 'Other' && !otherReason.trim()) {
+      setError('Please specify your reason');
+      return;
+    }
+    if (!email.trim()) {
+      setError('Please enter the email used on your order');
+      return;
+    }
 
     setLoading(true);
     setError('');
 
     try {
-      const supabase = createClient();
-      
-      const { error: updateError } = await supabase
-        .from('orders')
-        .update({
-          status: 'cancelled',
-          cancellation_reason: reason === 'Other' ? otherReason : reason,
-          cancelled_at: new Date().toISOString()
-        })
-        .eq('id', orderId);
+      // Cancellation now goes through the server route, which verifies ownership
+      // (order number + email), enforces the cancellable-state check, and restores
+      // stock — instead of the browser writing to Supabase directly.
+      const res = await fetch('/api/orders/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNumber,
+          email: email.trim(),
+          reason: reason === 'Other' ? otherReason.trim() : reason,
+        }),
+      });
 
-      if (updateError) throw updateError;
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data?.error || 'Failed to cancel order');
+      }
 
       setSuccess(true);
       onCancel?.();
     } catch (err: any) {
-      setError(err.message || 'Failed to cancel order');
+      setError(err?.message || 'Failed to cancel order');
     } finally {
       setLoading(false);
     }
@@ -108,6 +130,23 @@ export function OrderCancellation({ orderId, orderNumber, status, onCancel }: Or
       </div>
 
       <div className="space-y-4">
+        {!emailProp && (
+          <div>
+            <label className="text-sm font-medium block mb-1">Email used on your order:</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full px-3 py-2 border rounded-lg text-sm"
+              required
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              We use this to confirm the order is yours before cancelling.
+            </p>
+          </div>
+        )}
+
         <div>
           <label className="text-sm font-medium block mb-2">Reason for cancellation:</label>
           <div className="space-y-2">
