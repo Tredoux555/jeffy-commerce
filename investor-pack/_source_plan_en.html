@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jeffy Commerce — Business Plan & Investor Brief</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #1c2733; font-size: 10.2px; line-height: 1.5; }
+  body { margin: 0; }
+  :root{
+    --navy:#0e2a47; --navy2:#163b61; --teal:#1f8a78; --teal-l:#e7f4f1;
+    --gold:#c8911f; --ink:#1c2733; --grey:#5d6b7a; --line:#d8e0e8; --bg:#f4f7fa;
+    --green:#1f8a78; --red:#b23b3b;
+  }
+  .page { page-break-after: always; padding: 2px 0; }
+  .page:last-child { page-break-after: auto; }
+  h1,h2,h3,h4 { margin: 0; color: var(--navy); }
+  p { margin: 0 0 7px 0; }
+  .muted { color: var(--grey); }
+  .small { font-size: 9px; }
+  .tiny { font-size: 8.2px; color: var(--grey); }
+  .sec-num { color: var(--teal); font-weight: 800; }
+  .lead { color: var(--teal); font-weight: 700; font-size: 11px; margin: 2px 0 8px; }
+  .hr { height: 2px; background: linear-gradient(90deg, var(--teal), transparent); border: 0; margin: 6px 0 10px; }
+  .footer { position: running(footer); }
+  .pill { display:inline-block; background:var(--teal-l); color:var(--teal); border:1px solid #bfe0d9; border-radius:999px; padding:1px 8px; font-size:8.4px; font-weight:700; letter-spacing:.04em; text-transform:uppercase;}
+  table { border-collapse: collapse; width: 100%; font-size: 9.2px; }
+  th, td { text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--navy); color: #fff; font-size: 8.4px; letter-spacing:.03em; text-transform:uppercase; border-bottom:none; }
+  tbody tr:nth-child(even){ background: #f7fafc; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: var(--green); font-weight:700; }
+  .neg { color: var(--red); font-weight:700; }
+  .cardrow { display: flex; gap: 8px; margin: 8px 0; }
+  .card { flex:1; border:1px solid var(--line); border-radius:8px; padding:9px 10px; background:#fff; }
+  .card .k { font-size: 17px; font-weight: 800; color: var(--navy); line-height:1.1; }
+  .card .l { font-size: 8px; color: var(--grey); text-transform: uppercase; letter-spacing:.04em; margin-top:3px; }
+  .steps { display:flex; gap:8px; margin:8px 0; }
+  .step { flex:1; border:1px solid var(--line); border-radius:8px; padding:9px; background:#fff; }
+  .step .n { width:18px;height:18px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;font-size:9px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;}
+  .step .t { font-weight:700; color:var(--navy); margin-bottom:2px; font-size:9.4px;}
+  .box { border:1px solid var(--line); border-left:3px solid var(--teal); border-radius:6px; background:#fff; padding:8px 10px; margin:8px 0; }
+  .box.gold { border-left-color: var(--gold); }
+  .box.navy { border-left-color: var(--navy); }
+  .cover { background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 60%, var(--teal) 160%); color:#fff; border-radius:12px; padding:18px 20px; }
+  .cover h1 { color:#fff; font-size:20px; letter-spacing:-.01em; white-space:nowrap; }
+  .cover .tag { color:#cfe7e1; font-style:italic; margin-top:2px; }
+  .cover .ids { color:#a9c3d4; font-size:8px; text-align:right; line-height:1.5; }
+  .cover-cards { display:flex; gap:8px; margin-top:12px; }
+  .cover-card { flex:1; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:8px 9px; }
+  .cover-card .k { font-size:16px; font-weight:800; color:#fff; }
+  .cover-card .l { font-size:7.6px; color:#cfe7e1; text-transform:uppercase; letter-spacing:.04em; margin-top:2px; }
+  .two { display:flex; gap:12px; }
+  .two > div { flex:1; }
+  .label { font-size:8px; text-transform:uppercase; letter-spacing:.05em; color:var(--grey); font-weight:700; }
+  .foot { display:flex; justify-content:space-between; font-size:7.6px; color:var(--grey); border-top:1px solid var(--line); margin-top:10px; padding-top:4px; }
+  .chip { display:inline-block; background:#eef3f8; border-radius:4px; padding:1px 6px; font-size:8px; color:var(--navy2); font-weight:600; margin:1px 2px 1px 0;}
+  ul.tight { margin:4px 0 7px; padding-left:16px; }
+  ul.tight li { margin-bottom:3px; }
+  .flag { background:#fbf6e9; border:1px solid #ecd9a6; border-radius:6px; padding:7px 9px; font-size:8.8px; }
+  .win { background:var(--teal-l); border:1px solid #bfe0d9; border-radius:6px; padding:7px 9px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== PAGE 1 — COVER / SNAPSHOT ===================== -->
+<div class="page">
+  <div class="cover">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div class="pill" style="background:rgba(255,255,255,.15); color:#fff; border-color:rgba(255,255,255,.25)">Business Plan · Investor Brief</div>
+        <h1 style="margin-top:6px;">JEFFY COMMERCE (PTY) LTD</h1>
+        <div class="tag">Direct from the factory. Delivered by your neighbour.</div>
+      </div>
+      <div class="ids">
+        Reg 2025/950712/07<br>SARS Customs Code CU25827795<br>Importer approved 18 May 2026<br>Prepared 3 June 2026
+      </div>
+    </div>
+    <p style="margin-top:12px; color:#eaf3f0; font-size:10px; max-width:92%;">
+      Jeffy imports consumer goods directly from China under its own SARS customs code and sells them through a network of independent local resellers who deliver from home. It removes the two costs that make South African e-commerce unprofitable — the import middlemen and paid last-mile delivery — and turns the saving into factory-direct prices for customers and real income for resellers. <strong style="color:#fff;">We are raising R5.0 million for 50% of the company.</strong>
+    </p>
+    <div class="cover-cards">
+      <div class="cover-card"><div class="k">R5.0m</div><div class="l">Raise · 50% equity · 3 staged tranches</div></div>
+      <div class="cover-card"><div class="k">Year 1</div><div class="l">Reaches monthly break-even</div></div>
+      <div class="cover-card"><div class="k">~R7.0m</div><div class="l">Year-3 operating profit</div></div>
+      <div class="cover-card"><div class="k">100s</div><div class="l">SA micro-livelihoods created</div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <h3><span class="sec-num">How Jeffy works</span></h3>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t">Import direct</div><div class="muted">Goods from China under Jeffy's own SARS customs code — true factory pricing, no import middlemen.</div></div>
+      <div class="step"><div class="n">2</div><div class="t">Wholesale to locals</div><div class="muted">Independent resellers buy stock at wholesale and resell at retail in their own area.</div></div>
+      <div class="step"><div class="n">3</div><div class="t">They deliver</div><div class="muted">Same-day, on foot or by car, from home. PayFast auto-splits every sale in real time.</div></div>
+      <div class="step"><div class="n">4</div><div class="t">Wish List guides it</div><div class="muted">Customers tell Jeffy what to stock <em>before</em> a cent is spent — demand and marketing in one.</div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:6px;">
+    <h3><span class="sec-num">The three-year picture</span></h3>
+    <table style="margin-top:6px;">
+      <thead><tr><th>Year</th><th class="num">Orders / mo (end)</th><th class="num">Revenue*</th><th class="num">Operating profit</th><th>What happens</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Year 1</strong></td><td class="num">2,200</td><td class="num">R1.9m</td><td class="num neg">−R0.4m</td><td>Build the network; reach break-even</td></tr>
+        <tr><td><strong>Year 2</strong></td><td class="num">8,000</td><td class="num">R11.0m</td><td class="num pos">+R2.1m</td><td>Profitable; scale proven areas</td></tr>
+        <tr><td><strong>Year 3</strong></td><td class="num">18,000</td><td class="num">R26.6m</td><td class="num pos">+R7.0m</td><td>National rollout; capital fully earned back</td></tr>
+      </tbody>
+    </table>
+    <p class="tiny" style="margin-top:4px;">*Revenue is Jeffy's wholesale leg (what resellers pay Jeffy), not retail turnover. Figures are illustrative projections on the assumptions stated inside — not guarantees of return.</p>
+  </div>
+
+  <div class="box gold" style="margin-top:6px;">
+    <strong>The deal in one line.</strong> R5.0m is invested for a 50% shareholding, released in three milestone-gated tranches and used mainly to buy inventory — a recoverable asset. The capital stays in the business and compounds; the investor's return comes as dividends and the growing value of the equity. The business reaches monthly break-even in Year 1 and is solidly profitable by Year 2.
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Registration, tax & customs identifiers verifiable with CIPC and SARS · Page 1 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 2 — OPPORTUNITY + THE INSIGHT ===================== -->
+<div class="page">
+  <h2><span class="sec-num">1</span>&nbsp; The Opportunity</h2>
+  <div class="lead">Imported goods are overpriced, online delivery is expensive, and millions need work. Jeffy solves all three at once.</div>
+  <p>South Africans pay too much for imported goods because of the layers between the factory and the buyer, and online retail stays expensive because last-mile logistics is hard and costly. Meanwhile unemployment sits at roughly <strong>32%</strong> — and above <strong>60%</strong> for young people — leaving a vast pool of capable people who could earn by selling and delivering in their own communities. Jeffy imports directly and hands delivery to local resellers: the customer gets factory-direct prices, and the reseller gets a real micro-business at a fraction of the capital a shop or courier needs.</p>
+  <p class="small muted">Market context: South African online retail is growing roughly 8–9% a year and is projected to reach around R225 billion within five years — a large, expanding market into which a structurally lower-cost model can take share.</p>
+
+  <hr class="hr">
+  <h2><span class="sec-num">2</span>&nbsp; The Insight — Why the Obvious Model Loses Money</h2>
+  <div class="lead">Plain "import and courier to the customer" loses money in South Africa. Jeffy is engineered to fix exactly that.</div>
+  <p>Most import-to-consumer plays struggle here because two costs quietly eat the margin: <strong>paid customer acquisition</strong> (advertising to win each order) and <strong>last-mile courier delivery</strong>. On a typical R249 order, those two alone can turn a healthy gross margin into a per-order <em>loss</em>. This is why even large players lean on heavy subsidy.</p>
+
+  <div class="two">
+    <div>
+      <div class="label">The naive model — import &amp; courier direct</div>
+      <table style="margin-top:4px;">
+        <tbody>
+          <tr><td>Customer pays</td><td class="num">R249</td></tr>
+          <tr><td>Landed cost (not VAT-registered)</td><td class="num">−R92</td></tr>
+          <tr><td>Courier last-mile</td><td class="num">−R60</td></tr>
+          <tr><td>Paid acquisition (ads)</td><td class="num">−R90</td></tr>
+          <tr><td>Fees, packaging, returns</td><td class="num">−R25</td></tr>
+          <tr><td><strong>Profit per order</strong></td><td class="num neg">−R18</td></tr>
+        </tbody>
+      </table>
+      <p class="tiny">Source: Jeffy's own internal unit-economics model. The direct model is structurally loss-making.</p>
+    </div>
+    <div>
+      <div class="label">The Jeffy model — reseller network</div>
+      <table style="margin-top:4px;">
+        <tbody>
+          <tr><td>Reseller buys from Jeffy (Jeffy revenue)</td><td class="num">R160</td></tr>
+          <tr><td>Landed cost (VAT-registered)</td><td class="num">−R80</td></tr>
+          <tr><td>Fees, packaging, returns</td><td class="num">−R20</td></tr>
+          <tr><td>Last-mile delivery</td><td class="num">reseller</td></tr>
+          <tr><td>Paid acquisition</td><td class="num">low*</td></tr>
+          <tr><td><strong>Jeffy contribution / order</strong></td><td class="num pos">~R60</td></tr>
+        </tbody>
+      </table>
+      <p class="tiny">*Resellers generate local demand and the Wish List generates earned media, so paid acquisition is a small central cost, not a per-order courier-style drain.</p>
+    </div>
+  </div>
+  <div class="win"><strong>The whole business model is this swap.</strong> Jeffy removes its two worst costs by design: the reseller carries last-mile delivery (funded by their own margin), and the reseller network plus the Wish List replace most paid advertising. The same R249 order goes from a <span class="neg">−R18 loss</span> to a <span class="pos">+R60 contribution</span> for Jeffy — while the reseller still earns ~R59. That single structural move is the investment thesis.</p></div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 2 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 3 — HOW THE MODEL WORKS + CHINA FRAMING ===================== -->
+<div class="page">
+  <h2><span class="sec-num">3</span>&nbsp; How the Model Works</h2>
+  <div class="lead">Jeffy imports and owns the stock; independent resellers buy it wholesale and resell at retail. Both sides earn a healthy margin.</div>
+  <p><strong>Value chain:</strong> Chinese factories → Jeffy (imports, owns landed stock) → independent resellers (buy wholesale, resell at retail) → customers (order on jeffy.co.za). Jeffy collects payment centrally; <strong>PayFast Split Payments</strong> divides each sale in real time into Jeffy's wholesale revenue and the reseller's margin, so Jeffy never holds a reseller's money.</p>
+  <table style="margin-top:2px;">
+    <thead><tr><th>Principle</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Two-tier margin</strong></td><td>Jeffy earns a mark-up over true landed cost; the reseller earns a mark-up over wholesale. Both are set off real landed cost, so neither side runs at a loss.</td></tr>
+      <tr><td><strong>Graduation path</strong></td><td>New resellers start on credit (Jeffy-owned stock, retention of title) against a limit; as they build a cash cushion they buy upfront for a bigger margin — steadily reducing Jeffy's credit exposure.</td></tr>
+      <tr><td><strong>Asset-light for Jeffy</strong></td><td>No stores, no fleet, no last-mile payroll — those costs and risks sit with resellers, who are paid by their margin.</td></tr>
+      <tr><td><strong>Buy-sell, not employment</strong></td><td>Resellers buy and resell at a margin — not employees, not agents (the proven Avon / Tupperware structure). No PAYE, minimum wage or leave on the reseller leg.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box navy">
+    <div class="label" style="color:var(--navy)">Why this will look familiar — and credible — to a Chinese reviewer</div>
+    <p style="margin-top:4px;">Jeffy is the South African expression of three models already proven at massive scale in China:</p>
+    <p style="margin:2px 0;"><span class="chip">社区团购 Community group-buying</span> local leaders aggregate neighbourhood demand and handle the last leg — exactly Jeffy's reseller.</p>
+    <p style="margin:2px 0;"><span class="chip">代理 / 分销 Distributor model</span> independent agents buy wholesale and resell — Jeffy's two-tier margin.</p>
+    <p style="margin:2px 0;"><span class="chip">私域流量 Private-domain traffic</span> demand built through trusted local relationships, not paid ads — Jeffy's Wish List and reseller word-of-mouth.</p>
+    <p style="margin-top:4px;" class="small">Pinduoduo, Meituan and the community group-buying wave built tens of billions in value on these mechanics. Jeffy applies them to a market — South Africa — where high unemployment makes the reseller layer abundant and where factory-direct pricing has an unusually large gap to exploit.</p>
+  </div>
+
+  <h2 style="margin-top:6px;"><span class="sec-num">4</span>&nbsp; Why It's Hard to Beat</h2>
+  <div class="lead">A dense local network is slow for a pure-online rival to copy — and the structure keeps Jeffy lean and legally clean.</div>
+  <p>Once resellers are dense in an area, a pure-online competitor cannot easily match them on delivery cost or local trust. Selling factory-direct also undercuts the importers and retailers stacked above the factory price, while <strong>VAT registration</strong> lets Jeffy recover the 15% import VAT that an unregistered importer eats as a permanent cost. The result is a price the incumbents structurally cannot reach without rebuilding their whole chain.</p>
+  <div class="flag"><strong>Honest note on the moat &amp; structure.</strong> The legal scaffolding — buy-sell (not employment), disclosed-agent collection, no joining fee (keeps it outside Consumer Protection Act franchise rules), and VAT registration — is sound in principle and modelled on established businesses, but must be finalised with the company's attorney and chartered accountant before resellers are signed. These are confirmable items, not open questions, and the cost of doing so is in the Tranche-1 budget.</p></div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 3 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 4 — UNIT ECONOMICS DETAIL ===================== -->
+<div class="page">
+  <h2><span class="sec-num">5</span>&nbsp; The Money Per Sale</h2>
+  <div class="lead">On a typical R249 order, Jeffy keeps about R60 and the reseller about R59 — roughly 24% each.</div>
+  <p class="small muted">Illustrative, on a representative R249 order, assuming VAT registration (import VAT recovered, bringing landed cost from ~R92 to ~R80). The reseller carries delivery, funded by their own margin.</p>
+  <div class="two">
+    <div>
+      <div class="label">Jeffy's side</div>
+      <table style="margin-top:4px;"><tbody>
+        <tr><td>Customer pays (retail)</td><td class="num">249</td></tr>
+        <tr><td>Reseller buys from Jeffy <span class="tiny">(Jeffy revenue)</span></td><td class="num">160</td></tr>
+        <tr><td>Jeffy landed cost (VAT-recovered)</td><td class="num">80</td></tr>
+        <tr><td>Variable cost (fees, packaging, returns)</td><td class="num">20</td></tr>
+        <tr><td><strong>Jeffy keeps / order</strong></td><td class="num pos">~60</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <div class="label">Reseller's side</div>
+      <table style="margin-top:4px;"><tbody>
+        <tr><td>Sells to customer</td><td class="num">249</td></tr>
+        <tr><td>Pays Jeffy (wholesale)</td><td class="num">160</td></tr>
+        <tr><td>Gross margin</td><td class="num">89</td></tr>
+        <tr><td>Less local delivery (approx.)</td><td class="num">30</td></tr>
+        <tr><td><strong>Reseller keeps / order</strong></td><td class="num pos">~59</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="label">Two conditions we are explicit about</div>
+    <ul class="tight" style="margin-top:4px;">
+      <li><strong>VAT registration is a committed action, not an assumption.</strong> Jeffy is not yet VAT-registered; unregistered, the 15% import VAT (~R12/unit) is a permanent cost and landed cost is ~R92. Registering recovers it (landed ~R80). Jeffy will register for VAT before scaling inventory — it is in the Tranche-1 task list and the figures above assume it is done.</li>
+      <li><strong>Customer acquisition is low, not zero.</strong> The plan does <em>not</em> assume free marketing. It assumes resellers and the Wish List do most of the demand work, so paid marketing sits as a modest central overhead (built into the R60k→R280k/month overhead line) rather than a R90/order courier-style ad cost. The sensitivity table on page 7 stress-tests this directly.</li>
+    </ul>
+  </div>
+
+  <div class="box gold">
+    <div class="label" style="color:var(--gold)">Is ~R59 enough to keep a reseller?</div>
+    <p style="margin-top:4px;">At maturity the model assumes ~120–150 active resellers serving 18,000 orders/month — about 90–150 orders each per month, or roughly R5,300–R8,800 in monthly margin for part-time, local, low-capital work with no fixed costs. That is attractive supplementary income in a high-unemployment market, and the graduation path (buy upfront for a bigger margin) rewards the best performers. Reseller recruitment, productivity and churn are modelled explicitly and listed as a key risk on page 9.</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 4 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 5 — WISH LIST ===================== -->
+<div class="page">
+  <h2><span class="sec-num">6</span>&nbsp; The Wish List — Demand &amp; Marketing in One</h2>
+  <div class="lead">Customers tell Jeffy what to stock before a cent is spent — and the weekly giveaway markets the brand for almost nothing.</div>
+  <p>Before buying any stock, Jeffy asks customers what they want. Anyone can submit one to ten products they wish they had — no purchase, no catch. Each week Jeffy draws winners at random and grants the wish (sourced and delivered free), announcing every winner on radio, in local press, and across social media.</p>
+  <div class="two">
+    <div class="box">
+      <div class="label" style="color:var(--teal)">It de-risks inventory</div>
+      <p style="margin-top:4px;">The wishes are a live map of real demand. Jeffy stocks what people have already asked for, so it buys into proven want — minimising dead stock, the single biggest way an import business loses cash.</p>
+    </div>
+    <div class="box">
+      <div class="label" style="color:var(--teal)">It markets for almost nothing</div>
+      <p style="margin-top:4px;">Each "wish granted" is a public, human, shareable moment — turning marketing into a weekly community event at a fraction of paid-ad cost, and feeding the private-domain, word-of-mouth demand the model relies on.</p>
+    </div>
+  </div>
+  <div class="win"><strong>This is also why the first hire is a Social / Community Manager.</strong> The Wish List, the weekly winners, the socials and reseller communications are a real job — and the role that most directly drives revenue. It is funded from day one out of central overhead (see page 8).</p></div>
+
+  <div class="box navy">
+    <div class="label" style="color:var(--navy)">Brand-safety note</div>
+    <p style="margin-top:4px;">The programme is branded <strong>"Jeffy Wish List"</strong> and is a no-purchase weekly random draw (not a vote). It deliberately never uses the phrase "Make-A-Wish," which is a protected trademark. Promotional-competition rules under the Consumer Protection Act will be followed (published rules, no purchase required).</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 5 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 6 — THE INVESTMENT & DEAL STRUCTURE ===================== -->
+<div class="page">
+  <h2><span class="sec-num">7</span>&nbsp; The Investment</h2>
+  <div class="lead">R5.0m for 50% of the company, released in three tranches as each stage proves out. Roughly two-thirds is inventory — a recoverable asset, not a sunk cost.</div>
+
+  <table>
+    <thead><tr><th>Tranche</th><th>When</th><th class="num">Amount</th><th>Released against</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1 — Prove</strong></td><td>Months 1–3</td><td class="num">R0.75m</td><td>Setup, VAT registration, legal/accounting, Wish List demand campaign, first social/community hire, first test inventory.</td></tr>
+      <tr><td><strong>2 — Launch</strong></td><td>Months 4–12</td><td class="num">R1.50m</td><td>At-scale inventory for 1–2 proven areas, reseller credit float, area coordinators, marketing.</td></tr>
+      <tr><td><strong>3 — Scale</strong></td><td>Year 2–3</td><td class="num">R2.75m</td><td>Container-scale inventory in proven winners; national reseller rollout; fulfilment team.</td></tr>
+      <tr><td><strong>Total</strong></td><td></td><td class="num"><strong>R5.00m</strong></td><td>Later tranches gated on hitting the prior stage's targets.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="two" style="margin-top:8px;">
+    <div>
+      <div class="label">Where the money goes</div>
+      <table style="margin-top:4px;"><tbody>
+        <tr><td>Inventory &amp; working capital</td><td class="num">R3.20m</td><td class="num muted">64%</td></tr>
+        <tr><td>Reseller onboarding &amp; credit float</td><td class="num">R0.70m</td><td class="num muted">14%</td></tr>
+        <tr><td>Marketing &amp; Wish List giveaways</td><td class="num">R0.65m</td><td class="num muted">13%</td></tr>
+        <tr><td>Setup, legal, accounting, platform, team &amp; insurance</td><td class="num">R0.45m</td><td class="num muted">9%</td></tr>
+      </tbody></table>
+      <p class="tiny" style="margin-top:3px;">~64% of the raise is inventory and working capital — it converts back to cash as it sells, so the true cash-at-risk is well below the headline R5.0m. Ongoing insurance premiums (stock, goods-in-transit, product liability) sit in monthly overhead.</p>
+    </div>
+    <div>
+      <div class="label">The deal structure</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li><strong>Equity, not a loan.</strong> R5.0m buys a <strong>50% shareholding</strong> in Jeffy Commerce (Pty) Ltd, registered at CIPC, with funds introduced from abroad through proper exchange-control (SARB) channels.</li>
+        <li><strong>Return = dividends + equity value.</strong> The capital stays in the business and compounds; the investor's return comes from their 50% share of profits and the rising value of the stake — not from withdrawing the capital.</li>
+        <li><strong>Shares vest with the tranches.</strong> Equity is issued in proportion to capital actually introduced, so ownership tracks funding.</li>
+        <li><strong>Clean governance.</strong> A shareholders' agreement defines the founder's day-to-day authority, reserved matters, a deadlock mechanism, and tag/drag rights — protecting both sides in a 50/50 holding.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box gold"><strong>Why this structure protects the investor's downside.</strong> Capital is staged against proof, two-thirds is recoverable inventory rather than sunk spend, and the equity is genuine and retained — aligning the founder and investor on the same outcome: a profitable, growing company.</p></div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 6 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 7 — THE RETURN + SENSITIVITY ===================== -->
+<div class="page">
+  <h2><span class="sec-num">8</span>&nbsp; The Return — A 3-Year View</h2>
+  <div class="lead">Break-even in Year 1, ~R2.1m profit in Year 2, ~R7.0m in Year 3 — and the investor's 50% share of profit recovers the R5.0m within roughly three years while the stake keeps compounding.</div>
+
+  <table>
+    <thead><tr><th>Year</th><th class="num">Revenue</th><th class="num">Operating profit</th><th class="num">Cumulative</th><th>Stage</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Year 1</strong></td><td class="num">R1.9m</td><td class="num neg">−R0.4m</td><td class="num neg">−R0.4m</td><td>Building — reaches break-even in Q4</td></tr>
+      <tr><td><strong>Year 2</strong></td><td class="num">R11.0m</td><td class="num pos">+R2.1m</td><td class="num pos">+R1.7m</td><td>Profitable and self-funding</td></tr>
+      <tr><td><strong>Year 3</strong></td><td class="num">R26.6m</td><td class="num pos">+R7.0m</td><td class="num pos">+R8.7m</td><td>National rollout; investor's stake matured</td></tr>
+    </tbody>
+  </table>
+  <p class="small">Returns reach the investor as dividends (from Year 2 onward, as cash allows alongside growth) and as the growing value of the 50% equity. On these projections the investor's half of cumulative profit approaches the R5.0m invested by around the end of Year 3 — after which they continue to own half of a profitable, growing business.</p>
+
+  <div class="label" style="margin-top:6px;">Sensitivity — Year-3 run-rate operating profit if contribution per order is lower than base</div>
+  <table style="margin-top:4px;">
+    <thead><tr><th>Contribution / order</th><th class="num">vs base (R60)</th><th class="num">Monthly op. profit*</th><th class="num">Annualised run-rate</th><th>Read</th></tr></thead>
+    <tbody>
+      <tr><td>R40 (stress)</td><td class="num">−33%</td><td class="num pos">~R0.44m</td><td class="num pos">~R5.3m</td><td>Still clearly profitable</td></tr>
+      <tr><td>R50 (cautious)</td><td class="num">−17%</td><td class="num pos">~R0.62m</td><td class="num pos">~R7.4m</td><td>Comfortable</td></tr>
+      <tr><td><strong>R60 (base)</strong></td><td class="num">—</td><td class="num pos">~R0.80m</td><td class="num pos">~R9.6m</td><td>Plan case</td></tr>
+      <tr><td>R70 (upside)</td><td class="num">+17%</td><td class="num pos">~R0.98m</td><td class="num pos">~R11.8m</td><td>If returns/fees beat plan</td></tr>
+    </tbody>
+  </table>
+  <p class="tiny">*At Year-3 maturity (18,000 orders/month) with central overhead of ~R280k/month. The model stays profitable even if contribution per order falls a third below plan — the downside is slower returns, not losses.</p>
+
+  <div class="label" style="margin-top:6px;">Quarterly detail (the fine print behind the years above)</div>
+  <table style="margin-top:4px; font-size:8.6px;">
+    <thead><tr><th>Qtr</th><th class="num">Orders/mo</th><th class="num">Revenue</th><th class="num">Op. profit</th><th class="num">Cumulative</th><th>Qtr</th><th class="num">Orders/mo</th><th class="num">Revenue</th><th class="num">Op. profit</th><th class="num">Cumulative</th></tr></thead>
+    <tbody>
+      <tr><td>Y1 Q1</td><td class="num">150</td><td class="num">R0.07m</td><td class="num neg">−0.15</td><td class="num neg">−0.15</td>     <td>Y2 Q5</td><td class="num">3,500</td><td class="num">R1.68m</td><td class="num pos">+0.21</td><td class="num neg">−0.14</td></tr>
+      <tr><td>Y1 Q2</td><td class="num">500</td><td class="num">R0.24m</td><td class="num neg">−0.15</td><td class="num neg">−0.30</td>     <td>Y2 Q6</td><td class="num">5,000</td><td class="num">R2.40m</td><td class="num pos">+0.42</td><td class="num pos">+0.28</td></tr>
+      <tr><td>Y1 Q3</td><td class="num">1,200</td><td class="num">R0.58m</td><td class="num neg">−0.08</td><td class="num neg">−0.39</td>   <td>Y2 Q7</td><td class="num">6,500</td><td class="num">R3.12m</td><td class="num pos">+0.63</td><td class="num pos">+0.91</td></tr>
+      <tr><td>Y1 Q4</td><td class="num">2,200</td><td class="num">R1.06m</td><td class="num pos">+0.04</td><td class="num neg">−0.35</td>   <td>Y2 Q8</td><td class="num">8,000</td><td class="num">R3.84m</td><td class="num pos">+0.84</td><td class="num pos">+1.75</td></tr>
+      <tr><td>Y3 Q9</td><td class="num">10,000</td><td class="num">R4.80m</td><td class="num pos">+1.14</td><td class="num pos">+2.89</td>  <td>Y3 Q11</td><td class="num">15,000</td><td class="num">R7.20m</td><td class="num pos">+1.92</td><td class="num pos">+6.34</td></tr>
+      <tr><td>Y3 Q10</td><td class="num">12,500</td><td class="num">R6.00m</td><td class="num pos">+1.53</td><td class="num pos">+4.42</td> <td>Y3 Q12</td><td class="num">18,000</td><td class="num">R8.64m</td><td class="num pos">+2.40</td><td class="num pos">+8.74</td></tr>
+    </tbody>
+  </table>
+  <p class="tiny">Op. profit / cumulative in R millions. Assumptions: ~R60 contribution per order; central overhead rising from ~R60k to ~R280k/month as the team and platform scale. Revenue is Jeffy's wholesale leg.</p>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 7 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 8 — ECONOMIC IMPACT, TEAM & VISA FIT ===================== -->
+<div class="page">
+  <h2><span class="sec-num">9</span>&nbsp; Economic Impact, Team &amp; Visa Fit</h2>
+  <div class="lead">A lean, South-African-first payroll plus a reseller network that creates hundreds of independent local livelihoods.</div>
+  <p>Jeffy is built to grow its team as the business can afford it — payroll follows revenue, never ahead of it. The direct team starts small and South African, while the reseller network delivers the large-scale economic benefit.</p>
+
+  <div class="two">
+    <div>
+      <div class="label">Phased hiring plan (all SA citizens / PR)</div>
+      <table style="margin-top:4px;">
+        <thead><tr><th>Phase</th><th>Roles</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Employee #1</strong><br><span class="tiny">From launch</span></td><td><strong>Full-time Social / Community Manager</strong> — a South African citizen running the Wish List, weekly winners, socials and reseller comms (the demand engine). One full-time SA hire means <strong>100% South-African employment from day one</strong> — the 60% rule is met immediately.</td></tr>
+          <tr><td>As revenue covers it<br><span class="tiny">Year 1–2</span></td><td>Reseller / area coordinator(s) for the ground game, then fulfilment / warehouse and customer support — each added only when revenue covers it, all South African.</td></tr>
+          <tr><td>Scale<br><span class="tiny">Year 2–3</span></td><td>Regional managers, sourcing/import admin, finance.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="label">Why this fits the SA Business Visa</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li><strong>60% rule satisfied from day one.</strong> The 60% South-African-employee requirement is a <em>ratio</em>. Employee #1 is a full-time South African Social Manager — that is 100% SA employment on day one, ticking the box without over-staffing. The ratio holds as the all-SA team grows.</li>
+        <li><strong>Strong DTIC benefit case.</strong> Beyond payroll, the reseller network creates <strong>hundreds of independent SA micro-livelihoods</strong> — exactly the economic-development impact the DTIC weighs when issuing its mandatory Letter of Recommendation.</li>
+        <li><strong>Genuine, retained investment.</strong> The R5.0m is real equity that stays in the business (not repaid out), introduced from abroad via SARB channels and confirmable by a SA chartered accountant — the basis a business visa requires.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box gold">
+    <div class="label" style="color:var(--gold)">For the investor's visa pathway (summary — confirm with an immigration attorney)</div>
+    <p style="margin-top:4px;" class="small">The SA Business Visa (Immigration Act 13 of 2002, s.15) generally requires a capital contribution of ~R5.0m from abroad confirmed by a SA chartered accountant; at least 60% South African employees within 12 months; and a Letter of Recommendation from the DTIC confirming the business is viable and beneficial to the economy. A capital-amount waiver is possible for favoured sectors. This plan is structured to support all three: genuine retained R5.0m equity, an all-SA direct team, and a documented economic-benefit case. <strong>Timing — not instant.</strong> A SA chartered accountant can certify the R5.0m as <em>available</em> (held abroad or already invested), so the application need not wait for full deployment; allow roughly <strong>4–8 months end to end</strong> — a DTIC recommendation in ~45 working days, then Home Affairs in ~8–12 weeks. The investment must be genuinely made and the 60% SA-employee condition met within 12 months of issue. Visa qualification, tax and structuring must be confirmed by the company's immigration attorney and chartered accountant.</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 8 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 9 — THE SCALING LADDER ===================== -->
+<div class="page">
+  <h2><span class="sec-num">10</span>&nbsp; The Scaling Ladder</h2>
+  <div class="lead">Build the foundations once, properly — then replicate fast. This is an empire, not a get-rich-quick scheme.</div>
+  <p>Each rung is only climbed once the rung below is proven. That discipline is what makes the staged capital safe: Jeffy spends small to prove the model works in one place, then pours capital only into what has already been shown to sell profitably. The mechanics are deliberately <strong>repeatable</strong> — once one area works, a second and third are copies of a known recipe, which is why a careful build in the early years can scale quickly later.</p>
+
+  <table>
+    <thead><tr><th style="width:9%">Rung</th><th style="width:20%">Stage</th><th>What gets built</th><th style="width:24%">Move up only when…</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>1</strong></td>
+        <td><strong>Foundation</strong><br><span class="tiny">Months 1–3 · R0.75m</span></td>
+        <td>Company, customs code and platform live; VAT registered; legal/accounting engaged; <strong>Employee #1 — full-time SA Social Manager</strong> hired; Wish List launched and gathering demand data; first small test inventory ordered.</td>
+        <td>The Wish List shows clear, repeated demand for specific products and the platform processes a real order end-to-end with a split payment.</td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td>
+        <td><strong>Prove (one area)</strong><br><span class="tiny">Months 4–8 · part of R1.5m</span></td>
+        <td>Recruit the first reseller cohort in a single, dense area; geo-routing live; deliver real orders; measure true contribution per order, returns, and reseller productivity.</td>
+        <td>Contribution per order, return rate and reseller retention hold at or near plan in that one area for a sustained period.</td>
+      </tr>
+      <tr>
+        <td><strong>3</strong></td>
+        <td><strong>Densify</strong><br><span class="tiny">Months 8–12 · rest of R1.5m</span></td>
+        <td>Add resellers and order volume within the same area until it is saturated; refine the onboarding playbook; reach monthly break-even.</td>
+        <td>The first area is profitable on its own and the onboarding playbook is documented and repeatable by a coordinator, not just the founder.</td>
+      </tr>
+      <tr>
+        <td><strong>4</strong></td>
+        <td><strong>Replicate</strong><br><span class="tiny">Year 2 · part of R2.75m</span></td>
+        <td>Copy the proven recipe into 2–4 new areas; hire SA area coordinators to run them; container-scale inventory on proven winners; add fulfilment.</td>
+        <td>New areas reach profitability on the same timeline as the first — proving the recipe travels, not just the founder.</td>
+      </tr>
+      <tr>
+        <td><strong>5</strong></td>
+        <td><strong>National rollout</strong><br><span class="tiny">Year 3 · rest of R2.75m</span></td>
+        <td>Roll out town by town across the country; regional managers; deeper sourcing; broaden the catalogue from Wish List demand.</td>
+        <td>Self-funding from profit; the network and brand compound.</td>
+      </tr>
+      <tr>
+        <td><strong>6+</strong></td>
+        <td><strong>The empire</strong><br><span class="tiny">Year 4+ · self-funded</span></td>
+        <td>A national reseller network and a trusted brand — the platform to add categories, private-label proven winners, and expand the catalogue, all funded by the business itself.</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="win"><strong>Why this is both safe and fast.</strong> Safe, because no large capital is committed until the model is proven in a live area and the playbook is repeatable. Fast, because once the recipe is proven, each new area is a copy — and copies scale far quicker than originals. Solid foundations first; rapid, smart replication after.</p></div>
+
+  <div class="box navy">
+    <div class="label" style="color:var(--navy)">Guiding principle</div>
+    <p style="margin-top:4px;">Spend small to learn, spend big only on what's proven. Every tranche of capital is released against a rung being climbed — never on hope. That is what turns a good idea into a durable business.</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 9 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 9 — RISKS ===================== -->
+<!-- ===================== PAGE 10 — STOCK, STORAGE, INSURANCE & LIABILITY ===================== -->
+<div class="page">
+  <h2><span class="sec-num">11</span>&nbsp; Stock, Storage, Insurance &amp; Liability</h2>
+  <div class="lead">Jeffy owns the stock, so Jeffy insures it — and the model is designed to keep that risk small, capped and covered.</div>
+  <p>Because resellers hold Jeffy-owned stock at home and deliver from there, three things are handled deliberately rather than left to chance: where stock is stored, how it is insured, and who carries a loss.</p>
+
+  <div class="two">
+    <div class="box">
+      <div class="label" style="color:var(--teal)">1 · Storage &amp; zoning</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li>The bulk of inventory sits in a <strong>central / regional micro-warehouse</strong>; resellers hold only small, fast-moving rolling stock — keeping each home within municipal "home-occupation" limits and cutting concentration risk.</li>
+        <li>Per-reseller stock is <strong>capped by the credit limit</strong>, so no single residential address holds large value.</li>
+        <li>Resellers confirm they may store &amp; deliver from their property (owner / landlord / body-corporate rules). Food lines are avoided unless a municipal licence is held.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="label" style="color:var(--teal)">2 · Insurance (carried by Jeffy)</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li>Jeffy holds title, so Jeffy carries a central commercial <strong>"stock at various premises"</strong> policy plus <strong>goods-in-transit</strong> cover — not the reseller's home policy, which excludes business stock.</li>
+        <li>The per-reseller value cap keeps the cover insurable and bounds any single claim.</li>
+        <li><strong>Product-liability cover</strong> for Jeffy's importer exposure under the Consumer Protection Act (s.61 strict liability).</li>
+        <li>Premiums sit in monthly overhead — affordable even in the stress case (page 7).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box gold">
+    <div class="label" style="color:var(--gold)">3 · Who carries a loss — and the honest limit of insurance</div>
+    <p style="margin-top:4px;">Stock moves under <strong>retention of title</strong> with a per-reseller ledger and inventory records; theft claims require a SAPS case number. Insurance covers fire, burglary and transit loss. The hardest exposure — a reseller selling stock and claiming theft, or disappearing with it — is only <em>partly</em> insurable, because dishonesty by the person entrusted is excluded from ordinary cover. It is therefore managed operationally: vetting, small starting limits, graduation to larger limits, and a modest <strong>bad-debt allowance</strong> built into the model rather than assumed away.</p>
+  </div>
+
+  <div class="flag"><strong>To be finalised before launch (Tranche-1 budget):</strong> exact policy wordings with a commercial broker (stock-throughput + goods-in-transit + product liability), the reseller agreement with an attorney (title, security, loss allocation), and a zoning check with a town planner. These are confirmable, already-budgeted items — not legal or broking advice.</div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 10 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 11 — RISKS ===================== -->
+<div class="page">
+  <h2><span class="sec-num">12</span>&nbsp; Risks &amp; Mitigations</h2>
+  <div class="lead">We name the real risks and show how the structure contains each one.</div>
+  <table>
+    <thead><tr><th style="width:38%">Risk</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unit economics weaker than modelled</strong> (returns, FX, freight eat the R60 contribution)</td><td>Staged capital — Tranches 2 &amp; 3 gated on proven contribution; focus on items that comfortably carry freight &amp; duty; the sensitivity table shows the business stays profitable even at R40/order.</td></tr>
+      <tr><td><strong>Customer acquisition harder than hoped</strong> (Wish List / resellers under-deliver demand)</td><td>Marketing is a flexible central overhead, not a fixed per-order cost; the prove-cheaply-first roadmap tests demand in 1–2 areas before big capital is released.</td></tr>
+      <tr><td><strong>Reseller recruitment / retention</strong></td><td>Go dense in 1–2 areas before going wide; ~R59/order plus a graduation path to bigger margins keeps recruitment strong; dedicated SA area coordinators own onboarding and support.</td></tr>
+      <tr><td><strong>Reseller credit / stock loss</strong> (stock not paid for, or lost/stolen at a home)</td><td>Retention of title; conservative starting limits; per-reseller ledger and monthly close; graduation to upfront purchase. Stock at homes &amp; in transit is centrally insured (see p.10), with single losses bounded by the per-reseller cap. See page 10 for storage, insurance &amp; the dishonesty limit.</td></tr>
+      <tr><td><strong>Cash locked in transit &amp; inventory</strong></td><td>Small proving batches first; ~64% of the raise is recoverable inventory; demand pre-validated by the Wish List to minimise dead stock; monthly close reconciles inventory at landed cost.</td></tr>
+      <tr><td><strong>FX &amp; freight volatility</strong></td><td>Cost at the FX rate actually paid; pricing allowance built into landed cost; reconcile monthly.</td></tr>
+      <tr><td><strong>Reseller mis-classification</strong> (deemed employees/agents)</td><td>Attorney-drafted buy-sell agreement, retention of title, no joining fee, disclosed-agent collection — finalised before resellers are signed (Tranche-1 budget).</td></tr>
+      <tr><td><strong>VAT / tax treatment</strong></td><td>Register for VAT before scaling inventory; chartered accountant confirms VAT recovery, provisional tax and structuring; monthly reconciliation of Nedbank, PayFast and COGS at landed cost.</td></tr>
+      <tr><td><strong>Competition</strong> (Temu/Shein direct-to-consumer)</td><td>Jeffy competes on same-day local delivery, local trust and credit/cash-on-delivery convenience that cross-border parcels can't match — plus factory-direct pricing the local incumbents can't reach.</td></tr>
+      <tr><td><strong>Product liability</strong> (CPA s.61 importer exposure)</td><td>Product-liability insurance; sourcing from checked suppliers; clear instructions/warnings; importer records kept five years (see page 10).</td></tr>
+      <tr><td><strong>Key-person / execution</strong></td><td>Early SA hires (social/community + area coordinators) reduce single-founder dependence; documented processes and monthly close build operational resilience.</td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 11 of 12</span></div>
+</div>
+
+<!-- ===================== PAGE 10 — COMPANY & COMPLIANCE ===================== -->
+<div class="page">
+  <h2><span class="sec-num">13</span>&nbsp; Company, Team &amp; Compliance</h2>
+  <div class="lead">A registered, import-ready South African company with verifiable identifiers.</div>
+  <div class="two">
+    <div>
+      <table><tbody>
+        <tr><td class="label">Registered name</td><td>Jeffy Commerce (Pty) Ltd</td></tr>
+        <tr><td class="label">Registration no.</td><td>2025/950712/07</td></tr>
+        <tr><td class="label">Incorporated</td><td>10 Dec 2025 · FY end February</td></tr>
+        <tr><td class="label">Income Tax no.</td><td>9168272293</td></tr>
+        <tr><td class="label">SARS Customs Code</td><td>CU25827795 (importer approved 18 May 2026)</td></tr>
+        <tr><td class="label">Director / Public Officer</td><td>Tredoux Willemse</td></tr>
+        <tr><td class="label">Banker</td><td>Nedbank · acct 1307614477 · br 198765</td></tr>
+        <tr><td class="label">Web</td><td>jeffy.co.za · hello@jeffy.co.za</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <div class="label">Team</div>
+      <p style="margin-top:4px;" class="small"><strong>Founder &amp; Director — Tredoux Willemse.</strong> South African; has worked across multiple continents; drives strategy and sourcing. <strong>Early hires (all SA):</strong> Social / Community Manager and Reseller / Area Coordinators from launch, scaling with revenue. <strong>To be engaged:</strong> a South African attorney (reseller &amp; competition documents) and a chartered accountant (VAT, tax, structuring). Resellers form the distributed network as independent businesses.</p>
+      <div class="label" style="margin-top:6px;">Compliance</div>
+      <p style="margin-top:4px;" class="small">Provisional tax (IRP6) + annual ITR14; CIPC annual return with Beneficial Ownership; VAT registration before scaling; import records kept five years; monthly close reconciling Nedbank, PayFast settlements and inventory/COGS at landed cost. Foreign investment introduced via SARB exchange-control channels and confirmed by a SA chartered accountant.</p>
+    </div>
+  </div>
+
+  <div class="box navy" style="margin-top:8px;">
+    <div class="label" style="color:var(--navy)">For the investor's independent advisor — the one-page read</div>
+    <ul class="tight" style="margin-top:4px;">
+      <li><strong>The thesis is structural, not promotional:</strong> the reseller model removes the two costs (paid CAC + courier last-mile) that make SA import e-commerce lose money, flipping a −R18/order direct model to a +R60/order Jeffy contribution.</li>
+      <li><strong>The numbers are conservative-tested:</strong> the business stays profitable even at a third lower contribution per order; capital is staged against proof; two-thirds is recoverable inventory.</li>
+      <li><strong>The deal is clean:</strong> genuine 50% equity, capital retained and compounding, shares vesting with tranches, proper 50/50 governance.</li>
+      <li><strong>The structure is confirmable:</strong> VAT, reseller classification and visa qualification are explicit, budgeted, and to be signed off by the company's attorney, chartered accountant and immigration attorney.</li>
+    </ul>
+  </div>
+
+  <p class="tiny" style="margin-top:10px;">Disclaimer: for information and discussion only. Registration, tax and customs identifiers are verifiable with CIPC and SARS. Financial figures are illustrative projections based on the stated assumptions and are not audited results or guarantees of return. Tax, VAT, legal-structure and investment/visa positions require confirmation by the company's chartered accountant, attorney and immigration attorney before they are relied upon.</p>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · Confidential</span><span>Page 12 of 12</span></div>
+</div>
+
+</body>
+</html>

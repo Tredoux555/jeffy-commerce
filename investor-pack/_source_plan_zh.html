@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>Jeffy Commerce — 商业计划书与投资人简报</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm 16mm 14mm; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  html { font-family: "Helvetica Neue", Arial, "Droid Sans Fallback", sans-serif; color: #1c2733; font-size: 10.4px; line-height: 1.62; }
+  body { margin: 0; }
+  :root{
+    --navy:#0e2a47; --navy2:#163b61; --teal:#1f8a78; --teal-l:#e7f4f1;
+    --gold:#c8911f; --ink:#1c2733; --grey:#5d6b7a; --line:#d8e0e8; --bg:#f4f7fa;
+    --green:#1f8a78; --red:#b23b3b;
+  }
+  .page { page-break-after: always; padding: 2px 0; }
+  .page:last-child { page-break-after: auto; }
+  h1,h2,h3,h4 { margin: 0; color: var(--navy); }
+  p { margin: 0 0 7px 0; }
+  .muted { color: var(--grey); }
+  .small { font-size: 9.2px; }
+  .tiny { font-size: 8.4px; color: var(--grey); }
+  .sec-num { color: var(--teal); font-weight: 800; }
+  .lead { color: var(--teal); font-weight: 700; font-size: 11px; margin: 2px 0 8px; }
+  .hr { height: 2px; background: linear-gradient(90deg, var(--teal), transparent); border: 0; margin: 6px 0 10px; }
+  .pill { display:inline-block; background:var(--teal-l); color:var(--teal); border:1px solid #bfe0d9; border-radius:999px; padding:1px 8px; font-size:8.6px; font-weight:700; letter-spacing:.04em;}
+  table { border-collapse: collapse; width: 100%; font-size: 9.4px; }
+  th, td { text-align: left; padding: 5px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--navy); color: #fff; font-size: 8.8px; border-bottom:none; }
+  tbody tr:nth-child(even){ background: #f7fafc; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pos { color: var(--green); font-weight:700; }
+  .neg { color: var(--red); font-weight:700; }
+  .steps { display:flex; gap:8px; margin:8px 0; }
+  .step { flex:1; border:1px solid var(--line); border-radius:8px; padding:9px; background:#fff; }
+  .step .n { width:18px;height:18px;border-radius:50%;background:var(--teal);color:#fff;font-weight:800;font-size:9px;display:flex;align-items:center;justify-content:center;margin-bottom:5px;}
+  .step .t { font-weight:700; color:var(--navy); margin-bottom:2px; font-size:9.6px;}
+  .box { border:1px solid var(--line); border-left:3px solid var(--teal); border-radius:6px; background:#fff; padding:8px 10px; margin:8px 0; }
+  .box.gold { border-left-color: var(--gold); }
+  .box.navy { border-left-color: var(--navy); }
+  .cover { background: linear-gradient(135deg, var(--navy) 0%, var(--navy2) 60%, var(--teal) 160%); color:#fff; border-radius:12px; padding:18px 20px; }
+  .cover h1 { color:#fff; font-size:21px; letter-spacing:0; }
+  .cover .tag { color:#cfe7e1; margin-top:3px; }
+  .cover .ids { color:#a9c3d4; font-size:8.2px; text-align:right; line-height:1.6; }
+  .cover-cards { display:flex; gap:8px; margin-top:12px; }
+  .cover-card { flex:1; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.18); border-radius:8px; padding:8px 9px; }
+  .cover-card .k { font-size:16px; font-weight:800; color:#fff; }
+  .cover-card .l { font-size:8px; color:#cfe7e1; margin-top:3px; }
+  .two { display:flex; gap:12px; }
+  .two > div { flex:1; }
+  .label { font-size:8.6px; letter-spacing:.02em; color:var(--grey); font-weight:700; }
+  .foot { display:flex; justify-content:space-between; font-size:8px; color:var(--grey); border-top:1px solid var(--line); margin-top:10px; padding-top:4px; }
+  .chip { display:inline-block; background:#eef3f8; border-radius:4px; padding:1px 6px; font-size:8.4px; color:var(--navy2); font-weight:600; margin:1px 2px 1px 0;}
+  ul.tight { margin:4px 0 7px; padding-left:16px; }
+  ul.tight li { margin-bottom:3px; }
+  .flag { background:#fbf6e9; border:1px solid #ecd9a6; border-radius:6px; padding:7px 9px; font-size:9px; }
+  .win { background:var(--teal-l); border:1px solid #bfe0d9; border-radius:6px; padding:7px 9px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== 第1页 — 封面/快照 ===================== -->
+<div class="page">
+  <div class="cover">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div class="pill" style="background:rgba(255,255,255,.15); color:#fff; border-color:rgba(255,255,255,.25)">商业计划书 · 投资人简报</div>
+        <h1 style="margin-top:6px;">JEFFY COMMERCE (PTY) LTD</h1>
+        <div class="tag">工厂直达，邻里送达。</div>
+      </div>
+      <div class="ids">
+        公司注册号 2025/950712/07<br>南非税务局海关编码 CU25827795<br>进口商资格核准于 2026年5月18日<br>编制日期 2026年6月3日
+      </div>
+    </div>
+    <p style="margin-top:12px; color:#eaf3f0; font-size:10.2px; max-width:94%;">
+      Jeffy 以自有南非海关编码直接从中国进口消费品，并通过一张由本地独立分销商组成的网络销售——分销商在自家附近完成配送。我们由此去除了让南非电商无法盈利的两项成本：进口中间环节与付费末端配送，把节省下来的成本转化为消费者的工厂直供价，以及分销商的真实收入。<strong style="color:#fff;">我们拟募集 500 万兰特（R5.0m），出让公司 50% 股权。</strong>
+    </p>
+    <div class="cover-cards">
+      <div class="cover-card"><div class="k">R5.0m</div><div class="l">募资 · 50% 股权 · 分三批拨付</div></div>
+      <div class="cover-card"><div class="k">第1年</div><div class="l">实现月度盈亏平衡</div></div>
+      <div class="cover-card"><div class="k">约 R7.0m</div><div class="l">第3年营业利润</div></div>
+      <div class="cover-card"><div class="k">数百个</div><div class="l">南非本地谋生机会</div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:12px;">
+    <h3><span class="sec-num">Jeffy 如何运作</span></h3>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t">直接进口</div><div class="muted">以 Jeffy 自有南非海关编码从中国进口——真正的工厂价，没有进口中间商。</div></div>
+      <div class="step"><div class="n">2</div><div class="t">批发给本地人</div><div class="muted">独立分销商以批发价进货，在自己所在区域以零售价转售。</div></div>
+      <div class="step"><div class="n">3</div><div class="t">他们负责配送</div><div class="muted">当天、就近、自家送达。PayFast 在每一笔交易中实时自动分账。</div></div>
+      <div class="step"><div class="n">4</div><div class="t">心愿清单做指引</div><div class="muted">在花一分钱之前，顾客就告诉 Jeffy 该备什么货——需求与营销合二为一。</div></div>
+    </div>
+  </div>
+
+  <div style="margin-top:6px;">
+    <h3><span class="sec-num">三年概览</span></h3>
+    <table style="margin-top:6px;">
+      <thead><tr><th>年度</th><th class="num">月订单（期末）</th><th class="num">收入*</th><th class="num">营业利润</th><th>阶段</th></tr></thead>
+      <tbody>
+        <tr><td><strong>第1年</strong></td><td class="num">2,200</td><td class="num">R1.9m</td><td class="num neg">−R0.4m</td><td>搭建网络；实现盈亏平衡</td></tr>
+        <tr><td><strong>第2年</strong></td><td class="num">8,000</td><td class="num">R11.0m</td><td class="num pos">+R2.1m</td><td>实现盈利；复制成熟区域</td></tr>
+        <tr><td><strong>第3年</strong></td><td class="num">18,000</td><td class="num">R26.6m</td><td class="num pos">+R7.0m</td><td>全国推广；投入资本如数回本</td></tr>
+      </tbody>
+    </table>
+    <p class="tiny" style="margin-top:4px;">*收入指 Jeffy 的批发环节（即分销商付给 Jeffy 的金额），并非零售流水。财务数据为基于文内假设的示意性预测，不构成回报保证。</p>
+  </div>
+
+  <div class="box gold" style="margin-top:6px;">
+    <strong>一句话看交易。</strong> 投资 R5.0m 获得 50% 股权，资金按里程碑分三批拨付，主要用于采购库存——一项可回收资产。资本留在公司内滚动增值；投资人的回报来自分红与股权增值。公司在第1年实现月度盈亏平衡，第2年实现稳健盈利。
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>注册、税务与海关识别号可经 CIPC 与 SARS 核验 · 第 1 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第2页 — 机会与核心洞见 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">1</span>&nbsp; 市场机会</h2>
+  <div class="lead">进口商品价格虚高、网购配送昂贵、数百万人需要工作。Jeffy 一举解决这三件事。</div>
+  <p>由于工厂与买家之间层层加价，南非人为进口商品支付了过高的价格；又因为末端物流困难且昂贵，网购配送始终居高不下。与此同时，南非失业率约为 <strong>32%</strong>，青年失业率更高于 <strong>60%</strong>，这意味着有大量有能力的人本可以在自己的社区里通过销售与配送赚取收入。Jeffy 直接进口，并把配送交给本地分销商：顾客获得工厂直供价，分销商以极低的资金门槛获得一份真正的小生意——所需资本远低于开店或做快递。</p>
+  <p class="small muted">市场背景：南非线上零售每年约增长 8–9%，预计五年内将达到约 2,250 亿兰特——这是一个庞大且持续扩张的市场，结构性成本更低的模式可从中抢占份额。</p>
+
+  <hr class="hr">
+  <h2><span class="sec-num">2</span>&nbsp; 核心洞见——为什么“显而易见”的做法会亏钱</h2>
+  <div class="lead">单纯的“进口 + 快递到顾客”在南非是亏钱的。Jeffy 正是为解决这一点而设计。</div>
+  <p>大多数“进口直达消费者”的玩法在这里都很吃力，因为有两项成本悄悄吃掉了利润：<strong>付费获客</strong>（为每一单投放广告）与<strong>末端快递配送</strong>。在一笔典型的 R249 订单上，仅这两项就足以把健康的毛利变成每单<em>亏损</em>。这正是连大型玩家都依赖巨额补贴的原因。</p>
+
+  <div class="two">
+    <div>
+      <div class="label">naive 模式——进口并快递直达</div>
+      <table style="margin-top:4px;">
+        <tbody>
+          <tr><td>顾客支付</td><td class="num">R249</td></tr>
+          <tr><td>到岸成本（未登记增值税）</td><td class="num">−R92</td></tr>
+          <tr><td>末端快递</td><td class="num">−R60</td></tr>
+          <tr><td>付费获客（广告）</td><td class="num">−R90</td></tr>
+          <tr><td>手续费、包装、退货</td><td class="num">−R25</td></tr>
+          <tr><td><strong>每单利润</strong></td><td class="num neg">−R18</td></tr>
+        </tbody>
+      </table>
+      <p class="tiny">来源：Jeffy 自有的单位经济模型。直营快递模式在结构上就是亏损的。</p>
+    </div>
+    <div>
+      <div class="label">Jeffy 模式——分销商网络</div>
+      <table style="margin-top:4px;">
+        <tbody>
+          <tr><td>分销商向 Jeffy 进货（Jeffy 收入）</td><td class="num">R160</td></tr>
+          <tr><td>到岸成本（已登记增值税）</td><td class="num">−R80</td></tr>
+          <tr><td>手续费、包装、退货</td><td class="num">−R20</td></tr>
+          <tr><td>末端配送</td><td class="num">由分销商承担</td></tr>
+          <tr><td>付费获客</td><td class="num">很低*</td></tr>
+          <tr><td><strong>Jeffy 每单边际贡献</strong></td><td class="num pos">约 R60</td></tr>
+        </tbody>
+      </table>
+      <p class="tiny">*分销商带来本地需求、心愿清单带来口碑传播，因此付费获客只是一笔很小的总部费用，而非每单的快递式开销。</p>
+    </div>
+  </div>
+  <div class="win"><strong>整个商业模式就是这一次“替换”。</strong> Jeffy 通过设计去除了自己最糟糕的两项成本：分销商承担末端配送（用自己的毛利来覆盖），分销商网络加上心愿清单取代了大部分付费广告。同一笔 R249 订单，对 Jeffy 而言就从 <span class="neg">−R18 的亏损</span>变成了 <span class="pos">+R60 的边际贡献</span>——而分销商仍能赚到约 R59。这一个结构性的转变，就是本次投资的核心逻辑。</div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 2 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第3页 — 模式与中国对照 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">3</span>&nbsp; 模式如何运作</h2>
+  <div class="lead">Jeffy 进口并持有库存；独立分销商批发买进、零售卖出。双方都赚取健康的利润。</div>
+  <p><strong>价值链：</strong>中国工厂 → Jeffy（进口、持有到岸库存）→ 独立分销商（批发进货、零售转售）→ 顾客（在 jeffy.co.za 下单）。Jeffy 集中收款；<strong>PayFast 分账支付</strong>在每笔交易中实时把货款拆分为 Jeffy 的批发收入与分销商的毛利，因此 Jeffy 从不经手分销商的钱。</p>
+  <table style="margin-top:2px;">
+    <thead><tr><th>原则</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td><strong>两级加价</strong></td><td>Jeffy 在真实到岸成本之上加价；分销商在批发价之上加价。两者都建立在真实到岸成本之上，因此任何一方都不会亏本经营。</td></tr>
+      <tr><td><strong>晋级路径</strong></td><td>新分销商先以赊销起步（Jeffy 持有库存、保留所有权）并设有额度；待积累现金垫底后改为预付进货，换取更高毛利——从而逐步降低 Jeffy 的信用风险。</td></tr>
+      <tr><td><strong>对 Jeffy 而言轻资产</strong></td><td>没有门店、没有车队、没有末端配送的工资支出——这些成本与风险都落在分销商身上，由他们的毛利来补偿。</td></tr>
+      <tr><td><strong>买断转售，而非雇佣</strong></td><td>分销商是买进再以加价转售——不是雇员，也不是代理（即成熟的雅芳 / 特百惠模式）。分销环节没有 PAYE 工资税、最低工资或带薪假。</td></tr>
+    </tbody>
+  </table>
+
+  <div class="box navy">
+    <div class="label" style="color:var(--navy)">为什么中国的评审者会觉得熟悉——而且可信</div>
+    <p style="margin-top:4px;">Jeffy 是三种已在中国大规模验证的模式在南非的本土化表达：</p>
+    <p style="margin:2px 0;"><span class="chip">社区团购</span> 本地团长汇集邻里需求并负责最后一段——正是 Jeffy 的分销商。</p>
+    <p style="margin:2px 0;"><span class="chip">代理 / 分销</span> 独立代理批发进货、加价转售——正是 Jeffy 的两级加价。</p>
+    <p style="margin:2px 0;"><span class="chip">私域流量</span> 需求建立在可信的本地关系之上，而非付费广告——正是 Jeffy 的心愿清单与分销商口碑。</p>
+    <p style="margin-top:4px;" class="small">拼多多、美团以及社区团购浪潮，正是凭借这些机制创造了数百亿的价值。Jeffy 把它们应用到南非这样一个市场——高失业率使分销商层供给充足，而工厂直供价相对本地价格存在异常巨大的价差空间。</p>
+  </div>
+
+  <h2 style="margin-top:6px;"><span class="sec-num">4</span>&nbsp; 为什么难以被复制</h2>
+  <div class="lead">密集的本地网络，纯线上对手很难快速模仿——而这套结构也让 Jeffy 保持精简、合规清晰。</div>
+  <p>一旦某地的分销商足够密集，纯线上竞争者就很难在配送成本与本地信任上与之匹敌。工厂直供也压过了叠加在工厂价之上的进口商与零售商；而<strong>增值税登记</strong>让 Jeffy 能够抵扣 15% 的进口增值税——未登记的进口商只能把这笔税当作永久成本承担。其结果，是本地既有玩家在不重建整条链条的情况下结构性无法触及的价格。</p>
+  <div class="flag"><strong>关于壁垒与结构的诚实说明。</strong> 这套法律框架——买断转售（非雇佣）、披露式代收、不收加盟费（使其不落入《消费者保护法》的特许经营范畴）以及增值税登记——在原理上成立，并参照了成熟企业，但须在签约分销商之前由公司律师与注册会计师最终确认。这些是可以落实的事项，而非悬而未决的问题，相关费用已列入第一批资金预算。</div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 3 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第4页 — 单位经济 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">5</span>&nbsp; 每一单赚多少</h2>
+  <div class="lead">在一笔典型的 R249 订单上，Jeffy 留存约 R60，分销商留存约 R59——各自约 24%。</div>
+  <p class="small muted">示意，基于一笔有代表性的 R249 订单，假设已登记增值税（进口增值税获抵扣，使到岸成本由约 R92 降至约 R80）。配送由分销商承担，用其自身毛利覆盖。</p>
+  <div class="two">
+    <div>
+      <div class="label">Jeffy 一侧</div>
+      <table style="margin-top:4px;"><tbody>
+        <tr><td>顾客支付（零售）</td><td class="num">249</td></tr>
+        <tr><td>分销商向 Jeffy 进货 <span class="tiny">（Jeffy 收入）</span></td><td class="num">160</td></tr>
+        <tr><td>Jeffy 到岸成本（已抵扣增值税）</td><td class="num">80</td></tr>
+        <tr><td>变动成本（手续费、包装、退货）</td><td class="num">20</td></tr>
+        <tr><td><strong>Jeffy 每单留存</strong></td><td class="num pos">约 60</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <div class="label">分销商一侧</div>
+      <table style="margin-top:4px;"><tbody>
+        <tr><td>卖给顾客</td><td class="num">249</td></tr>
+        <tr><td>付给 Jeffy（批发）</td><td class="num">160</td></tr>
+        <tr><td>毛利</td><td class="num">89</td></tr>
+        <tr><td>减：本地配送（约）</td><td class="num">30</td></tr>
+        <tr><td><strong>分销商每单留存</strong></td><td class="num pos">约 59</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <div class="box">
+    <div class="label">我们如实说明的两个前提条件</div>
+    <ul class="tight" style="margin-top:4px;">
+      <li><strong>增值税登记是一项已承诺的行动，而非一个假设。</strong> Jeffy 目前尚未登记增值税；未登记时，15% 的进口增值税（约 R12/件）是永久成本，到岸成本约为 R92。完成登记后可抵扣（到岸成本约 R80）。Jeffy 将在扩大库存之前登记增值税——此项已列入第一批资金的任务清单，上述数据均以此为前提。</li>
+      <li><strong>获客成本是“低”，而不是“零”。</strong> 本计划并<em>不</em>假设营销免费。它假设分销商与心愿清单完成大部分需求工作，因此付费营销作为一笔适度的总部费用（已计入 R60k→R280k/月的总部开支），而非每单 R90 的快递式广告费。第 7 页的敏感性分析直接对此进行压力测试。</li>
+    </ul>
+  </div>
+
+  <div class="box gold">
+    <div class="label" style="color:var(--gold)">每单约 R59，足以留住分销商吗？</div>
+    <p style="margin-top:4px;">成熟期模型假设约 120–150 名活跃分销商服务 18,000 单/月——每人每月约 90–150 单，即每月约 R5,300–R8,800 的毛利，对应的是兼职、就近、低资金、无固定成本的工作。在高失业率的市场里，这是颇具吸引力的补充收入；而晋级路径（预付进货换取更高毛利）则奖励表现最好的人。分销商的招募、产能与流失已被明确建模，并在第 9 页列为关键风险。</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 4 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第5页 — 心愿清单 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">6</span>&nbsp; 心愿清单——需求与营销合二为一</h2>
+  <div class="lead">在花一分钱之前，顾客就告诉 Jeffy 该备什么货——而每周的赠送几乎零成本地为品牌做了营销。</div>
+  <p>在采购任何库存之前，Jeffy 先问顾客想要什么。任何人都可以提交 1 到 10 件他们希望拥有的商品——无需购买，没有套路。每周 Jeffy 随机抽取中奖者并实现其心愿（免费采购并送达），并在电台、本地报纸与社交媒体上公布每一位中奖者。</p>
+  <div class="two">
+    <div class="box">
+      <div class="label" style="color:var(--teal)">它降低库存风险</div>
+      <p style="margin-top:4px;">这些心愿是一张真实需求的实时地图。Jeffy 只备人们已经明确表达想要的商品，因此买进的是被验证过的需求——把滞销库存（进口生意亏钱的头号原因）降到最低。</p>
+    </div>
+    <div class="box">
+      <div class="label" style="color:var(--teal)">它几乎零成本地做营销</div>
+      <p style="margin-top:4px;">每一次“心愿达成”都是一个公开、有温度、可分享的时刻——把营销变成每周的社区事件，成本只是付费广告的一个零头，并不断为模式所依赖的私域口碑需求供能。</p>
+    </div>
+  </div>
+  <div class="win"><strong>这也正是第一位员工是“社群运营经理”的原因。</strong> 心愿清单、每周中奖者、社媒与分销商沟通，本身就是一份真实的工作——也是最直接拉动收入的岗位。它从第一天起就由总部开支供养（见第 8 页）。</div>
+
+  <div class="box navy">
+    <div class="label" style="color:var(--navy)">品牌安全说明</div>
+    <p style="margin-top:4px;">该项目品牌名为 <strong>“Jeffy 心愿清单（Jeffy Wish List）”</strong>，是一项无需购买的每周随机抽奖（不是投票）。它刻意从不使用 “Make-A-Wish” 这一受保护的商标。活动将遵守《消费者保护法》下的促销竞赛规则（公布规则、无需购买）。</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 5 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第6页 — 投资与交易结构 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">7</span>&nbsp; 投资方案</h2>
+  <div class="lead">R5.0m 换取公司 50% 股权，按里程碑分三批拨付。约三分之二用于库存——一项可回收资产，而非沉没开支。</div>
+
+  <table>
+    <thead><tr><th>批次</th><th>时间</th><th class="num">金额</th><th>拨付对应</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1 — 验证</strong></td><td>第 1–3 月</td><td class="num">R0.75m</td><td>搭建、增值税登记、法律/会计、心愿清单需求活动、首位社群运营招聘、首批测试库存。</td></tr>
+      <tr><td><strong>2 — 上线</strong></td><td>第 4–12 月</td><td class="num">R1.50m</td><td>为 1–2 个验证过的区域备足库存、分销商信用周转金、区域协调员、营销。</td></tr>
+      <tr><td><strong>3 — 扩张</strong></td><td>第 2–3 年</td><td class="num">R2.75m</td><td>对验证过的赢家按整柜规模备货；全国分销商推广；履约团队。</td></tr>
+      <tr><td><strong>合计</strong></td><td></td><td class="num"><strong>R5.00m</strong></td><td>后续批次以达成上一阶段目标为前提。</td></tr>
+    </tbody>
+  </table>
+
+  <div class="two" style="margin-top:8px;">
+    <div>
+      <div class="label">资金去向</div>
+      <table style="margin-top:4px;"><tbody>
+        <tr><td>库存与营运资金</td><td class="num">R3.20m</td><td class="num muted">64%</td></tr>
+        <tr><td>分销商招募与信用周转金</td><td class="num">R0.70m</td><td class="num muted">14%</td></tr>
+        <tr><td>营销与心愿清单赠送</td><td class="num">R0.65m</td><td class="num muted">13%</td></tr>
+        <tr><td>搭建、法律、会计、平台、团队与保险</td><td class="num">R0.45m</td><td class="num muted">9%</td></tr>
+      </tbody></table>
+      <p class="tiny" style="margin-top:3px;">约 64% 的募资是库存与营运资金——随销售回笼为现金，因此真实的“在险现金”远低于 R5.0m 的表面数字。持续性的保险费（库存、在途货物、产品责任）计入每月总部开支。</p>
+    </div>
+    <div>
+      <div class="label">交易结构</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li><strong>是股权，不是借款。</strong> R5.0m 购入 Jeffy Commerce (Pty) Ltd 的 <strong>50% 股权</strong>，在 CIPC 登记，资金从境外通过合规的外汇管制（SARB）渠道引入。</li>
+        <li><strong>回报 = 分红 + 股权增值。</strong> 资本留在公司内滚动增值；投资人的回报来自其 50% 的利润份额与股权价值的上升——而非抽回本金。</li>
+        <li><strong>股权随批次归属。</strong> 股权按实际引入的资本比例发行，使持股与出资同步。</li>
+        <li><strong>清晰的治理。</strong> 股东协议界定创始人的日常经营权限、保留事项、僵局打破机制以及随售权/领售权——在 50/50 持股下保护双方。</li>
+      </ul>
+    </div>
+  </div>
+  <div class="box gold"><strong>这一结构为何保护投资人的下行。</strong> 资本对照验证分批拨付，三分之二是可回收库存而非沉没开支，且股权真实并予以保留——使创始人与投资人指向同一个结果：一家盈利且持续增长的公司。</div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 6 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第7页 — 回报与敏感性 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">8</span>&nbsp; 投资回报——三年视角</h2>
+  <div class="lead">第1年盈亏平衡，第2年约 R2.1m 利润，第3年约 R7.0m——投资人 50% 的利润份额约在三年内收回 R5.0m，同时股权持续增值。</div>
+
+  <table>
+    <thead><tr><th>年度</th><th class="num">收入</th><th class="num">营业利润</th><th class="num">累计</th><th>阶段</th></tr></thead>
+    <tbody>
+      <tr><td><strong>第1年</strong></td><td class="num">R1.9m</td><td class="num neg">−R0.4m</td><td class="num neg">−R0.4m</td><td>搭建——第4季度实现盈亏平衡</td></tr>
+      <tr><td><strong>第2年</strong></td><td class="num">R11.0m</td><td class="num pos">+R2.1m</td><td class="num pos">+R1.7m</td><td>盈利且自给自足</td></tr>
+      <tr><td><strong>第3年</strong></td><td class="num">R26.6m</td><td class="num pos">+R7.0m</td><td class="num pos">+R8.7m</td><td>全国推广；投资人股权成熟</td></tr>
+    </tbody>
+  </table>
+  <p class="small">回报以分红（自第2年起，在保障增长的前提下视现金而定）与 50% 股权价值的增长两种形式抵达投资人。按上述预测，投资人所占的累计利润约在第3年末接近其投入的 R5.0m——此后他们将继续持有一家盈利且增长中的公司的一半。</p>
+
+  <div class="label" style="margin-top:6px;">敏感性分析——若每单边际贡献低于基准，第3年的运行率营业利润</div>
+  <table style="margin-top:4px;">
+    <thead><tr><th>每单边际贡献</th><th class="num">较基准(R60)</th><th class="num">月营业利润*</th><th class="num">年化运行率</th><th>解读</th></tr></thead>
+    <tbody>
+      <tr><td>R40（压力）</td><td class="num">−33%</td><td class="num pos">约 R0.44m</td><td class="num pos">约 R5.3m</td><td>仍明显盈利</td></tr>
+      <tr><td>R50（谨慎）</td><td class="num">−17%</td><td class="num pos">约 R0.62m</td><td class="num pos">约 R7.4m</td><td>较为宽裕</td></tr>
+      <tr><td><strong>R60（基准）</strong></td><td class="num">—</td><td class="num pos">约 R0.80m</td><td class="num pos">约 R9.6m</td><td>计划情形</td></tr>
+      <tr><td>R70（上行）</td><td class="num">+17%</td><td class="num pos">约 R0.98m</td><td class="num pos">约 R11.8m</td><td>若退货/费用优于计划</td></tr>
+    </tbody>
+  </table>
+  <p class="tiny">*以第3年成熟期（18,000 单/月）、总部开支约 R280k/月计。即便每单边际贡献比计划低三分之一，模式仍然盈利——下行的代价是回报变慢，而非亏损。</p>
+
+  <div class="label" style="margin-top:6px;">季度明细（上述年度数字背后的细节）</div>
+  <table style="margin-top:4px; font-size:8.8px;">
+    <thead><tr><th>季度</th><th class="num">月订单</th><th class="num">收入</th><th class="num">营业利润</th><th class="num">累计</th><th>季度</th><th class="num">月订单</th><th class="num">收入</th><th class="num">营业利润</th><th class="num">累计</th></tr></thead>
+    <tbody>
+      <tr><td>Y1 Q1</td><td class="num">150</td><td class="num">R0.07m</td><td class="num neg">−0.15</td><td class="num neg">−0.15</td>     <td>Y2 Q5</td><td class="num">3,500</td><td class="num">R1.68m</td><td class="num pos">+0.21</td><td class="num neg">−0.14</td></tr>
+      <tr><td>Y1 Q2</td><td class="num">500</td><td class="num">R0.24m</td><td class="num neg">−0.15</td><td class="num neg">−0.30</td>     <td>Y2 Q6</td><td class="num">5,000</td><td class="num">R2.40m</td><td class="num pos">+0.42</td><td class="num pos">+0.28</td></tr>
+      <tr><td>Y1 Q3</td><td class="num">1,200</td><td class="num">R0.58m</td><td class="num neg">−0.08</td><td class="num neg">−0.39</td>   <td>Y2 Q7</td><td class="num">6,500</td><td class="num">R3.12m</td><td class="num pos">+0.63</td><td class="num pos">+0.91</td></tr>
+      <tr><td>Y1 Q4</td><td class="num">2,200</td><td class="num">R1.06m</td><td class="num pos">+0.04</td><td class="num neg">−0.35</td>   <td>Y2 Q8</td><td class="num">8,000</td><td class="num">R3.84m</td><td class="num pos">+0.84</td><td class="num pos">+1.75</td></tr>
+      <tr><td>Y3 Q9</td><td class="num">10,000</td><td class="num">R4.80m</td><td class="num pos">+1.14</td><td class="num pos">+2.89</td>  <td>Y3 Q11</td><td class="num">15,000</td><td class="num">R7.20m</td><td class="num pos">+1.92</td><td class="num pos">+6.34</td></tr>
+      <tr><td>Y3 Q10</td><td class="num">12,500</td><td class="num">R6.00m</td><td class="num pos">+1.53</td><td class="num pos">+4.42</td> <td>Y3 Q12</td><td class="num">18,000</td><td class="num">R8.64m</td><td class="num pos">+2.40</td><td class="num pos">+8.74</td></tr>
+    </tbody>
+  </table>
+  <p class="tiny">营业利润/累计单位为百万兰特。假设：每单边际贡献约 R60；总部开支随团队与平台扩张由约 R60k 升至约 R280k/月。收入指 Jeffy 的批发环节。</p>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 7 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第8页 — 经济效益、团队与签证契合 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">9</span>&nbsp; 经济效益、团队与签证契合</h2>
+  <div class="lead">精简的、南非人优先的员工队伍，加上一张创造数百个本地独立谋生机会的分销商网络。</div>
+  <p>Jeffy 的设计是随着公司负担能力而扩张团队——工资跟着收入走，绝不超前。直接团队从小而南非本地化起步，而大规模的经济效益由分销商网络来实现。</p>
+
+  <div class="two">
+    <div>
+      <div class="label">分阶段招聘计划（全部为南非公民/永居）</div>
+      <table style="margin-top:4px;">
+        <thead><tr><th>阶段</th><th>岗位</th></tr></thead>
+        <tbody>
+          <tr><td><strong>员工 #1</strong><br><span class="tiny">自上线起</span></td><td><strong>全职社群运营经理</strong>——一位南非公民，负责心愿清单、每周中奖者、社媒与分销商沟通（需求引擎）。一名全职南非员工即意味着<strong>从第一天起 100% 南非本地雇佣</strong>——60% 规则当即满足。</td></tr>
+          <tr><td>当收入可覆盖时<br><span class="tiny">第 1–2 年</span></td><td>负责地面工作的分销商/区域协调员，随后是履约/仓储与客服——每一项都仅在收入可覆盖时增加，且全部为南非本地。</td></tr>
+          <tr><td>扩张期<br><span class="tiny">第 2–3 年</span></td><td>区域经理、采购/进口行政、财务。</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="label">为何契合南非商业签证</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li><strong>60% 规则从第一天起即满足。</strong> 60% 南非员工要求是一个<em>比例</em>。员工 #1 是一位全职南非社群运营经理——这就是第一天 100% 的南非雇佣，无需过度扩员即“达标”。随着全南非团队扩大，该比例保持成立。</li>
+        <li><strong>强有力的 DTIC 效益论证。</strong> 在工资之外，分销商网络创造<strong>数百个南非本地独立谋生机会</strong>——这正是贸工竞部（DTIC）在出具其必备《推荐信》时所看重的经济发展效益。</li>
+        <li><strong>真实且保留的投资。</strong> R5.0m 是留在公司内的真实股权（不予抽回），从境外经 SARB 渠道引入，并可由南非注册会计师核实——这正是商业签证所要求的基础。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box gold">
+    <div class="label" style="color:var(--gold)">面向投资人签证路径（摘要——请与移民律师确认）</div>
+    <p style="margin-top:4px;" class="small">南非商业签证（《2002 年第 13 号移民法》第 15 条）通常要求：从境外引入、约 R5.0m 的资本投入并经南非注册会计师确认；12 个月内至少 60% 的员工为南非公民/永居；以及由 DTIC 出具确认该业务可行且有益于经济的《推荐信》。受青睐行业可申请投资金额豁免。本计划在结构上支持以上三项：真实且保留的 R5.0m 股权、一支全南非的直接团队，以及有据可循的经济效益论证。<strong>时间——并非即时。</strong>南非注册会计师可证明 R5.0m 资金“可用”（存于境外或已投入），因此申请无需等到资金全部到位；从头到尾约需 <strong>4–8 个月</strong>——DTIC 推荐约 45 个工作日，随后内政部约 8–12 周。投资须真实落地，并在签发后 12 个月内满足 60% 南非员工条件。签证资格、税务与架构须由公司移民律师与注册会计师确认。</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 8 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第9页 — 扩张阶梯 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">10</span>&nbsp; 扩张阶梯</h2>
+  <div class="lead">先把地基一次性打牢——然后快速复制。这是一座要建立的“事业版图”，不是一夜暴富的把戏。</div>
+  <p>每一级台阶，都要等下一级被验证之后才往上走。正是这份纪律让分批资本变得安全：Jeffy 先小额投入，在一个地方证明模式可行，然后只把资金投向已被证明能盈利的部分。其机制刻意做到<strong>可复制</strong>——一个区域跑通后，第二、第三个区域就是已知配方的复制，这也是为什么早期扎实的搭建可以在后期快速放量。</p>
+
+  <table>
+    <thead><tr><th style="width:8%">台阶</th><th style="width:20%">阶段</th><th>建设什么</th><th style="width:24%">满足以下条件才往上走</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>1</strong></td>
+        <td><strong>地基</strong><br><span class="tiny">第 1–3 月 · R0.75m</span></td>
+        <td>公司、海关编码与平台上线；完成增值税登记；聘请法律/会计；<strong>员工 #1——全职南非社群运营经理</strong>到岗；心愿清单上线并开始收集需求数据；下首批小额测试库存。</td>
+        <td>心愿清单显示对特定商品清晰且重复的需求，且平台能端到端处理一笔带分账的真实订单。</td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td>
+        <td><strong>验证（单一区域）</strong><br><span class="tiny">第 4–8 月 · R1.5m 之一部分</span></td>
+        <td>在单一且密集的区域招募首批分销商；地理路由上线；交付真实订单；测量真实的每单边际贡献、退货率与分销商产能。</td>
+        <td>该单一区域的每单边际贡献、退货率与分销商留存在一段持续时间内维持在计划水平或接近。</td>
+      </tr>
+      <tr>
+        <td><strong>3</strong></td>
+        <td><strong>做密</strong><br><span class="tiny">第 8–12 月 · R1.5m 余下部分</span></td>
+        <td>在同一区域内增加分销商与订单量直至饱和；打磨招募手册；实现月度盈亏平衡。</td>
+        <td>首个区域自身盈利，且招募手册已成文、可由协调员（而非仅靠创始人）复制。</td>
+      </tr>
+      <tr>
+        <td><strong>4</strong></td>
+        <td><strong>复制</strong><br><span class="tiny">第 2 年 · R2.75m 之一部分</span></td>
+        <td>把验证过的配方复制到 2–4 个新区域；招聘南非区域协调员运营；对验证过的赢家整柜备货；增加履约。</td>
+        <td>新区域以与首个区域相同的时间线实现盈利——证明可复制的是配方，而不只是创始人本人。</td>
+      </tr>
+      <tr>
+        <td><strong>5</strong></td>
+        <td><strong>全国推广</strong><br><span class="tiny">第 3 年 · R2.75m 余下部分</span></td>
+        <td>逐镇推广至全国；区域经理；更深的采购；从心愿清单需求拓宽品类。</td>
+        <td>由利润自我供养；网络与品牌持续复利增长。</td>
+      </tr>
+      <tr>
+        <td><strong>6+</strong></td>
+        <td><strong>事业版图</strong><br><span class="tiny">第 4 年起 · 自我供养</span></td>
+        <td>一张全国分销商网络与一个受信赖的品牌——在此平台上增加品类、为验证过的赢家做自有品牌、拓宽目录，全部由公司自身供养。</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="win"><strong>为什么这样既安全又快。</strong> 安全，是因为在模式于一个真实区域被验证、且手册可复制之前，不投入大额资本。快，是因为一旦配方被验证，每个新区域都是一份复制——而复制的扩张速度远快于原创。先打牢地基，再快速、聪明地复制。</div>
+
+  <div class="box navy">
+    <div class="label" style="color:var(--navy)">指导原则</div>
+    <p style="margin-top:4px;">小额投入以学习，只在已被验证之处大额投入。每一批资本都对照“台阶被跨上”而拨付——绝不押注于希望。这正是把一个好点子变成一门持久生意的关键。</p>
+  </div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 9 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第10页 — 风险 ===================== -->
+<!-- ===================== 第10页 — 库存、仓储、保险与责任 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">11</span>&nbsp; 库存、仓储、保险与责任</h2>
+  <div class="lead">库存归 Jeffy 所有，因此由 Jeffy 投保——并通过设计把这一风险控制得小、有上限、且有保障。</div>
+  <p>由于分销商在自家存放 Jeffy 所有的库存并从家中配送，有三件事必须有意为之、而非听天由命：库存存放在哪里、如何投保、以及损失由谁承担。</p>
+
+  <div class="two">
+    <div class="box">
+      <div class="label" style="color:var(--teal)">1 · 仓储与分区规划</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li>大部分库存放在<strong>中央/区域微型仓库</strong>；分销商只持有少量、周转快的滚动库存——使每户保持在市政“家庭经营”限度内，并降低集中风险。</li>
+        <li>每名分销商的库存<strong>以信用额度封顶</strong>，因此任何单一住宅地址都不会存放高价值货物。</li>
+        <li>分销商确认其有权在自有物业存放与配送（业主/房东/业主立案法团规则）。除非持有市政牌照，否则不经营食品类。</li>
+      </ul>
+    </div>
+    <div class="box">
+      <div class="label" style="color:var(--teal)">2 · 保险（由 Jeffy 承保）</div>
+      <ul class="tight" style="margin-top:4px;">
+        <li>Jeffy 持有所有权，故由 Jeffy 投保一份中央商业<strong>“多地点库存”</strong>保单，外加配送的<strong>在途货物</strong>险——而非分销商的家庭保单（其将营业库存排除在外）。</li>
+        <li>每名分销商的价值上限使保险可承保，并为任何单笔索赔设定边界。</li>
+        <li>为 Jeffy 作为进口商在《消费者保护法》第 61 条严格责任下的敞口投保<strong>产品责任险</strong>。</li>
+        <li>保费计入每月总部开支——即便在压力情形下也可负担（见第 7 页）。</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box gold">
+    <div class="label" style="color:var(--gold)">3 · 损失由谁承担——以及保险的诚实边界</div>
+    <p style="margin-top:4px;">库存在<strong>保留所有权</strong>下流转，配有逐户台账与库存记录；盗窃索赔须提供 SAPS 报案号。保险覆盖火灾、入室盗窃与在途损失。最棘手的敞口——分销商卖掉库存却谎称被盗，或携货失联——只能<em>部分</em>投保，因为受托人的不诚实行为被普通保单排除在外。因此通过运营手段管理：背景核查、起始额度小、逐步晋级，并在模型中预留适度的<strong>坏账准备</strong>，而非假装它不存在。</p>
+  </div>
+
+  <div class="flag"><strong>上线前需最终敲定（第一批资金预算内）：</strong>与商业保险经纪确认具体保单条款（多地点库存 + 在途货物 + 产品责任）、由律师起草分销商协议（所有权、保管、损失分担），以及请城市规划师做一次分区核查。这些都是可落实、已列预算的事项——并非法律或保险经纪意见。</div>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 10 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第11页 — 风险 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">12</span>&nbsp; 风险与对策</h2>
+  <div class="lead">我们如实列出真实风险，并说明结构如何控制每一项。</div>
+  <table>
+    <thead><tr><th style="width:38%">风险</th><th>对策</th></tr></thead>
+    <tbody>
+      <tr><td><strong>单位经济弱于模型</strong>（退货、汇率、运费侵蚀 R60 边际贡献）</td><td>分批资本——第 2、3 批以已验证的边际贡献为前提；聚焦能从容承担运费与关税的商品；敏感性分析显示即便每单 R40 业务仍盈利。</td></tr>
+      <tr><td><strong>获客难于预期</strong>（心愿清单/分销商带来的需求不足）</td><td>营销是一笔灵活的总部开支，而非固定的每单成本；“先小额验证”的路线图在投入大额资本前先在 1–2 个区域测试需求。</td></tr>
+      <tr><td><strong>分销商招募/留存</strong></td><td>先在 1–2 个区域做密再向外扩张；每单约 R59 加上通往更高毛利的晋级路径维持招募吸引力；专职南非区域协调员负责招募与支持。</td></tr>
+      <tr><td><strong>分销商信用/库存损失</strong>（未付款，或在家中/在途丢失被盗）</td><td>保留所有权；起始额度保守；逐户台账与月度结账；向预付进货晋级。家中与在途库存由中央统一投保（见第 10 页），单笔损失受每户额度上限约束。详见第 10 页的仓储、保险与不诚实敞口边界。</td></tr>
+      <tr><td><strong>现金被在途与库存占用</strong></td><td>先做小批量验证；约 64% 的募资为可回收库存；由心愿清单预先验证需求以最小化滞销；月度结账按到岸成本核对库存。</td></tr>
+      <tr><td><strong>汇率与运费波动</strong></td><td>按实际支付的汇率入账；到岸成本内置定价缓冲；按月对账。</td></tr>
+      <tr><td><strong>分销商身份误判</strong>（被认定为雇员/代理）</td><td>由律师起草的买断转售协议、保留所有权、不收加盟费、披露式代收——在签约分销商之前完成（第一批资金预算内）。</td></tr>
+      <tr><td><strong>增值税/税务处理</strong></td><td>在扩大库存前登记增值税；注册会计师确认增值税抵扣、预缴税与架构；按月对账 Nedbank、PayFast 与到岸成本口径的销货成本。</td></tr>
+      <tr><td><strong>竞争</strong>（Temu/Shein 跨境直达消费者）</td><td>Jeffy 在当天本地配送、本地信任，以及跨境包裹无法匹敌的赊账/货到付款便利上竞争——加上本地既有玩家无法触及的工厂直供价。</td></tr>
+      <tr><td><strong>产品责任</strong>（CPA 第 61 条进口商敞口）</td><td>投保产品责任险；从经核查的供应商采购；提供清晰的使用说明/警示；进口记录保存五年（见第 10 页）。</td></tr>
+      <tr><td><strong>关键人/执行</strong></td><td>早期南非招聘（社群运营 + 区域协调员）降低对单一创始人的依赖；成文流程与月度结账构建运营韧性。</td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 11 页 / 共 12 页</span></div>
+</div>
+
+<!-- ===================== 第11页 — 公司与合规 ===================== -->
+<div class="page">
+  <h2><span class="sec-num">13</span>&nbsp; 公司、团队与合规</h2>
+  <div class="lead">一家已注册、具备进口资质、识别号可核验的南非公司。</div>
+  <div class="two">
+    <div>
+      <table><tbody>
+        <tr><td class="label">注册名称</td><td>Jeffy Commerce (Pty) Ltd</td></tr>
+        <tr><td class="label">注册号</td><td>2025/950712/07</td></tr>
+        <tr><td class="label">成立日期</td><td>2025年12月10日 · 财年截至2月</td></tr>
+        <tr><td class="label">所得税号</td><td>9168272293</td></tr>
+        <tr><td class="label">SARS 海关编码</td><td>CU25827795（进口商资格2026年5月18日核准）</td></tr>
+        <tr><td class="label">董事/公共事务官</td><td>Tredoux Willemse</td></tr>
+        <tr><td class="label">开户行</td><td>Nedbank · 账户 1307614477 · 分行码 198765</td></tr>
+        <tr><td class="label">网站</td><td>jeffy.co.za · hello@jeffy.co.za</td></tr>
+      </tbody></table>
+    </div>
+    <div>
+      <div class="label">团队</div>
+      <p style="margin-top:4px;" class="small"><strong>创始人兼董事 — Tredoux Willemse。</strong> 南非籍；曾在多个大洲工作；主导战略与采购。<strong>早期招聘（全部南非籍）：</strong> 自上线起的社群运营经理与分销商/区域协调员，随收入扩张。<strong>待委聘：</strong> 一位南非律师（分销商与竞争法文件）与一位注册会计师（增值税、税务、架构）。分销商以独立经营者身份构成分布式网络。</p>
+      <div class="label" style="margin-top:6px;">合规</div>
+      <p style="margin-top:4px;" class="small">预缴税（IRP6）与年度 ITR14；CIPC 年度申报及受益所有权；扩大规模前登记增值税；进口记录保存五年；月度结账对账 Nedbank、PayFast 结算与到岸成本口径的库存/销货成本。境外投资经 SARB 外汇管制渠道引入，并由南非注册会计师确认。</p>
+    </div>
+  </div>
+
+  <div class="box navy" style="margin-top:8px;">
+    <div class="label" style="color:var(--navy)">致投资人的独立顾问——一页速读</div>
+    <ul class="tight" style="margin-top:4px;">
+      <li><strong>逻辑是结构性的，而非宣传性的：</strong> 分销商模式去除了让南非进口电商亏钱的两项成本（付费获客 + 末端快递），把直营模式的每单 −R18 翻转为 Jeffy 的每单 +R60 边际贡献。</li>
+      <li><strong>数字经过保守压力测试：</strong> 即便每单边际贡献低三分之一，业务仍盈利；资本对照验证分批拨付；三分之二为可回收库存。</li>
+      <li><strong>交易干净：</strong> 真实的 50% 股权，资本保留并复利，股权随批次归属，50/50 治理规范。</li>
+      <li><strong>结构可落实：</strong> 增值税、分销商身份与签证资格均已明确、已列预算，并将由公司律师、注册会计师与移民律师签署确认。</li>
+    </ul>
+  </div>
+
+  <p class="tiny" style="margin-top:10px;">免责声明：仅供信息与讨论之用。注册、税务与海关识别号可经 CIPC 与 SARS 核验。财务数据为基于所述假设的示意性预测，并非经审计的结果或回报保证。税务、增值税、法律架构及投资/签证事项，须在依赖之前由公司注册会计师、律师与移民律师确认。</p>
+
+  <div class="foot"><span>Jeffy Commerce (Pty) Ltd · 机密</span><span>第 12 页 / 共 12 页</span></div>
+</div>
+
+</body>
+</html>

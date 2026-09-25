@@ -1,3 +1,4 @@
+try{require('dotenv').config({path:'.env.local'})}catch(e){}
 #!/usr/bin/env node
 /**
  * DIRECT SUPABASE PRICING FIX
@@ -8,8 +9,8 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Direct Supabase connection
 const supabase = createClient(
-  'https://inhrgiakjyprabxluppv.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluaHJnaWFranlwcmFieGx1cHB2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTQ1MjY5MiwiZXhwIjoyMDgxMDI4NjkyfQ.4qTzPRb5UHlISQB5duYcSCryuioEnwaxBwGMILbnrZ4'
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
 // Pricing constants - OPTIMIZED FOR SPAZA

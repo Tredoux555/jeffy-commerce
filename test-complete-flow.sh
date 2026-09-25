@@ -7,7 +7,7 @@ echo ""
 # Test 1: Check zones API
 echo "Test 1: Checking zones API..."
 ZONES_RESPONSE=$(curl -s -X GET "https://inhrgiakjyprabxluppv.supabase.co/rest/v1/zones?select=*" \
-  -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluaHJnaWFranhwcmFieGx1cHB2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDMyNDcyNDcsImV4cCI6MTcxODgyNzI0N30.nNOvU-qDn6GmYAGJNNB8QlxFQ6wPL9xhLqXMx5EjB1A" \
+  -H "apikey: ${SUPABASE_KEY}" \
   -H "Content-Type: application/json" 2>&1)
 
 if echo "$ZONES_RESPONSE" | grep -q "Johannesburg CBD"; then
